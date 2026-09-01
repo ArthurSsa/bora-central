@@ -191,7 +191,7 @@
     user:null, membro:false, carregando:true,
     clientes:[], inbox:[], vista:{ tipo:'inbox' }, aba:'respostas',
     detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[] },
-    erro:null,
+    erro:null, modoLogin:'link', linkEnviadoPara:null,
   };
 
   const app = document.getElementById('app');
@@ -284,23 +284,76 @@
     const box = el('div',{class:'login'});
     box.appendChild(el('p',{class:'eyebrow'},'Uso interno da Bora Postar'));
     box.appendChild(el('h1',{class:'page'},'Central Bora'));
-    box.appendChild(el('p',{class:'muted'},'Entre com a conta da agência.'));
+
+    // Confirmação depois de enviar o link
+    if(state.linkEnviadoPara){
+      box.appendChild(el('p',{class:'muted'},
+        'Link enviado para <strong>'+esc(state.linkEnviadoPara)+'</strong>. Abra o e-mail e clique nele — você volta pra cá já conectado. O link vale por 1 hora e serve uma vez só.'));
+      const acoes = el('div',{style:'margin-top:18px;display:flex;gap:10px;flex-wrap:wrap'});
+      acoes.appendChild(el('button',{class:'btn ghost small', onclick:()=>{ state.linkEnviadoPara=null; state.erro=null; render(); }},'Usar outro e-mail'));
+      box.appendChild(acoes);
+      return box;
+    }
+
+    const porSenha = state.modoLogin === 'senha';
+    box.appendChild(el('p',{class:'muted'}, porSenha
+      ? 'Entre com a senha da sua conta do Supabase.'
+      : 'Digite seu e-mail que a gente manda um link de acesso. Sem senha pra lembrar nem pra compartilhar.'));
+
     const form = el('form');
     form.appendChild(campo('E-mail','email','email'));
-    form.appendChild(campo('Senha','senha','password'));
-    if(state.erro) form.appendChild(el('div',{class:'erro'},esc(state.erro)));
-    const btn = el('button',{class:'btn', type:'submit'},'Entrar');
+    if(porSenha) form.appendChild(campo('Senha','senha','password'));
+    if(state.erro) form.appendChild(el('div',{class:'erro'}, esc(state.erro)));
+
+    const btn = el('button',{class:'btn', type:'submit'}, porSenha ? 'Entrar' : 'Enviar link de acesso');
     form.appendChild(btn);
+
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
-      btn.disabled = true; btn.textContent = 'Entrando…';
       const email = form.querySelector('[name=email]').value.trim();
-      const password = form.querySelector('[name=senha]').value;
-      const { error } = await sb.auth.signInWithPassword({ email, password });
-      if(error){ state.erro = 'E-mail ou senha não conferem.'; render(); return; }
-      await iniciarSessao();
+      if(!email){ state.erro = 'Falta o e-mail.'; render(); return; }
+      btn.disabled = true;
+      state.erro = null;
+
+      if(porSenha){
+        btn.textContent = 'Entrando…';
+        const password = form.querySelector('[name=senha]').value;
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if(error){ state.erro = 'E-mail ou senha não conferem.'; render(); return; }
+        await iniciarSessao();
+        return;
+      }
+
+      btn.textContent = 'Enviando…';
+      // shouldCreateUser: false — só entra quem já foi criado no Supabase.
+      // Sem isso, qualquer pessoa criaria conta neste projeto, que é o mesmo do app.
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false, emailRedirectTo: window.location.origin },
+      });
+      if(error){
+        const m = (error.message || '').toLowerCase();
+        if(m.includes('not allowed') || m.includes('signups')){
+          state.erro = 'Não existe conta com esse e-mail. Peça pra criarem a sua no Supabase antes.';
+        } else if(m.includes('rate') || m.includes('limit') || m.includes('seconds')){
+          state.erro = 'Muitos pedidos seguidos. Espere alguns minutos e tente de novo.';
+        } else {
+          state.erro = 'Não deu pra enviar o link agora: ' + error.message;
+        }
+        render();
+        return;
+      }
+      state.linkEnviadoPara = email;
+      render();
     });
+
     box.appendChild(form);
+
+    const alt = el('p',{style:'margin:18px 0 0'});
+    alt.appendChild(el('button',{class:'linkbtn', type:'button', style:'color:#6E6E6E',
+      onclick:()=>{ state.modoLogin = porSenha ? 'link' : 'senha'; state.erro=null; render(); }},
+      porSenha ? 'voltar pro link por e-mail' : 'entrar com senha'));
+    box.appendChild(alt);
     return box;
   }
 
@@ -769,8 +822,25 @@
 
   // ---------- sessão ----------
 
+  // O link de acesso volta com os tokens no fragmento da URL. O supabase-js consome
+  // sozinho; aqui a gente só pesca o erro (link expirado, já usado) e limpa a barra.
+  function lerRetornoDoLink(){
+    const h = window.location.hash || '';
+    if(h.includes('error')){
+      const p = new URLSearchParams(h.replace(/^#/, ''));
+      const d = (p.get('error_description') || '').toLowerCase();
+      state.erro = (d.includes('expired') || d.includes('invalid'))
+        ? 'Esse link expirou ou já foi usado. Peça um novo.'
+        : 'O link não funcionou: ' + (p.get('error_description') || p.get('error'));
+    }
+    if(h.includes('access_token') || h.includes('error')){
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  }
+
   async function iniciarSessao(){
     state.carregando = true; render();
+    lerRetornoDoLink();
     const { data:{ session } } = await sb.auth.getSession();
     state.user = session ? session.user : null;
     if(state.user){
@@ -786,6 +856,7 @@
     await sb.auth.signOut();
     state.user = null; state.membro = false; state.clientes = []; state.inbox = [];
     state.vista = { tipo:'inbox' };
+    state.linkEnviadoPara = null; state.modoLogin = 'link'; state.erro = null;
     render();
   }
 
