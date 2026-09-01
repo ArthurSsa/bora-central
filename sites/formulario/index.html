@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conhecendo Você(s) e Seu Trabalho — Bora Postar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --black:#0A0A0A;
+    --white:#FFFFFF;
+    --orange:#FF5E00;
+    --purple:#8800FF;
+    --gray:#6E6E6E;
+    --line:#DEDEDE;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:var(--white);
+    color:var(--black);
+    font-family:'Archivo',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  .grid-bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      radial-gradient(circle, rgba(10,10,10,0.09) 1px, transparent 1px);
+    background-size:24px 24px;
+    -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 15%, black 40%, transparent 90%);
+            mask-image: radial-gradient(ellipse 85% 65% at 50% 15%, black 40%, transparent 90%);
+  }
+
+  .topbar{
+    position:relative; z-index:2;
+    width:100%; max-width:660px;
+    margin:0 auto;
+    padding:28px 20px 0;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{
+    display:flex; align-items:center; gap:9px;
+    font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:1rem; letter-spacing:0.02em; text-transform:uppercase;
+  }
+  .brand .mark{ height:44px; width:auto; flex:none; }
+  .stepcount{
+    font-family:'Space Mono',monospace; font-size:0.72rem;
+    color:var(--gray); letter-spacing:0.04em; text-transform:uppercase;
+    display:flex; align-items:center; gap:6px;
+  }
+  .stepcount .dot{ width:7px; height:7px; background:var(--orange); display:inline-block; }
+
+  .progressbar-outer{
+    position:relative; z-index:2;
+    width:100%; max-width:660px; margin:14px auto 0; padding:0 20px;
+  }
+  .progressbar{
+    height:9px; background:#E2E2E2; position:relative; overflow:hidden;
+  }
+  .progressbar .fill{
+    position:absolute; left:0; top:0; height:100%; width:0%;
+    background:var(--orange);
+    box-shadow:0 0 12px 2px rgba(255,94,0,0.85);
+    transition:width .5s cubic-bezier(.4,0,.2,1);
+  }
+
+  main{
+    position:relative; z-index:2;
+    width:100%; max-width:660px;
+    margin:0 auto;
+    padding:36px 20px 90px;
+    flex:1;
+    display:flex;
+  }
+
+  .card{
+    width:100%;
+    background:var(--white);
+    border:3px solid var(--black);
+    box-shadow:9px 9px 0 var(--orange);
+    padding:clamp(26px,5vw,50px);
+    position:relative;
+  }
+  .card.dark{
+    background:var(--black);
+    color:var(--white);
+    border-color:var(--black);
+    box-shadow:9px 9px 0 var(--purple);
+  }
+
+  .step{ display:none; }
+  .step.active{ display:block; }
+  @media (prefers-reduced-motion:no-preference){
+    .step.active{ animation:stepIn .4s cubic-bezier(.2,.7,.3,1); }
+  }
+  @keyframes stepIn{
+    from{ opacity:0; transform:translateX(14px); }
+    to{ opacity:1; transform:translateX(0); }
+  }
+
+  .stripe{
+    position:relative; display:inline-block; white-space:nowrap;
+  }
+  .stripe::before{
+    content:""; position:absolute; left:-3%; right:-3%; top:52%; height:0.42em;
+    background:var(--purple); transform:skewY(-3deg) translateY(-50%); z-index:-1;
+  }
+  .card.dark .stripe::before{ background:var(--orange); }
+  .stripe{ z-index:1; }
+
+  .eyebrow{
+    font-family:'Space Mono',monospace; font-size:0.74rem; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--orange); margin:0 0 14px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{ content:""; width:16px; height:2px; background:var(--orange); display:inline-block; }
+
+  h1.hero{
+    font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:clamp(2rem,6vw,2.7rem); line-height:1.08; margin:0 0 18px;
+    max-width:20ch; letter-spacing:-0.01em;
+  }
+  h2.section-title{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:clamp(1.5rem,4.5vw,1.9rem);
+    margin:0 0 6px; letter-spacing:-0.01em;
+  }
+  p.lede{ font-size:1.02rem; line-height:1.6; max-width:46ch; margin:0 0 28px; }
+  p.lede.small{ font-size:0.94rem; color:var(--gray); }
+  .card.dark p.lede.small{ color:#C9C9C9; }
+  .card.dark p.lede{ color:#EDEDED; }
+
+  .badge{
+    position:absolute; top:-18px; right:-14px;
+    width:96px; height:96px; flex:none;
+  }
+  @media (min-width:561px){
+    .step[data-step="0"] .eyebrow, .step[data-step="0"] h1.hero,
+    #reviewStep .eyebrow, #reviewStep h1.hero{
+      padding-right:112px;
+    }
+  }
+  @media (max-width:560px){
+    .badge{ position:static; float:right; margin:0 0 16px 16px; width:78px; height:78px; }
+    .card > .cta-row{ clear:both; }
+  }
+
+  .btn{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.92rem;
+    letter-spacing:0.01em;
+    padding:13px 22px; border-radius:4px; border:2.5px solid var(--black); cursor:pointer;
+    display:inline-flex; align-items:center; gap:9px; background:transparent; color:var(--black);
+    transition:transform .12s ease, background .12s ease, color .12s ease, box-shadow .12s ease;
+  }
+  .btn svg{ width:15px; height:15px; flex:none; }
+  .btn-primary{ background:var(--black); color:var(--white); }
+  .btn-primary:hover{ background:var(--orange); border-color:var(--orange); transform:translate(-2px,-2px); box-shadow:3px 3px 0 var(--black); }
+  .btn-ghost{ background:transparent; color:var(--black); }
+  .btn-ghost:hover{ background:var(--black); color:var(--white); transform:translate(-2px,-2px); box-shadow:3px 3px 0 var(--orange); }
+  .card.dark .btn{ border-color:var(--white); color:var(--white); }
+  .card.dark .btn-primary{ background:var(--orange); border-color:var(--orange); color:var(--black); }
+  .card.dark .btn-primary:hover{ background:var(--white); border-color:var(--white); box-shadow:3px 3px 0 var(--orange); }
+  .card.dark .btn-ghost:hover{ background:var(--white); color:var(--black); box-shadow:3px 3px 0 var(--orange); }
+  .btn:active{ transform:translate(0,0); box-shadow:none; }
+
+  *:focus-visible{ outline:3px solid var(--purple); outline-offset:2px; }
+
+  .cta-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:4px; }
+  .foot-note{ margin-top:28px; font-size:0.82rem; color:var(--gray); }
+  .card.dark .foot-note{ color:#A8A8A8; }
+
+  .qgroup{ margin-bottom:26px; }
+  .qgroup label{
+    display:block; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:1.04rem;
+    margin-bottom:10px; line-height:1.4;
+  }
+  .qgroup textarea{
+    width:100%; resize:none; overflow:hidden;
+    font-family:'Archivo',sans-serif; font-size:0.98rem; color:var(--black);
+    border:none; border-bottom:2.5px solid var(--black);
+    background:transparent; padding:6px 2px 10px;
+    line-height:1.5; min-height:32px;
+    transition:border-color .15s ease;
+  }
+  .qgroup textarea::placeholder{ color:#B7B7B7; }
+  .qgroup textarea:focus{ border-bottom-color:var(--purple); outline:none; }
+
+  .nav-row{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:34px; padding-top:20px; border-top:2px solid var(--black);
+    gap:12px; flex-wrap:wrap;
+  }
+  .answered-note{ font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--gray); }
+
+  .summary{ margin-top:26px; }
+  .summary h3{
+    font-family:'Space Mono',monospace; font-size:0.72rem; letter-spacing:0.09em;
+    text-transform:uppercase; color:var(--orange); margin:28px 0 12px;
+    padding-bottom:6px; border-bottom:2px solid var(--black);
+  }
+  .card.dark .summary h3{ border-bottom-color:#3A3A3A; }
+  .summary h3:first-child{ margin-top:0; }
+  .qa{ margin-bottom:15px; }
+  .qa .q{ font-size:0.86rem; color:var(--gray); margin-bottom:2px; }
+  .qa .a{ font-size:0.98rem; color:var(--black); font-weight:600; white-space:pre-wrap; }
+  .qa .a.empty{ color:#C7C7C7; font-weight:400; font-style:italic; }
+  .card.dark .qa .q{ color:#A8A8A8; }
+  .card.dark .qa .a{ color:var(--white); }
+  .card.dark .qa .a.empty{ color:#6E6E6E; }
+
+  .toast{
+    position:fixed; left:50%; bottom:28px; transform:translate(-50%,20px);
+    background:var(--black); color:#fff; padding:12px 22px; border-radius:4px;
+    font-family:'Space Grotesk',sans-serif; font-size:0.88rem; font-weight:700;
+    border:2px solid var(--orange);
+    opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
+    z-index:10;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%,0); }
+
+  @media (max-width:520px){
+    .card{ padding:28px 18px; box-shadow:6px 6px 0 var(--orange); }
+    .card.dark{ box-shadow:6px 6px 0 var(--purple); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg" aria-hidden="true"></div>
+
+<div class="topbar">
+  <span class="brand">
+    <svg class="mark" aria-hidden="true" viewBox="0 0 1388 1675" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="1388" height="1675" fill="white"/>
+<ellipse cx="1042.19" cy="538.341" rx="241.56" ry="245.52" fill="#FF5E00"/>
+<mask id="path-3-outside-1_80_2" maskUnits="userSpaceOnUse" x="220" y="899" width="403" height="500" fill="black">
+<rect fill="white" x="220" y="899" width="403" height="500"/>
+<path d="M227.486 1391V907.16H432.773C471.941 907.16 504.197 913.842 529.541 927.205C555.346 940.107 574.469 958.078 586.91 981.118C599.813 1003.7 606.264 1029.27 606.264 1057.84C606.264 1079.96 601.426 1100.47 591.749 1119.36C582.072 1137.79 569.17 1153.69 553.042 1167.05C570.552 1179.03 583.915 1194.47 593.131 1213.36C602.808 1232.25 608.107 1253.91 609.029 1278.33L614.558 1391H519.864L512.261 1278.33C511.339 1262.21 508.114 1249.07 502.584 1238.94C497.515 1228.34 489.451 1220.5 478.392 1215.44C467.333 1210.37 452.357 1207.83 433.464 1207.83H324.254V1391H227.486ZM324.254 1129.73H426.552C455.122 1129.73 475.858 1123.28 488.76 1110.37C501.662 1097.47 508.114 1079.96 508.114 1057.84C508.114 1035.26 501.662 1017.75 488.76 1005.31C475.858 992.408 455.122 985.957 426.552 985.957H324.254V1129.73Z"/>
+</mask>
+<path d="M227.486 1391V907.16H432.773C471.941 907.16 504.197 913.842 529.541 927.205C555.346 940.107 574.469 958.078 586.91 981.118C599.813 1003.7 606.264 1029.27 606.264 1057.84C606.264 1079.96 601.426 1100.47 591.749 1119.36C582.072 1137.79 569.17 1153.69 553.042 1167.05C570.552 1179.03 583.915 1194.47 593.131 1213.36C602.808 1232.25 608.107 1253.91 609.029 1278.33L614.558 1391H519.864L512.261 1278.33C511.339 1262.21 508.114 1249.07 502.584 1238.94C497.515 1228.34 489.451 1220.5 478.392 1215.44C467.333 1210.37 452.357 1207.83 433.464 1207.83H324.254V1391H227.486ZM324.254 1129.73H426.552C455.122 1129.73 475.858 1123.28 488.76 1110.37C501.662 1097.47 508.114 1079.96 508.114 1057.84C508.114 1035.26 501.662 1017.75 488.76 1005.31C475.858 992.408 455.122 985.957 426.552 985.957H324.254V1129.73Z" fill="black"/>
+<path d="M227.486 1391H220.286V1398.2H227.486V1391ZM227.486 907.16V899.96H220.286V907.16H227.486ZM529.541 927.205L526.183 933.574L526.251 933.61L526.321 933.645L529.541 927.205ZM586.91 981.118L580.575 984.539L580.616 984.616L580.659 984.691L586.91 981.118ZM591.749 1119.36L598.124 1122.71L598.141 1122.67L598.157 1122.64L591.749 1119.36ZM553.042 1167.05L548.448 1161.51L541.094 1167.6L548.976 1172.99L553.042 1167.05ZM593.131 1213.36L586.66 1216.52L586.691 1216.58L586.723 1216.64L593.131 1213.36ZM609.029 1278.33L601.834 1278.61L601.835 1278.65L601.837 1278.69L609.029 1278.33ZM614.558 1391V1398.2H622.12L621.75 1390.65L614.558 1391ZM519.864 1391L512.68 1391.48L513.134 1398.2H519.864V1391ZM512.261 1278.33L505.073 1278.75L505.075 1278.78L505.077 1278.82L512.261 1278.33ZM502.584 1238.94L496.089 1242.04L496.171 1242.22L496.263 1242.38L502.584 1238.94ZM478.392 1215.44L475.392 1221.98V1221.98L478.392 1215.44ZM324.254 1207.83V1200.63H317.054V1207.83H324.254ZM324.254 1391V1398.2H331.454V1391H324.254ZM324.254 1129.73H317.054V1136.93H324.254V1129.73ZM488.76 1005.31L483.669 1010.4L483.715 1010.45L483.762 1010.49L488.76 1005.31ZM324.254 985.957V978.757H317.054V985.957H324.254ZM227.486 1391H234.686V907.16H227.486H220.286V1391H227.486ZM227.486 907.16V914.36H432.773V907.16V899.96H227.486V907.16ZM432.773 907.16V914.36C471.179 914.36 502.183 920.919 526.183 933.574L529.541 927.205L532.899 920.836C506.21 906.764 472.702 899.96 432.773 899.96V907.16ZM529.541 927.205L526.321 933.645C550.943 945.956 568.908 962.934 580.575 984.539L586.91 981.118L593.246 977.697C580.029 953.222 559.749 934.259 532.761 920.765L529.541 927.205ZM586.91 981.118L580.659 984.691C592.88 1006.08 599.064 1030.4 599.064 1057.84H606.264H613.464C613.464 1028.15 606.746 1001.32 593.162 977.546L586.91 981.118ZM606.264 1057.84H599.064C599.064 1078.87 594.475 1098.24 585.34 1116.08L591.749 1119.36L598.157 1122.64C608.376 1102.69 613.464 1081.05 613.464 1057.84H606.264ZM591.749 1119.36L585.374 1116.01C576.143 1133.6 563.847 1148.75 548.448 1161.51L553.042 1167.05L557.635 1172.6C574.492 1158.63 588.002 1141.99 598.124 1122.71L591.749 1119.36ZM553.042 1167.05L548.976 1172.99C565.467 1184.28 577.996 1198.76 586.66 1216.52L593.131 1213.36L599.602 1210.2C589.834 1190.18 575.637 1173.79 557.107 1161.11L553.042 1167.05ZM593.131 1213.36L586.723 1216.64C595.854 1234.47 600.946 1255.07 601.834 1278.61L609.029 1278.33L616.224 1278.06C615.268 1252.75 609.762 1230.04 599.54 1210.08L593.131 1213.36ZM609.029 1278.33L601.837 1278.69L607.367 1391.35L614.558 1391L621.75 1390.65L616.22 1277.98L609.029 1278.33ZM614.558 1391V1383.8H519.864V1391V1398.2H614.558V1391ZM519.864 1391L527.048 1390.52L519.444 1277.85L512.261 1278.33L505.077 1278.82L512.68 1391.48L519.864 1391ZM512.261 1278.33L519.449 1277.92C518.489 1261.13 515.106 1246.86 508.905 1235.49L502.584 1238.94L496.263 1242.38C501.121 1251.29 504.189 1263.28 505.073 1278.75L512.261 1278.33ZM502.584 1238.94L509.079 1235.83C503.256 1223.65 493.924 1214.63 481.392 1208.89L478.392 1215.44L475.392 1221.98C484.979 1226.37 491.774 1233.02 496.089 1242.04L502.584 1238.94ZM478.392 1215.44L481.392 1208.89C469.015 1203.22 452.878 1200.63 433.464 1200.63V1207.83V1215.03C451.836 1215.03 465.65 1217.52 475.392 1221.98L478.392 1215.44ZM433.464 1207.83V1200.63H324.254V1207.83V1215.03H433.464V1207.83ZM324.254 1207.83H317.054V1391H324.254H331.454V1207.83H324.254ZM324.254 1391V1383.8H227.486V1391V1398.2H324.254V1391ZM324.254 1129.73V1136.93H426.552V1129.73V1122.53H324.254V1129.73ZM426.552 1129.73V1136.93C455.982 1136.93 479.004 1130.31 493.851 1115.46L488.76 1110.37L483.669 1105.28C472.711 1116.24 454.261 1122.53 426.552 1122.53V1129.73ZM488.76 1110.37L493.851 1115.46C508.382 1100.93 515.314 1081.44 515.314 1057.84H508.114H500.914C500.914 1078.48 494.943 1094.01 483.669 1105.28L488.76 1110.37ZM508.114 1057.84H515.314C515.314 1033.85 508.413 1014.26 493.758 1000.13L488.76 1005.31L483.762 1010.49C494.912 1021.24 500.914 1036.68 500.914 1057.84H508.114ZM488.76 1005.31L493.851 1000.22C479.004 985.372 455.982 978.757 426.552 978.757V985.957V993.157C454.261 993.157 472.711 999.444 483.669 1010.4L488.76 1005.31ZM426.552 985.957V978.757H324.254V985.957V993.157H426.552V985.957ZM324.254 985.957H317.054V1129.73H324.254H331.454V985.957H324.254Z" fill="black" mask="url(#path-3-outside-1_80_2)"/>
+<path d="M500.319 362.021C526.316 362.287 549.625 368.704 570.146 381.335L571.122 381.941L571.137 381.952L571.153 381.961C591.492 395.025 607.168 413.953 618.229 438.567L618.745 439.707C629.489 463.708 634.606 492.739 634.258 526.669L632.126 734.709L632.09 738.309L628.49 738.272L144.675 733.316L141.076 733.279L141.113 729.679L143.173 528.55C143.522 494.556 149.17 465.725 160.286 442.199C170.914 418.724 186.044 400.794 205.725 388.594C224.934 376.396 247.344 370.489 272.813 370.75C297.755 371.005 318.917 376.638 336.095 387.863C353.116 398.984 366.083 413.663 374.945 431.85H374.944C377.297 436.554 379.391 441.388 381.232 446.35C384.302 436.459 388.695 427.193 394.417 418.567C405.977 400.684 421.076 386.827 439.678 377.049C458.3 366.803 478.536 361.798 500.319 362.021ZM487.49 467.246C467.643 467.042 452.271 473.454 440.938 486.263C429.559 499.125 423.528 517.249 423.284 541.097L422.349 632.186L547.162 633.465L548.11 540.994C548.355 517.073 543.121 499.056 532.906 486.452C522.808 473.993 507.874 467.454 487.49 467.246ZM286.241 476.935C267.729 476.745 253.781 482.51 243.877 493.898L243.831 493.953L243.781 494.004C233.467 504.95 227.858 522.048 227.613 546.004L226.75 630.182L343.269 631.376L344.139 546.507C344.375 523.517 339.365 506.465 329.657 494.809C319.531 483.195 305.226 477.13 286.241 476.935Z" fill="black" stroke="black" stroke-width="7.2"/>
+<circle cx="90" cy="90" r="90" transform="matrix(0.00487492 -0.999988 0.999991 0.00425101 195.112 315.998)" fill="black"/>
+<circle cx="90" cy="90" r="90" transform="matrix(0.00487492 -0.999988 0.999991 0.00425101 417.822 318.58)" fill="black"/>
+<mask id="path-8-outside-2_80_2" maskUnits="userSpaceOnUse" x="803.064" y="903" width="491" height="500" fill="black">
+<rect fill="white" x="803.064" y="903" width="491" height="500"/>
+<path d="M988.997 911L813.432 1394.84H916.421L1048.44 1009.84L1181.15 1394.84H1283.45L1107.88 911H988.997Z"/>
+</mask>
+<path d="M988.997 911L813.432 1394.84H916.421L1048.44 1009.84L1181.15 1394.84H1283.45L1107.88 911H988.997Z" fill="black"/>
+<path d="M988.997 911L982.229 908.544L983.951 903.8H988.997V911ZM813.432 1394.84V1402.04H803.161L806.664 1392.38L813.432 1394.84ZM916.421 1394.84L923.232 1397.18L921.564 1402.04H916.421V1394.84ZM1048.44 1009.84L1041.63 1007.51L1048.42 987.696L1055.25 1007.5L1048.44 1009.84ZM1181.15 1394.84V1402.04H1176.02L1174.34 1397.19L1181.15 1394.84ZM1283.45 1394.84L1290.22 1392.38L1293.72 1402.04H1283.45V1394.84ZM1107.88 911V903.8H1112.93L1114.65 908.544L1107.88 911ZM988.997 911L995.765 913.456L820.201 1397.3L813.432 1394.84L806.664 1392.38L982.229 908.544L988.997 911ZM813.432 1394.84V1387.64H916.421V1394.84V1402.04H813.432V1394.84ZM916.421 1394.84L909.611 1392.5L1041.63 1007.51L1048.44 1009.84L1055.25 1012.18L923.232 1397.18L916.421 1394.84ZM1048.44 1009.84L1055.25 1007.5L1187.96 1392.49L1181.15 1394.84L1174.34 1397.19L1041.63 1012.19L1048.44 1009.84ZM1181.15 1394.84V1387.64H1283.45V1394.84V1402.04H1181.15V1394.84ZM1283.45 1394.84L1276.68 1397.3L1101.12 913.456L1107.88 911L1114.65 908.544L1290.22 1392.38L1283.45 1394.84ZM1107.88 911V918.2H988.997V911V903.8H1107.88V911Z" fill="black" mask="url(#path-8-outside-2_80_2)"/>
+<path d="M793.2 1216L800.4 1223.2L793.2 1230.4L786 1223.2L793.2 1216Z" fill="white"/>
+<path d="M793.2 1259.2L800.4 1266.4L793.2 1273.6L786 1266.4L793.2 1259.2Z" fill="white"/>
+<path d="M937.58 1287.47L1153.42 1283.6" stroke="black" stroke-width="75"/>
+<path d="M1045 1131L1046.92 1323.85" stroke="white" stroke-width="36"/>
+</svg>
+    Bora Postar
+  </span>
+  <span class="stepcount"><span class="dot"></span><span id="stepcount">Antes de começar</span></span>
+</div>
+
+<div class="progressbar-outer">
+  <div class="progressbar"><div class="fill" id="progressFill"></div></div>
+</div>
+
+<main>
+  <div class="card dark" id="card">
+
+    <section class="step active" data-step="0">
+      <svg class="badge" aria-hidden="true" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="261.719" cy="240.746" rx="238.281" ry="240.746" fill="#FF5E00"/>
+<rect width="81.2539" height="548.654" transform="matrix(-0.712531 -0.701641 0.705882 -0.70833 57.8959 500)" fill="black"/>
+<rect x="454.809" y="388.3" width="78.125" height="341.704" transform="rotate(180 454.809 388.3)" fill="black"/>
+<rect x="453.125" y="46.5958" width="77.66" height="343.75" transform="rotate(90 453.125 46.5958)" fill="black"/>
+</svg>
+      <p class="eyebrow">Antes de qualquer proposta</p>
+      <h1 class="hero">Vamos <span class="stripe">conhecer</span> você(s) melhor?</h1>
+      <p class="lede">Sem burocracia por enquanto — nada de CNPJ, acesso ou número aqui ainda. Só queremos entender você(s) e o trabalho de vocês. Leva de 10 a 15 minutos, no seu tempo, e não tem resposta errada.</p>
+      <div class="cta-row">
+        <button class="btn btn-primary" id="startBtn">Começar
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><line x1="6" y1="18" x2="18" y2="6"/><polyline points="10 6 18 6 18 14"/></svg>
+        </button>
+      </div>
+      <p class="foot-note">4 partes rápidas + um resumo no final pra você(s) revisar antes de nos enviar.</p>
+    </section>
+
+    <div id="sectionsHost"></div>
+
+    <section class="step" id="reviewStep">
+      <svg class="badge" aria-hidden="true" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="261.719" cy="240.746" rx="238.281" ry="240.746" fill="#FF5E00"/>
+<rect width="81.2539" height="548.654" transform="matrix(-0.712531 -0.701641 0.705882 -0.70833 57.8959 500)" fill="black"/>
+<rect x="454.809" y="388.3" width="78.125" height="341.704" transform="rotate(180 454.809 388.3)" fill="black"/>
+<rect x="453.125" y="46.5958" width="77.66" height="343.75" transform="rotate(90 453.125 46.5958)" fill="black"/>
+</svg>
+      <p class="eyebrow">Pronto pra postar</p>
+      <div id="reviewHeroCapture">
+        <h1 class="hero" id="reviewHeadline">BORA!</h1>
+      </div>
+      <p class="lede small">Dá uma revisada, e se estiver tudo bem, clique em enviar — suas respostas chegam direto na caixa da Bora Postar, na hora. O PDF também baixa automaticamente, caso queira guardar uma cópia.</p>
+      <div class="cta-row">
+        <button class="btn btn-primary" id="sendBtn">Enviar pra Bora Postar
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><line x1="6" y1="18" x2="18" y2="6"/><polyline points="10 6 18 6 18 14"/></svg>
+        </button>
+        <button class="btn btn-ghost" id="downloadBtn">Baixar PDF</button>
+        <button class="btn btn-ghost" id="editBtn">Editar respostas</button>
+      </div>
+      <div class="summary" id="summaryHost"></div>
+    </section>
+
+  </div>
+</main>
+
+<div class="toast" id="toast">Copiado!</div>
+
+<script>
+(function(){
+  const sections = [
+    {
+      id:'voce', title:'Sobre você(s)',
+      questions:[
+        {key:'nome_pref', label:'Como você(s) prefere ser chamado(a)?', ph:'Ex.: Dani'},
+        {key:'tempo_trabalho', label:'Há quanto tempo você(s) faz esse trabalho?', ph:''},
+        {key:'motivo_comeco', label:'O que fez você(s) começar nisso?', ph:''},
+        {key:'gosta_mais', label:'O que você(s) mais gosta no que faz?', ph:''},
+        {key:'pesa_cansa', label:'O que mais pesa ou cansa no dia a dia de vocês?', ph:''},
+        {key:'descricao_outros', label:'Como as pessoas que conhecem você(s) bem descreveriam o jeito de vocês trabalhar?', ph:''},
+      ]
+    },
+    {
+      id:'trabalho', title:'Sobre o trabalho de vocês',
+      questions:[
+        {key:'o_que_faz', label:'Em poucas palavras, o que você(s) faz ou oferece?', ph:''},
+        {key:'cliente_ideal', label:'Como é o cliente ideal de vocês?', ph:''},
+        {key:'faz_procurar', label:'O que geralmente faz alguém procurar você(s)? (a situação, o problema ou o desejo por trás)', ph:''},
+        {key:'diferencial', label:'O que diferencia você(s) de outras pessoas que fazem algo parecido?', ph:''},
+        {key:'como_encontram', label:'Como as pessoas encontram você(s) hoje?', ph:''},
+        {key:'entrega_orgulho', label:'Qual foi um resultado ou entrega que deixou você(s) mais orgulhoso(a)?', ph:''},
+        {key:'elogio_frequente', label:'Existe algo que as pessoas sempre elogiam no trabalho de vocês?', ph:''},
+      ]
+    },
+    {
+      id:'publico', title:'Sobre público e valores',
+      questions:[
+        {key:'preco_atual', label:'Quanto você(s) cobra hoje pelo que faz? (valor ou faixa de preço)', ph:''},
+        {key:'forma_precificacao', label:'Como você(s) decide o preço de um produto ou serviço? (por hora, por pacote, por resultado, tabela fixa, feeling...)', ph:''},
+        {key:'ticket_medio', label:'Qual costuma ser o ticket médio dos clientes de vocês? (quanto a maioria paga, em média)', ph:''},
+        {key:'forma_pagamento', label:'Existe alguma forma de pagamento ou parcelamento que você(s) oferece hoje?', ph:''},
+        {key:'percepcao_preco', label:'Na percepção de vocês, o preço cobrado é justo, está abaixo ou acima do mercado?', ph:''},
+        {key:'cliente_mais_lucro', label:'Que tipo de cliente costuma pagar mais ou dar mais lucro pra você(s)?', ph:''},
+      ]
+    },
+    {
+      id:'futuro', title:'Olhando pra frente',
+      questions:[
+        {key:'visao_futuro', label:'Se pudesse escolher, como seria o trabalho de vocês daqui a 2 anos?', ph:''},
+        {key:'sonho_maior', label:'Existe algum sonho maior por trás desse trabalho, além do dinheiro?', ph:''},
+        {key:'ajuda_esperada', label:'O que você(s) imagina que a gente poderia ajudar a alcançar?', ph:''},
+        {key:'referencia_inspiracao', label:'Tem alguma referência (pessoa, marca, estilo) que inspira você(s) profissionalmente?', ph:''},
+        {key:'espaco_livre', label:'Tem mais alguma coisa que você(s) queira contar sobre você(s) ou o trabalho de vocês?', ph:''},
+      ]
+    }
+  ];
+
+  const allKeys = sections.flatMap(s => s.questions.map(q => q.key));
+  const REVIEW_STEP = sections.length + 1;
+  document.getElementById('reviewStep').dataset.step = String(REVIEW_STEP);
+  let currentStep = 0;
+
+  const host = document.getElementById('sectionsHost');
+  const stepcount = document.getElementById('stepcount');
+  const toast = document.getElementById('toast');
+  const cardEl = document.getElementById('card');
+  const progressFill = document.getElementById('progressFill');
+
+  sections.forEach((sec, idx) => {
+    const el = document.createElement('section');
+    el.className = 'step';
+    el.dataset.step = String(idx + 1);
+
+    let qHtml = '';
+    sec.questions.forEach(q => {
+      qHtml += `
+        <div class="qgroup">
+          <label for="${q.key}">${q.label}</label>
+          <textarea id="${q.key}" data-key="${q.key}" rows="1" placeholder="${q.ph || 'Escreva aqui...'}"></textarea>
+        </div>`;
+    });
+
+    el.innerHTML = `
+      <p class="eyebrow">Parte ${idx + 1} de ${sections.length}</p>
+      <h2 class="section-title">${sec.title}</h2>
+      <p class="lede small">Pode responder com suas palavras, do seu jeito. Se não souber algo agora, siga em frente.</p>
+      <div style="margin-top:22px;">${qHtml}</div>
+      <div class="nav-row">
+        <button class="btn btn-ghost" data-action="back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><line x1="18" y1="12" x2="6" y2="12"/><polyline points="11 6 6 12 11 18"/></svg>
+          Voltar</button>
+        <span class="answered-note" data-counter></span>
+        <button class="btn btn-primary" data-action="next">Continuar
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><line x1="6" y1="18" x2="18" y2="6"/><polyline points="10 6 18 6 18 14"/></svg>
+        </button>
+      </div>
+    `;
+    host.appendChild(el);
+  });
+
+  const allSteps = () => Array.from(document.querySelectorAll('.step'));
+  const textareas = () => Array.from(document.querySelectorAll('textarea[data-key]'));
+
+  function autoGrow(ta){
+    ta.style.height = 'auto';
+    ta.style.height = (ta.scrollHeight) + 'px';
+  }
+
+  function attachTextareaBehavior(){
+    textareas().forEach(ta => {
+      autoGrow(ta);
+      ta.addEventListener('input', () => { autoGrow(ta); updateProgress(); });
+    });
+  }
+
+  function updateProgress(){
+    const pct = Math.round((Math.min(currentStep, sections.length) / sections.length) * 100);
+    progressFill.style.width = pct + '%';
+
+    sections.forEach((sec, idx) => {
+      const secAnswered = sec.questions.filter(q => {
+        const ta = document.getElementById(q.key);
+        return ta && ta.value.trim().length > 0;
+      }).length;
+      const stepEl = document.querySelector(`.step[data-step="${idx+1}"]`);
+      if(!stepEl) return;
+      const counterEl = stepEl.querySelector('[data-counter]');
+      if(!counterEl) return;
+      counterEl.textContent = `${secAnswered}/${sec.questions.length} RESPONDIDAS`;
+    });
+  }
+
+  function goTo(step){
+    currentStep = step;
+    allSteps().forEach(s => s.classList.remove('active'));
+    const target = document.querySelector(`.step[data-step="${step}"]`);
+    if(target) target.classList.add('active');
+
+    if(step === 0 || step > sections.length){
+      cardEl.classList.add('dark');
+    } else {
+      cardEl.classList.remove('dark');
+    }
+
+    if(step === 0){
+      stepcount.textContent = 'Antes de começar';
+    } else if(step >= 1 && step <= sections.length){
+      stepcount.textContent = `Parte ${step} de ${sections.length}`;
+    } else {
+      stepcount.textContent = 'Resumo final';
+      buildSummary();
+    }
+    window.scrollTo({top:0, behavior:'auto'});
+    textareas().forEach(autoGrow);
+    updateProgress();
+  }
+
+  document.getElementById('startBtn').addEventListener('click', () => goTo(1));
+
+  host.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if(!btn) return;
+    const stepEl = btn.closest('.step');
+    const stepNum = parseInt(stepEl.dataset.step, 10);
+    if(btn.dataset.action === 'next'){
+      goTo(stepNum === sections.length ? sections.length + 1 : stepNum + 1);
+    } else if(btn.dataset.action === 'back'){
+      goTo(stepNum - 1);
+    }
+  });
+
+  document.getElementById('editBtn').addEventListener('click', () => goTo(1));
+
+  function escapeHtml(str){
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function buildSummary(){
+    const nome = (document.getElementById('nome_pref')?.value || '').trim();
+    const headline = document.getElementById('reviewHeadline');
+    headline.innerHTML = nome
+      ? `<span class="stripe">BORA</span>, ${escapeHtml(nome)}!`
+      : `<span class="stripe">BORA</span>!`;
+
+    const summaryHost = document.getElementById('summaryHost');
+    let html = '';
+    sections.forEach(sec => {
+      html += `<h3>${sec.title}</h3>`;
+      sec.questions.forEach(q => {
+        const val = (document.getElementById(q.key)?.value || '').trim();
+        html += `
+          <div class="qa">
+            <div class="q">${q.label}</div>
+            <div class="a ${val ? '' : 'empty'}">${val ? escapeHtml(val) : 'Não respondido'}</div>
+          </div>`;
+      });
+    });
+    summaryHost.innerHTML = html;
+  }
+
+  function buildPlainText(){
+    const nome = (document.getElementById('nome_pref')?.value || '').trim();
+    let out = `Conhecendo Você(s) e Seu Trabalho — Bora Postar\n`;
+    out += nome ? `Respostas de: ${nome}\n\n` : `\n`;
+    sections.forEach(sec => {
+      out += `## ${sec.title}\n`;
+      sec.questions.forEach(q => {
+        const val = (document.getElementById(q.key)?.value || '').trim();
+        out += `${q.label}\n${val || '(não respondido)'}\n\n`;
+      });
+    });
+    return out.trim() + '\n';
+  }
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2600);
+  }
+
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5UbR7wZpTWnBdmn9iCRx0oGmgjdbxVJWCenssKvbsdkoAAqicxi9dvINne1QUpeXf/exec';
+  const SHARED_SECRET = 'bora-postar-2026';
+  const INTAKE_URL = 'https://yxewmauwnxnrrhevlbtc.supabase.co/functions/v1/onboarding-intake';
+
+  function coletarRespostas(){
+    const out = {};
+    sections.forEach(sec => {
+      sec.questions.forEach(q => {
+        out[q.key] = (document.getElementById(q.key)?.value || '').trim();
+      });
+    });
+    return out;
+  }
+
+  // Grava as respostas no banco, em paralelo com o envio do e-mail.
+  // Nunca pode derrubar o envio: qualquer falha aqui é silenciosa pro usuário.
+  function gravarRespostas(nome){
+    try{
+      fetch(INTAKE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          secret: SHARED_SECRET,
+          nome: nome || null,
+          formulario: 'conhecendo-voce',
+          versao: 'v1',
+          respostas: coletarRespostas(),
+        }),
+      }).catch(err => console.warn('Não deu pra gravar as respostas:', err));
+    } catch(err){
+      console.warn('Não deu pra gravar as respostas:', err);
+    }
+  }
+
+  function pdfFileName(nome){
+    const base = nome ? nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-') : 'cliente';
+    return `respostas-${base}-bora-postar.pdf`;
+  }
+
+  const BRAND = {
+    orange:[255,94,0],
+    purple:[136,0,255],
+    ink:[10,10,10],
+    white:[255,255,255],
+    rule:[38,38,38],
+  };
+
+  function buildPdfDoc(){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'pt', format:'a4', compress:true });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const M = 54;
+    const COL = pageW - M*2;
+    const BOTTOM = pageH - 62;
+    let y = 0;
+
+    const nome = (document.getElementById('nome_pref')?.value || '').trim();
+    const answered = allKeys.filter(k => (document.getElementById(k)?.value || '').trim().length > 0).length;
+
+    const fill = (c) => doc.setFillColor(c[0],c[1],c[2]);
+    const draw = (c) => doc.setDrawColor(c[0],c[1],c[2]);
+    const ink  = (c) => doc.setTextColor(c[0],c[1],c[2]);
+
+    function poly(pts, color){
+      fill(color);
+      const d = [];
+      for(let i=1;i<pts.length;i++) d.push([pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]]);
+      doc.lines(d, pts[0][0], pts[0][1], [1,1], 'F', true);
+    }
+
+    // Tarja diagonal atrás de uma palavra, como no site.
+    function stripe(x, baseline, w, h, color){
+      const rise = w * 0.05;
+      const top = baseline - h*1.18;
+      poly([[x, top + rise], [x + w, top], [x + w, top + h], [x, top + h + rise]], color);
+    }
+
+    // A marca da Bora Postar, redesenhada em vetor a partir do SVG do site (caixa 500x500).
+    function badge(x, y0, size){
+      const s = size/500;
+      fill(BRAND.orange);
+      doc.ellipse(x + 261.7*s, y0 + 240.7*s, 238.3*s, 240.7*s, 'F');
+      poly([[x+376.7*s, y0+46.6*s],[x+454.8*s, y0+46.6*s],[x+454.8*s, y0+388.3*s],[x+376.7*s, y0+388.3*s]], BRAND.ink);
+      poly([[x+109.4*s, y0+46.6*s],[x+453.1*s, y0+46.6*s],[x+453.1*s, y0+124.3*s],[x+109.4*s, y0+124.3*s]], BRAND.ink);
+      poly([[x+57.9*s, y0+500*s],[x+0.0*s, y0+443.0*s],[x+387.3*s, y0+54.4*s],[x+445.2*s, y0+111.4*s]], BRAND.ink);
+    }
+
+    function pageBg(){
+      fill(BRAND.ink);
+      doc.rect(0, 0, pageW, pageH, 'F');
+    }
+
+    function metaItem(x, label, value){
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(7);
+      ink([125,125,125]);
+      doc.text(label, x, pageH - 118, { charSpace:1.6 });
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(13);
+      ink(BRAND.white);
+      doc.text(value, x, pageH - 100);
+    }
+
+    function coverPage(){
+      pageBg();
+      fill(BRAND.orange);
+      doc.rect(0, 0, pageW, 8, 'F');
+
+      badge(pageW - M - 104, 96, 104);
+
+      // Eyebrow
+      draw(BRAND.orange);
+      doc.setLineWidth(2);
+      doc.line(M, 164, M + 18, 164);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(8.4);
+      ink(BRAND.orange);
+      doc.text('ANTES DE QUALQUER PROPOSTA', M + 26, 167, { charSpace:1.9 });
+
+      // Headline
+      let hy = 262;
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(42);
+      const w1 = doc.getTextWidth('BORA');
+      stripe(M - 5, hy, w1 + 12, 20, BRAND.orange);
+      ink(BRAND.white);
+      doc.text(nome ? 'BORA,' : 'BORA!', M, hy);
+
+      if(nome){
+        let size = 42;
+        doc.setFontSize(size);
+        while(doc.getTextWidth(nome + '!') > COL && size > 17){
+          size -= 1.5;
+          doc.setFontSize(size);
+        }
+        hy += 46;
+        ink(BRAND.white);
+        doc.text(nome + '!', M, hy);
+      }
+
+      hy += 26;
+      draw(BRAND.purple);
+      doc.setLineWidth(3);
+      doc.line(M, hy, M + 62, hy);
+
+      hy += 34;
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(11.5);
+      ink([176,176,176]);
+      const lede = doc.splitTextToSize(
+        'As respostas do formulário Conhecendo Você(s) e Seu Trabalho — o ponto de partida da nossa conversa.',
+        COL - 90
+      );
+      doc.text(lede, M, hy, { lineHeightFactor:1.45 });
+
+      // Índice das partes
+      let iy = pageH - 340;
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(7);
+      ink([125,125,125]);
+      doc.text('O QUE TEM AQUI DENTRO', M, iy, { charSpace:1.6 });
+      iy += 22;
+      sections.forEach((sec, idx) => {
+        const accent = idx % 2 === 0 ? BRAND.orange : BRAND.purple;
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(9.5);
+        ink(accent);
+        doc.text(String(idx + 1).padStart(2,'0'), M, iy);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(10.5);
+        ink([225,225,225]);
+        doc.text(sec.title, M + 26, iy);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(8.5);
+        ink([110,110,110]);
+        doc.text(sec.questions.length + ' perguntas', pageW - M, iy, { align:'right' });
+        iy += 8;
+        draw([30,30,30]);
+        doc.setLineWidth(0.6);
+        doc.line(M, iy, pageW - M, iy);
+        iy += 18;
+      });
+
+      // Rodapé da capa
+      draw(BRAND.rule);
+      doc.setLineWidth(0.7);
+      doc.line(M, pageH - 140, pageW - M, pageH - 140);
+
+      const d = new Date();
+      const meses = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+      metaItem(M, 'PERGUNTAS', String(allKeys.length));
+      metaItem(M + 150, 'RESPONDIDAS', String(answered));
+      metaItem(M + 320, 'DATA', String(d.getDate()).padStart(2,'0') + ' ' + meses[d.getMonth()] + ' ' + d.getFullYear());
+
+      fill(BRAND.orange);
+      doc.rect(M, pageH - 60, 6, 6, 'F');
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(9.5);
+      ink(BRAND.white);
+      doc.text('BORA POSTAR', M + 13, pageH - 55, { charSpace:1.4 });
+    }
+
+    function pageChrome(){
+      pageBg();
+      fill(BRAND.orange);
+      doc.rect(0, 0, pageW, 4, 'F');
+
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(7.6);
+      ink([232,232,232]);
+      doc.text('BORA POSTAR', M, 42, { charSpace:1.5 });
+
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7.6);
+      ink([118,118,118]);
+      doc.text('Conhecendo Você(s) e Seu Trabalho', pageW - M, 42, { align:'right' });
+
+      draw(BRAND.rule);
+      doc.setLineWidth(0.7);
+      doc.line(M, 54, pageW - M, 54);
+
+      y = 96;
+    }
+
+    function newPage(){
+      doc.addPage();
+      pageChrome();
+    }
+
+    function ensure(h){
+      if(y + h > BOTTOM) newPage();
+    }
+
+    function rail(y1, y2, color){
+      fill(color);
+      doc.rect(M, y1, 2.2, Math.max(y2 - y1, 6), 'F');
+    }
+
+    function sectionHeader(sec, idx){
+      ensure(78);
+      const accent = idx % 2 === 0 ? BRAND.orange : BRAND.purple;
+
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(34);
+      ink([27,27,27]);
+      doc.text(String(idx + 1).padStart(2,'0'), pageW - M, y + 6, { align:'right' });
+
+      fill(accent);
+      doc.rect(M, y - 10, 11, 11, 'F');
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(14.5);
+      ink(BRAND.white);
+      doc.text(sec.title, M + 19, y);
+
+      y += 15;
+      draw(BRAND.rule);
+      doc.setLineWidth(0.7);
+      doc.line(M, y, pageW - M, y);
+      draw(accent);
+      doc.setLineWidth(2);
+      doc.line(M, y, M + 68, y);
+      y += 28;
+    }
+
+    function qaBlock(q, val){
+      const textX = M + 16;
+      const w = COL - 16;
+
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8.9);
+      const qLines = doc.splitTextToSize(q.label, w);
+      doc.setFont('helvetica', val ? 'normal' : 'italic');
+      doc.setFontSize(10.6);
+      const aLines = doc.splitTextToSize(val || 'Não respondido', w);
+
+      // Mantém a pergunta junto com as duas primeiras linhas da resposta.
+      ensure(qLines.length * 11.5 + 7 + Math.min(aLines.length, 2) * 14.6 + 12);
+
+      const accent = val ? BRAND.orange : [46,46,46];
+      let segTop = y - 9;
+
+      const qStyle = () => { doc.setFont('helvetica','normal'); doc.setFontSize(8.9); ink([150,150,150]); };
+      const aStyle = () => { doc.setFont('helvetica', val ? 'normal' : 'italic'); doc.setFontSize(10.6); ink(val ? BRAND.white : [92,92,92]); };
+
+      qStyle();
+      qLines.forEach(line => {
+        if(y > BOTTOM){ rail(segTop, y - 11.5, accent); newPage(); segTop = y - 9; qStyle(); }
+        doc.text(line, textX, y);
+        y += 11.5;
+      });
+
+      y += 6.5;
+      aStyle();
+      aLines.forEach(line => {
+        if(y > BOTTOM){ rail(segTop, y - 14.6, accent); newPage(); segTop = y - 9; aStyle(); }
+        doc.text(line, textX, y);
+        y += 14.6;
+      });
+
+      rail(segTop, y - 11, accent);
+      y += 13;
+    }
+
+    doc.setProperties({
+      title: nome ? 'Conhecendo ' + nome + ' — Bora Postar' : 'Conhecendo Você(s) e Seu Trabalho — Bora Postar',
+      subject: 'Respostas do formulário de descoberta da Bora Postar',
+      author: nome || 'Cliente',
+      creator: 'Bora Postar',
+    });
+
+    coverPage();
+    newPage();
+
+    sections.forEach((sec, idx) => {
+      if(idx > 0) y += 10;
+      sectionHeader(sec, idx);
+      sec.questions.forEach(q => {
+        qaBlock(q, (document.getElementById(q.key)?.value || '').trim());
+      });
+    });
+
+    // Fechamento
+    ensure(72);
+    y += 8;
+    draw(BRAND.rule);
+    doc.setLineWidth(0.7);
+    doc.line(M, y, pageW - M, y);
+    y += 26;
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(11);
+    ink(BRAND.white);
+    doc.text('Obrigado por compartilhar tudo isso com a gente.', M, y);
+    y += 16;
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9.5);
+    ink([140,140,140]);
+    doc.text('A partir daqui, a conversa é nossa.', M, y);
+    y += 26;
+    if(y + 44 < BOTTOM) badge(M, y, 42);
+
+    // Rodapés (a capa não recebe rodapé)
+    const total = doc.internal.getNumberOfPages();
+    for(let i = 2; i <= total; i++){
+      doc.setPage(i);
+      fill(BRAND.orange);
+      doc.rect(M, pageH - 38, 5, 5, 'F');
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7.6);
+      ink([112,112,112]);
+      doc.text(nome ? 'Respostas de ' + nome : 'Respostas', M + 12, pageH - 34);
+      doc.text((i - 1) + ' / ' + (total - 1), pageW - M, pageH - 34, { align:'right' });
+    }
+    doc.setPage(total);
+
+    return doc;
+  }
+
+  function downloadPdf(){
+    const doc = buildPdfDoc();
+    const nome = (document.getElementById('nome_pref')?.value || '').trim();
+    doc.save(pdfFileName(nome));
+  }
+
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    downloadPdf();
+    showToast('PDF baixado!');
+  });
+
+  document.getElementById('sendBtn').addEventListener('click', () => {
+    const btn = document.getElementById('sendBtn');
+    const originalHTML = btn.innerHTML;
+    const nome = (document.getElementById('nome_pref')?.value || '').trim();
+
+    const pdfDoc = buildPdfDoc();
+    const pdfDataUri = pdfDoc.output('datauristring');
+    const pdfBase64 = pdfDataUri.split(',')[1];
+    const fname = pdfFileName(nome);
+    pdfDoc.save(fname);
+
+    btn.disabled = true;
+    btn.innerHTML = 'Enviando...';
+
+    gravarRespostas(nome);
+
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        secret: SHARED_SECRET,
+        name: nome || 'Cliente',
+        message: buildPlainText(),
+        attachments: [
+          { base64: pdfBase64, filename: fname, mimeType: 'application/pdf' },
+        ],
+      }),
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status !== 'ok') throw new Error(json.message || 'Falha no envio');
+        showToast('Enviado! Chegou na caixa da Bora Postar com o PDF em anexo. ✓');
+        btn.innerHTML = 'Enviado ✓';
+      })
+      .catch((err) => {
+        console.error('Erro ao enviar:', err);
+        showToast('Não deu pra enviar agora. O PDF já baixou — tenta de novo em instantes ou manda ele por WhatsApp.');
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      });
+  });
+
+  attachTextareaBehavior();
+  updateProgress();
+})();
+</script>
+
+</body>
+</html>

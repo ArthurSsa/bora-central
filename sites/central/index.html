@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central Bora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --black:#0A0A0A; --white:#FFF; --orange:#FF5E00; --purple:#8800FF;
+    --gray:#6E6E6E; --line:#E2E2E2; --bg:#FAFAFA; --soft:#F2F2F2;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--black);
+    font-family:'Archivo',system-ui,sans-serif; -webkit-font-smoothing:antialiased;
+  }
+  button{ font-family:inherit; cursor:pointer; }
+  input,select,textarea{ font-family:'Archivo',sans-serif; font-size:0.9rem; }
+  .mono{ font-family:'Space Mono',monospace; }
+  .grotesk{ font-family:'Space Grotesk',sans-serif; }
+
+  .topbar{
+    background:var(--black); color:var(--white);
+    padding:0 20px; height:56px; display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:20;
+  }
+  .topbar .brand{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.95rem;
+    letter-spacing:0.08em; text-transform:uppercase; display:flex; align-items:center; gap:9px;
+  }
+  .topbar .brand .dot{ width:9px; height:9px; background:var(--orange); display:inline-block; }
+  .topbar .who{ font-family:'Space Mono',monospace; font-size:0.72rem; color:#B5B5B5; display:flex; align-items:center; gap:14px; }
+  .linkbtn{ background:none; border:none; color:var(--orange); font-size:0.72rem; font-family:'Space Mono',monospace; padding:0; text-decoration:underline; }
+
+  .shell{ display:grid; grid-template-columns:288px 1fr; min-height:calc(100vh - 56px); }
+  @media (max-width:860px){ .shell{ grid-template-columns:1fr; } .side{ border-right:none !important; border-bottom:2px solid var(--black); } }
+
+  .side{ border-right:2px solid var(--black); background:var(--white); min-height:calc(100vh - 56px); padding:18px 0 40px; }
+  .side h4{
+    font-family:'Space Mono',monospace; font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gray); margin:22px 18px 8px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .side h4:first-child{ margin-top:0; }
+  .pill{ background:var(--orange); color:#fff; font-size:0.62rem; padding:2px 6px; letter-spacing:0.04em; }
+  .navitem{
+    display:block; width:100%; text-align:left; background:none; border:none;
+    padding:9px 18px; font-size:0.92rem; border-left:3px solid transparent; line-height:1.35;
+  }
+  .navitem:hover{ background:var(--soft); }
+  .navitem.active{ border-left-color:var(--orange); background:var(--soft); font-weight:600; }
+  .navitem .sub{ display:block; font-family:'Space Mono',monospace; font-size:0.64rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.06em; margin-top:2px; }
+  .side .act{ margin:12px 18px 0; }
+
+  main{ padding:26px 30px 80px; max-width:1000px; }
+  h1.page{ font-family:'Space Grotesk',sans-serif; font-size:1.7rem; margin:0 0 4px; letter-spacing:-0.01em; }
+  .eyebrow{ font-family:'Space Mono',monospace; font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--orange); margin:0 0 10px; }
+  .muted{ color:var(--gray); font-size:0.9rem; }
+
+  .tabs{ display:flex; gap:2px; flex-wrap:wrap; border-bottom:2px solid var(--black); margin:22px 0 0; }
+  .tab{
+    background:none; border:2px solid transparent; border-bottom:none; padding:8px 14px;
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.84rem; color:var(--gray);
+    margin-bottom:-2px;
+  }
+  .tab.active{ border-color:var(--black); background:var(--white); color:var(--black); }
+
+  .panel{ background:var(--white); border:2px solid var(--black); border-top:none; padding:22px; }
+
+  .card{ background:var(--white); border:2px solid var(--black); padding:18px; margin-bottom:16px; }
+  .card.flat{ border-width:1px; border-color:var(--line); }
+
+  table{ width:100%; border-collapse:collapse; font-size:0.88rem; }
+  th{ text-align:left; font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); padding:0 10px 7px 0; border-bottom:1px solid var(--line); font-weight:400; }
+  td{ padding:9px 10px 9px 0; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.45; }
+  tr:last-child td{ border-bottom:none; }
+  .wrap{ overflow-x:auto; }
+
+  .btn{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.82rem;
+    padding:9px 15px; border:2px solid var(--black); background:var(--black); color:#fff;
+  }
+  .btn:hover{ background:var(--orange); border-color:var(--orange); }
+  .btn.ghost{ background:transparent; color:var(--black); }
+  .btn.ghost:hover{ background:var(--black); color:#fff; }
+  .btn.small{ font-size:0.72rem; padding:6px 10px; border-width:1.5px; }
+  .btn[disabled]{ opacity:.45; cursor:not-allowed; }
+  *:focus-visible{ outline:3px solid var(--purple); outline-offset:1px; }
+
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.09em; text-transform:uppercase; color:var(--gray); margin-bottom:4px; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:8px 9px; border:1.5px solid var(--black); background:#fff;
+  }
+  .field textarea{ min-height:64px; resize:vertical; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+  .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 14px; }
+  @media (max-width:640px){ .grid2,.grid3{ grid-template-columns:1fr; } }
+
+  .tag{ font-family:'Space Mono',monospace; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.07em; padding:3px 7px; border:1px solid var(--black); }
+  .tag.on{ background:var(--orange); color:#fff; border-color:var(--orange); }
+  .tag.off{ background:#fff; color:var(--gray); border-color:var(--line); }
+  .tag.roxo{ background:var(--purple); color:#fff; border-color:var(--purple); }
+
+  .qa{ margin-bottom:16px; padding-left:13px; border-left:2.5px solid var(--orange); }
+  .qa.vazia{ border-left-color:var(--line); }
+  .qa .q{ font-size:0.8rem; color:var(--gray); margin-bottom:3px; line-height:1.35; }
+  .qa .a{ font-size:0.98rem; white-space:pre-wrap; line-height:1.5; }
+  .qa.vazia .a{ color:#BFBFBF; font-style:italic; }
+  .secname{ font-family:'Space Mono',monospace; font-size:0.66rem; letter-spacing:0.11em; text-transform:uppercase; color:var(--orange); border-bottom:2px solid var(--black); padding-bottom:5px; margin:26px 0 14px; }
+  .secname:first-child{ margin-top:0; }
+
+  .login{ max-width:380px; margin:9vh auto; background:#fff; border:2px solid var(--black); box-shadow:9px 9px 0 var(--orange); padding:32px; }
+  .erro{ background:#FFF1EA; border-left:3px solid var(--orange); padding:10px 12px; font-size:0.85rem; margin:12px 0; }
+  .vazio{ padding:26px; text-align:center; color:var(--gray); font-size:0.9rem; border:1px dashed var(--line); }
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translate(-50%,16px);
+    background:var(--black); color:#fff; padding:11px 20px; border:2px solid var(--orange);
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem;
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:50;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%,0); }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  const SUPABASE_URL = 'https://yxewmauwnxnrrhevlbtc.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_G_FuzadzmX2BwkRO81H3mw_xoYnthod';
+
+  // Mesma estrutura do formulário "Conhecendo Você(s) e Seu Trabalho".
+  // Existe aqui para o painel mostrar cada resposta com a pergunta que a gerou.
+  const SECOES = [
+    { titulo:'Sobre você(s)', perguntas:[
+      ['nome_pref','Como você(s) prefere ser chamado(a)?'],
+      ['tempo_trabalho','Há quanto tempo você(s) faz esse trabalho?'],
+      ['motivo_comeco','O que fez você(s) começar nisso?'],
+      ['gosta_mais','O que você(s) mais gosta no que faz?'],
+      ['pesa_cansa','O que mais pesa ou cansa no dia a dia de vocês?'],
+      ['descricao_outros','Como as pessoas que conhecem você(s) bem descreveriam o jeito de vocês trabalhar?'],
+    ]},
+    { titulo:'Sobre o trabalho de vocês', perguntas:[
+      ['o_que_faz','Em poucas palavras, o que você(s) faz ou oferece?'],
+      ['cliente_ideal','Como é o cliente ideal de vocês?'],
+      ['faz_procurar','O que geralmente faz alguém procurar você(s)?'],
+      ['diferencial','O que diferencia você(s) de outras pessoas que fazem algo parecido?'],
+      ['como_encontram','Como as pessoas encontram você(s) hoje?'],
+      ['entrega_orgulho','Qual foi um resultado ou entrega que deixou você(s) mais orgulhoso(a)?'],
+      ['elogio_frequente','Existe algo que as pessoas sempre elogiam no trabalho de vocês?'],
+    ]},
+    { titulo:'Sobre público e valores', perguntas:[
+      ['preco_atual','Quanto você(s) cobra hoje pelo que faz?'],
+      ['forma_precificacao','Como você(s) decide o preço de um produto ou serviço?'],
+      ['ticket_medio','Qual costuma ser o ticket médio dos clientes de vocês?'],
+      ['forma_pagamento','Existe alguma forma de pagamento ou parcelamento que você(s) oferece hoje?'],
+      ['percepcao_preco','Na percepção de vocês, o preço cobrado é justo, está abaixo ou acima do mercado?'],
+      ['cliente_mais_lucro','Que tipo de cliente costuma pagar mais ou dar mais lucro pra você(s)?'],
+    ]},
+    { titulo:'Olhando pra frente', perguntas:[
+      ['visao_futuro','Se pudesse escolher, como seria o trabalho de vocês daqui a 2 anos?'],
+      ['sonho_maior','Existe algum sonho maior por trás desse trabalho, além do dinheiro?'],
+      ['ajuda_esperada','O que você(s) imagina que a gente poderia ajudar a alcançar?'],
+      ['referencia_inspiracao','Tem alguma referência (pessoa, marca, estilo) que inspira você(s) profissionalmente?'],
+      ['espaco_livre','Tem mais alguma coisa que você(s) queira contar sobre você(s) ou o trabalho de vocês?'],
+    ]},
+  ];
+
+  const ABAS = [
+    ['respostas','Respostas'],
+    ['metas','Metas'],
+    ['baseline','Baseline'],
+    ['marcos','Marcos'],
+    ['conformidade','Conformidade'],
+    ['horas','Horas'],
+  ];
+
+  const ESTAGIOS = ['prospect','onboarding','ativo','pausado','encerrado'];
+
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const state = {
+    user:null, membro:false, carregando:true,
+    clientes:[], inbox:[], vista:{ tipo:'inbox' }, aba:'respostas',
+    detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[] },
+    erro:null,
+  };
+
+  const app = document.getElementById('app');
+  const el = (t, a, h) => { const n=document.createElement(t); if(a) for(const k in a){ if(k==='class') n.className=a[k]; else if(k.startsWith('on')) n.addEventListener(k.slice(2), a[k]); else n.setAttribute(k, a[k]); } if(h!==undefined) n.innerHTML=h; return n; };
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  let toastTimer;
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+  }
+
+  const dataBR = s => { if(!s) return '—'; const d = new Date(s); return isNaN(d) ? s : d.toLocaleDateString('pt-BR'); };
+  const soData = s => s ? String(s).slice(0,10).split('-').reverse().join('/') : '—';
+
+  // ---------- dados ----------
+
+  async function carregarTudo(){
+    state.erro = null;
+    const [cli, inbox] = await Promise.all([
+      sb.from('clientes').select('*').order('nome'),
+      sb.from('onboarding_respostas').select('*').is('cliente_id', null).order('recebido_em', { ascending:false }),
+    ]);
+    if(cli.error) state.erro = cli.error.message;
+    state.clientes = cli.data || [];
+    state.inbox = inbox.data || [];
+  }
+
+  async function carregarDetalhe(clienteId){
+    const d = state.detalhe;
+    const [on, me, ba, ma, co, ho] = await Promise.all([
+      sb.from('onboarding_respostas').select('*').eq('cliente_id', clienteId).order('recebido_em',{ascending:false}).limit(1),
+      sb.from('metas').select('*').eq('cliente_id', clienteId).order('registrado_em'),
+      sb.from('baselines').select('*').eq('cliente_id', clienteId).order('congelado_em'),
+      sb.from('marcos').select('*').eq('cliente_id', clienteId).order('ordem').order('data_prevista'),
+      sb.from('conformidade_itens').select('*').eq('cliente_id', clienteId).order('norma'),
+      sb.from('horas').select('*').eq('cliente_id', clienteId).order('data',{ascending:false}),
+    ]);
+    d.onboarding = (on.data && on.data[0]) || null;
+    d.metas = me.data || []; d.baselines = ba.data || []; d.marcos = ma.data || [];
+    d.conformidade = co.data || []; d.horas = ho.data || [];
+  }
+
+  async function inserir(tabela, linha){
+    const { error } = await sb.from(tabela).insert(linha);
+    if(error){ toast('Não deu: ' + error.message); return false; }
+    toast('Salvo.');
+    return true;
+  }
+
+  async function atualizar(tabela, id, campos){
+    const { error } = await sb.from(tabela).update(campos).eq('id', id);
+    if(error){ toast('Não deu: ' + error.message); return false; }
+    return true;
+  }
+
+  async function apagar(tabela, id){
+    const { error } = await sb.from(tabela).delete().eq('id', id);
+    if(error){ toast('Não deu: ' + error.message); return false; }
+    toast('Removido.');
+    return true;
+  }
+
+  // ---------- render ----------
+
+  function render(){
+    app.innerHTML = '';
+    if(state.carregando){ app.appendChild(el('div',{class:'vazio'},'Carregando…')); return; }
+    if(!state.user){ app.appendChild(telaLogin()); return; }
+    app.appendChild(topbar());
+    if(!state.membro){ app.appendChild(telaSemAcesso()); return; }
+    const shell = el('div',{class:'shell'});
+    shell.appendChild(lateral());
+    shell.appendChild(conteudo());
+    app.appendChild(shell);
+  }
+
+  function topbar(){
+    const bar = el('div',{class:'topbar'});
+    bar.appendChild(el('span',{class:'brand'},'<span class="dot"></span>Central Bora'));
+    const who = el('div',{class:'who'});
+    who.appendChild(el('span',{},esc(state.user.email)));
+    who.appendChild(el('button',{class:'linkbtn', onclick:sair},'sair'));
+    bar.appendChild(who);
+    return bar;
+  }
+
+  function telaLogin(){
+    const box = el('div',{class:'login'});
+    box.appendChild(el('p',{class:'eyebrow'},'Uso interno da Bora Postar'));
+    box.appendChild(el('h1',{class:'page'},'Central Bora'));
+    box.appendChild(el('p',{class:'muted'},'Entre com a conta da agência.'));
+    const form = el('form');
+    form.appendChild(campo('E-mail','email','email'));
+    form.appendChild(campo('Senha','senha','password'));
+    if(state.erro) form.appendChild(el('div',{class:'erro'},esc(state.erro)));
+    const btn = el('button',{class:'btn', type:'submit'},'Entrar');
+    form.appendChild(btn);
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      btn.disabled = true; btn.textContent = 'Entrando…';
+      const email = form.querySelector('[name=email]').value.trim();
+      const password = form.querySelector('[name=senha]').value;
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if(error){ state.erro = 'E-mail ou senha não conferem.'; render(); return; }
+      await iniciarSessao();
+    });
+    box.appendChild(form);
+    return box;
+  }
+
+  function campo(rotulo, nome, tipo, valor){
+    const f = el('div',{class:'field'});
+    f.appendChild(el('label',{for:'f_'+nome},esc(rotulo)));
+    f.appendChild(el('input',{id:'f_'+nome, name:nome, type:tipo||'text', value:valor==null?'':valor}));
+    return f;
+  }
+
+  function telaSemAcesso(){
+    const m = el('main');
+    m.appendChild(el('p',{class:'eyebrow'},'Acesso'));
+    m.appendChild(el('h1',{class:'page'},'Esta conta não é da agência'));
+    m.appendChild(el('p',{class:'muted'},'A Central é restrita a quem tem <code>is_agency</code> marcado no perfil. Se você deveria estar aqui, peça pra marcarem sua conta.'));
+    m.appendChild(el('p',{},'')).appendChild(el('button',{class:'btn ghost', onclick:sair},'Sair'));
+    return m;
+  }
+
+  function lateral(){
+    const s = el('div',{class:'side'});
+
+    const h1 = el('h4',{},'Caixa de entrada');
+    if(state.inbox.length) h1.appendChild(el('span',{class:'pill'}, String(state.inbox.length)));
+    s.appendChild(h1);
+    const bi = el('button',{class:'navitem'+(state.vista.tipo==='inbox'?' active':''), onclick:()=>{ state.vista={tipo:'inbox'}; render(); }});
+    bi.innerHTML = state.inbox.length
+      ? 'Respostas sem cliente<span class="sub">'+state.inbox.length+' aguardando</span>'
+      : 'Respostas sem cliente<span class="sub">nada pendente</span>';
+    s.appendChild(bi);
+
+    s.appendChild(el('h4',{},'Clientes'));
+    if(!state.clientes.length){
+      s.appendChild(el('div',{class:'navitem muted'},'Nenhum cliente ainda'));
+    } else {
+      state.clientes.forEach(c=>{
+        const b = el('button',{class:'navitem'+(state.vista.tipo==='cliente'&&state.vista.id===c.id?' active':''), onclick:()=>abrirCliente(c.id)});
+        b.innerHTML = esc(c.nome)+'<span class="sub">'+esc(c.estagio)+(c.vertical?' · '+esc(c.vertical):'')+'</span>';
+        s.appendChild(b);
+      });
+    }
+    const wrap = el('div',{class:'act'});
+    wrap.appendChild(el('button',{class:'btn ghost small', onclick:()=>{ state.vista={tipo:'novo'}; render(); }},'+ Novo cliente'));
+    s.appendChild(wrap);
+    return s;
+  }
+
+  function conteudo(){
+    if(state.vista.tipo==='inbox') return telaInbox();
+    if(state.vista.tipo==='novo') return telaNovoCliente();
+    return telaCliente();
+  }
+
+  // ---------- caixa de entrada ----------
+
+  function telaInbox(){
+    const m = el('main');
+    m.appendChild(el('p',{class:'eyebrow'},'Chegou pelo formulário'));
+    m.appendChild(el('h1',{class:'page'},'Respostas sem cliente'));
+    m.appendChild(el('p',{class:'muted'},'Cada envio do formulário cai aqui. Vincule a um cliente que já existe ou crie um a partir das respostas.'));
+
+    if(!state.inbox.length){
+      m.appendChild(el('div',{class:'vazio', style:'margin-top:22px'},'Nada pendente. Quando alguém enviar o formulário, aparece aqui.'));
+      return m;
+    }
+
+    state.inbox.forEach(sub=>{
+      const c = el('div',{class:'card', style:'margin-top:18px'});
+      const cab = el('div',{style:'display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:baseline'});
+      cab.appendChild(el('div',{},'<strong class="grotesk" style="font-size:1.1rem">'+esc(sub.nome_informado||'Sem nome informado')+'</strong>'));
+      cab.appendChild(el('span',{class:'mono muted', style:'font-size:0.7rem'}, dataBR(sub.recebido_em)+' · '+contarRespondidas(sub.respostas)+'/24 respondidas'));
+      c.appendChild(cab);
+
+      const previa = (sub.respostas && (sub.respostas.o_que_faz || sub.respostas.cliente_ideal)) || '';
+      if(previa) c.appendChild(el('p',{class:'muted', style:'margin:10px 0 0'}, esc(previa.slice(0,240))));
+
+      const acoes = el('div',{style:'margin-top:16px;display:flex;gap:9px;flex-wrap:wrap;align-items:center'});
+      acoes.appendChild(el('button',{class:'btn small', onclick:()=>criarClienteDaSubmissao(sub)},'Criar cliente com estas respostas'));
+
+      if(state.clientes.length){
+        const sel = el('select',{style:'padding:6px 8px;border:1.5px solid #0A0A0A'});
+        sel.appendChild(el('option',{value:''},'vincular a um cliente…'));
+        state.clientes.forEach(c2=> sel.appendChild(el('option',{value:c2.id}, esc(c2.nome))));
+        sel.addEventListener('change', async ()=>{
+          if(!sel.value) return;
+          if(await atualizar('onboarding_respostas', sub.id, { cliente_id: sel.value })){
+            toast('Vinculado.');
+            await carregarTudo(); abrirCliente(sel.value);
+          }
+        });
+        acoes.appendChild(sel);
+      }
+      c.appendChild(acoes);
+
+      const det = el('details',{style:'margin-top:14px'});
+      det.appendChild(el('summary',{class:'mono', style:'font-size:0.7rem;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;color:#6E6E6E'},'ver as 24 respostas'));
+      det.appendChild(blocoRespostas(sub.respostas));
+      c.appendChild(det);
+      m.appendChild(c);
+    });
+    return m;
+  }
+
+  function contarRespondidas(r){
+    if(!r) return 0;
+    return Object.values(r).filter(v=>typeof v==='string' && v.trim()).length;
+  }
+
+  async function criarClienteDaSubmissao(sub){
+    const nome = (sub.nome_informado || '').trim() || 'Cliente sem nome';
+    const { data, error } = await sb.from('clientes')
+      .insert({ nome, nome_preferido: sub.nome_informado || null, estagio:'prospect' })
+      .select('id').single();
+    if(error){ toast('Não deu: ' + error.message); return; }
+    await atualizar('onboarding_respostas', sub.id, { cliente_id: data.id });
+    toast('Cliente criado.');
+    await carregarTudo();
+    abrirCliente(data.id);
+  }
+
+  // ---------- novo cliente ----------
+
+  function telaNovoCliente(){
+    const m = el('main');
+    m.appendChild(el('p',{class:'eyebrow'},'Cadastro'));
+    m.appendChild(el('h1',{class:'page'},'Novo cliente'));
+    const form = el('form',{class:'card', style:'margin-top:18px'});
+    const g = el('div',{class:'grid2'});
+    g.appendChild(campo('Nome','nome'));
+    g.appendChild(campo('Como prefere ser chamado','nome_preferido'));
+    g.appendChild(campo('Vertical','vertical'));
+    g.appendChild(campoSelect('Estágio','estagio',ESTAGIOS,'prospect'));
+    g.appendChild(campo('Responsável na Bora','responsavel'));
+    g.appendChild(campo('Início do contrato','inicio_contrato','date'));
+    form.appendChild(g);
+    const btn = el('button',{class:'btn', type:'submit'},'Criar');
+    form.appendChild(btn);
+    form.addEventListener('submit', async e=>{
+      e.preventDefault();
+      const dados = lerForm(form);
+      if(!dados.nome){ toast('O nome é obrigatório.'); return; }
+      btn.disabled = true;
+      const { data, error } = await sb.from('clientes').insert(dados).select('id').single();
+      if(error){ toast('Não deu: '+error.message); btn.disabled=false; return; }
+      await carregarTudo(); abrirCliente(data.id);
+    });
+    m.appendChild(form);
+    return m;
+  }
+
+  function campoSelect(rotulo, nome, opcoes, valor){
+    const f = el('div',{class:'field'});
+    f.appendChild(el('label',{for:'f_'+nome},esc(rotulo)));
+    const s = el('select',{id:'f_'+nome, name:nome});
+    opcoes.forEach(o=>{
+      const op = el('option',{value:o}, esc(o));
+      if(o===valor) op.setAttribute('selected','selected');
+      s.appendChild(op);
+    });
+    f.appendChild(s);
+    return f;
+  }
+
+  function lerForm(form){
+    const out = {};
+    form.querySelectorAll('input,select,textarea').forEach(i=>{
+      if(!i.name) return;
+      if(i.type==='checkbox'){ out[i.name] = i.checked; return; }
+      const v = i.value.trim();
+      out[i.name] = v === '' ? null : (i.type==='number' ? Number(v) : v);
+    });
+    return out;
+  }
+
+  // ---------- ficha do cliente ----------
+
+  async function abrirCliente(id){
+    state.vista = { tipo:'cliente', id };
+    state.aba = 'respostas';
+    render();
+    await carregarDetalhe(id);
+    render();
+  }
+
+  function clienteAtual(){ return state.clientes.find(c=>c.id===state.vista.id); }
+
+  function telaCliente(){
+    const c = clienteAtual();
+    const m = el('main');
+    if(!c){ m.appendChild(el('div',{class:'vazio'},'Cliente não encontrado.')); return m; }
+
+    m.appendChild(el('p',{class:'eyebrow'}, esc(c.vertical || 'sem vertical definida')));
+    m.appendChild(el('h1',{class:'page'}, esc(c.nome)));
+
+    const meta = el('div',{style:'display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:10px'});
+    const sel = el('select',{style:'padding:5px 8px;border:1.5px solid #0A0A0A;font-size:0.78rem'});
+    ESTAGIOS.forEach(e2=>{ const o = el('option',{value:e2}, e2); if(e2===c.estagio) o.setAttribute('selected','selected'); sel.appendChild(o); });
+    sel.addEventListener('change', async ()=>{
+      if(await atualizar('clientes', c.id, { estagio: sel.value })){ toast('Estágio atualizado.'); await carregarTudo(); render(); }
+    });
+    meta.appendChild(sel);
+    if(c.inicio_contrato) meta.appendChild(el('span',{class:'tag off'},'início '+soData(c.inicio_contrato)));
+    if(c.responsavel) meta.appendChild(el('span',{class:'tag off'},'resp. '+esc(c.responsavel)));
+    if(c.brand_profile_id) meta.appendChild(el('span',{class:'tag roxo'},'marca vinculada no app'));
+    m.appendChild(meta);
+
+    const tabs = el('div',{class:'tabs'});
+    ABAS.forEach(([k,rot])=>{
+      const b = el('button',{class:'tab'+(state.aba===k?' active':''), onclick:()=>{ state.aba=k; render(); }}, rot);
+      tabs.appendChild(b);
+    });
+    m.appendChild(tabs);
+
+    const p = el('div',{class:'panel'});
+    if(state.aba==='respostas') p.appendChild(abaRespostas());
+    if(state.aba==='metas') p.appendChild(abaMetas(c));
+    if(state.aba==='baseline') p.appendChild(abaBaseline(c));
+    if(state.aba==='marcos') p.appendChild(abaMarcos(c));
+    if(state.aba==='conformidade') p.appendChild(abaConformidade(c));
+    if(state.aba==='horas') p.appendChild(abaHoras(c));
+    m.appendChild(p);
+    return m;
+  }
+
+  function abaRespostas(){
+    const on = state.detalhe.onboarding;
+    if(!on) return el('div',{class:'vazio'},'Nenhuma resposta de onboarding vinculada a este cliente ainda. Vincule uma pela caixa de entrada.');
+    const box = el('div');
+    box.appendChild(el('p',{class:'mono muted', style:'font-size:0.7rem;margin:0 0 18px'},
+      'Recebido em '+dataBR(on.recebido_em)+' · '+contarRespondidas(on.respostas)+' de 24 respondidas'));
+    box.appendChild(blocoRespostas(on.respostas));
+    return box;
+  }
+
+  function blocoRespostas(respostas){
+    const box = el('div');
+    const r = respostas || {};
+    SECOES.forEach(sec=>{
+      box.appendChild(el('p',{class:'secname'}, esc(sec.titulo)));
+      sec.perguntas.forEach(([chave, pergunta])=>{
+        const v = (r[chave]||'').trim();
+        const d = el('div',{class:'qa'+(v?'':' vazia')});
+        d.appendChild(el('div',{class:'q'}, esc(pergunta)));
+        d.appendChild(el('div',{class:'a'}, v ? esc(v) : 'Não respondido'));
+        box.appendChild(d);
+      });
+    });
+    return box;
+  }
+
+  // ---------- tabela genérica com formulário de inclusão ----------
+
+  function secao(opts){
+    // opts: { titulo, ajuda, linhas, colunas, campos, tabela, cliente }
+    const box = el('div');
+    if(opts.ajuda) box.appendChild(el('p',{class:'muted', style:'margin:0 0 16px'}, opts.ajuda));
+
+    if(!opts.linhas.length){
+      box.appendChild(el('div',{class:'vazio'}, opts.vazio || 'Nada registrado ainda.'));
+    } else {
+      const w = el('div',{class:'wrap'});
+      const t = el('table');
+      const thead = el('thead'); const trh = el('tr');
+      opts.colunas.forEach(col=> trh.appendChild(el('th',{}, esc(col.rotulo))));
+      trh.appendChild(el('th',{},''));
+      thead.appendChild(trh); t.appendChild(thead);
+      const tb = el('tbody');
+      opts.linhas.forEach(l=>{
+        const tr = el('tr');
+        opts.colunas.forEach(col=>{
+          const td = el('td');
+          const v = col.valor ? col.valor(l) : l[col.chave];
+          td.innerHTML = (v===null||v===undefined||v==='') ? '<span class="muted">—</span>' : esc(v);
+          tr.appendChild(td);
+        });
+        const acao = el('td',{style:'text-align:right;white-space:nowrap'});
+        acao.appendChild(el('button',{class:'btn ghost small', onclick:async()=>{
+          if(await apagar(opts.tabela, l.id)){ await carregarDetalhe(opts.cliente.id); render(); }
+        }},'remover'));
+        tr.appendChild(acao);
+        tb.appendChild(tr);
+      });
+      t.appendChild(tb); w.appendChild(t); box.appendChild(w);
+    }
+
+    const det = el('details',{style:'margin-top:22px'});
+    det.appendChild(el('summary',{class:'mono', style:'font-size:0.7rem;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;color:#6E6E6E'}, opts.rotuloAdd || '+ adicionar'));
+    const form = el('form',{class:'card flat', style:'margin-top:12px'});
+    const g = el('div',{class: opts.colunasForm===3 ? 'grid3' : 'grid2'});
+    opts.campos.forEach(c=>{
+      if(c.opcoes) g.appendChild(campoSelect(c.rotulo, c.nome, c.opcoes, c.padrao));
+      else if(c.tipo==='textarea'){
+        const f = el('div',{class:'field', style:'grid-column:1/-1'});
+        f.appendChild(el('label',{for:'f_'+c.nome}, esc(c.rotulo)));
+        f.appendChild(el('textarea',{id:'f_'+c.nome, name:c.nome}));
+        g.appendChild(f);
+      }
+      else g.appendChild(campo(c.rotulo, c.nome, c.tipo, c.padrao));
+    });
+    form.appendChild(g);
+    form.appendChild(el('button',{class:'btn small', type:'submit'},'Salvar'));
+    form.addEventListener('submit', async e=>{
+      e.preventDefault();
+      const dados = lerForm(form);
+      dados.cliente_id = opts.cliente.id;
+      if(opts.validar){ const erro = opts.validar(dados); if(erro){ toast(erro); return; } }
+      if(await inserir(opts.tabela, dados)){
+        await carregarDetalhe(opts.cliente.id); render();
+      }
+    });
+    det.appendChild(form);
+    box.appendChild(det);
+    return box;
+  }
+
+  function abaMetas(c){
+    return secao({
+      tabela:'metas', cliente:c, linhas:state.detalhe.metas,
+      ajuda:'Pré-registro: escrito ANTES de começar. O campo "fracasso" é o que impede contar história depois olhando só o número que subiu.',
+      vazio:'Nenhuma meta pré-registrada. Sem isso, o relatório vira narrativa.',
+      rotuloAdd:'+ pré-registrar uma meta',
+      colunas:[
+        {rotulo:'Métrica', chave:'metrica'},
+        {rotulo:'Tipo', chave:'tipo'},
+        {rotulo:'Partida', valor:l=> l.valor_partida},
+        {rotulo:'30 dias', chave:'sucesso_30'},
+        {rotulo:'60 dias', chave:'sucesso_60'},
+        {rotulo:'90 dias', chave:'sucesso_90'},
+        {rotulo:'Fracasso', chave:'fracasso'},
+      ],
+      campos:[
+        {rotulo:'Métrica', nome:'metrica'},
+        {rotulo:'Tipo', nome:'tipo', opcoes:['antecedente','resultado'], padrao:'antecedente'},
+        {rotulo:'Valor de partida', nome:'valor_partida', tipo:'number'},
+        {rotulo:'Prazo realista (meses)', nome:'prazo_realista_meses', tipo:'number'},
+        {rotulo:'Sucesso em 30 dias', nome:'sucesso_30'},
+        {rotulo:'Sucesso em 60 dias', nome:'sucesso_60'},
+        {rotulo:'Sucesso em 90 dias', nome:'sucesso_90'},
+        {rotulo:'O que contaria como fracasso', nome:'fracasso', tipo:'textarea'},
+      ],
+      validar:d=> d.metrica ? null : 'Diga qual é a métrica.',
+    });
+  }
+
+  function abaBaseline(c){
+    return secao({
+      tabela:'baselines', cliente:c, linhas:state.detalhe.baselines,
+      ajuda:'Números congelados antes de mexer em qualquer coisa. Janela mínima recomendada: 90 dias. Se não houver histórico, registre o que houver e declare a limitação.',
+      vazio:'Nenhum número congelado. Sem baseline não dá para afirmar movimento depois.',
+      rotuloAdd:'+ congelar um número',
+      colunas:[
+        {rotulo:'Métrica', chave:'metrica'},
+        {rotulo:'Fonte', chave:'fonte'},
+        {rotulo:'Valor', valor:l=> l.valor!=null ? l.valor + (l.unidade? ' '+l.unidade : '') : l.valor_texto},
+        {rotulo:'Janela', valor:l=> l.janela_inicio ? soData(l.janela_inicio)+' → '+soData(l.janela_fim) : null},
+        {rotulo:'Congelado', valor:l=> dataBR(l.congelado_em)},
+        {rotulo:'Limitação', chave:'limitacao'},
+      ],
+      campos:[
+        {rotulo:'Métrica', nome:'metrica'},
+        {rotulo:'Fonte', nome:'fonte', opcoes:['perfil_empresa','instagram','whatsapp','site','negocio','outro'], padrao:'perfil_empresa'},
+        {rotulo:'Valor (número)', nome:'valor', tipo:'number'},
+        {rotulo:'Unidade', nome:'unidade'},
+        {rotulo:'Valor (texto, se não for número)', nome:'valor_texto'},
+        {rotulo:'Início da janela', nome:'janela_inicio', tipo:'date'},
+        {rotulo:'Fim da janela', nome:'janela_fim', tipo:'date'},
+        {rotulo:'Limitação declarada', nome:'limitacao', tipo:'textarea'},
+      ],
+      validar:d=> d.metrica ? null : 'Diga qual é a métrica.',
+    });
+  }
+
+  function abaMarcos(c){
+    return secao({
+      tabela:'marcos', cliente:c, linhas:state.detalhe.marcos,
+      ajuda:'Os 3 a 5 marcos do documento de uma página, com data e com quem é responsável por cada um.',
+      vazio:'Nenhum marco definido.',
+      rotuloAdd:'+ adicionar marco',
+      colunas:[
+        {rotulo:'Marco', chave:'titulo'},
+        {rotulo:'Descrição', chave:'descricao'},
+        {rotulo:'Prevista', valor:l=> soData(l.data_prevista)},
+        {rotulo:'Cumprida', valor:l=> l.data_cumprida ? soData(l.data_cumprida) : null},
+        {rotulo:'Quem', chave:'responsavel'},
+      ],
+      campos:[
+        {rotulo:'Título', nome:'titulo'},
+        {rotulo:'Responsável', nome:'responsavel', opcoes:['bora','cliente'], padrao:'bora'},
+        {rotulo:'Data prevista', nome:'data_prevista', tipo:'date'},
+        {rotulo:'Data cumprida', nome:'data_cumprida', tipo:'date'},
+        {rotulo:'Descrição', nome:'descricao', tipo:'textarea'},
+      ],
+      validar:d=> d.titulo ? null : 'O marco precisa de um título.',
+    });
+  }
+
+  function abaConformidade(c){
+    return secao({
+      tabela:'conformidade_itens', cliente:c, linhas:state.detalhe.conformidade,
+      ajuda:'A aprovação rastreável é o produto, não o gargalo. Quem aprovou e quando fica registrado aqui.',
+      vazio:'Nenhum item de conformidade registrado.',
+      rotuloAdd:'+ adicionar item',
+      colunas:[
+        {rotulo:'Item', chave:'item'},
+        {rotulo:'Norma', chave:'norma'},
+        {rotulo:'Vertical', chave:'vertical'},
+        {rotulo:'Status', chave:'status'},
+        {rotulo:'Aprovado por', chave:'aprovado_por'},
+        {rotulo:'Quando', valor:l=> l.aprovado_em ? dataBR(l.aprovado_em) : null},
+      ],
+      campos:[
+        {rotulo:'Item', nome:'item'},
+        {rotulo:'Status', nome:'status', opcoes:['pendente','conforme','nao_conforme','nao_aplicavel'], padrao:'pendente'},
+        {rotulo:'Norma', nome:'norma'},
+        {rotulo:'Vertical', nome:'vertical'},
+        {rotulo:'Aprovado por', nome:'aprovado_por'},
+        {rotulo:'Nota', nome:'nota', tipo:'textarea'},
+      ],
+      validar:d=> d.item ? null : 'Descreva o item.',
+    });
+  }
+
+  function abaHoras(c){
+    const linhas = state.detalhe.horas;
+    const total = linhas.reduce((s,l)=>s+(l.minutos||0),0);
+    const fat = linhas.filter(l=>l.faturavel).reduce((s,l)=>s+(l.minutos||0),0);
+    const box = el('div');
+    if(linhas.length){
+      const r = el('div',{style:'display:flex;gap:26px;flex-wrap:wrap;margin:0 0 18px'});
+      r.appendChild(el('div',{},'<span class="mono muted" style="font-size:0.64rem;letter-spacing:0.1em;text-transform:uppercase">Total</span><br><strong class="grotesk" style="font-size:1.3rem">'+(total/60).toFixed(1)+' h</strong>'));
+      r.appendChild(el('div',{},'<span class="mono muted" style="font-size:0.64rem;letter-spacing:0.1em;text-transform:uppercase">Faturável</span><br><strong class="grotesk" style="font-size:1.3rem">'+(fat/60).toFixed(1)+' h</strong>'));
+      r.appendChild(el('div',{},'<span class="mono muted" style="font-size:0.64rem;letter-spacing:0.1em;text-transform:uppercase">Lançamentos</span><br><strong class="grotesk" style="font-size:1.3rem">'+linhas.length+'</strong>'));
+      box.appendChild(r);
+    }
+    box.appendChild(secao({
+      tabela:'horas', cliente:c, linhas,
+      ajuda:'Quanto custa entregar um mês de serviço — medido, não estimado. É o número que falta para o preço deixar de ser opinião.',
+      vazio:'Nenhuma hora lançada. Sem isso, não dá para saber se o preço cobre o custo.',
+      rotuloAdd:'+ lançar horas',
+      colunasForm:3,
+      colunas:[
+        {rotulo:'Data', valor:l=> soData(l.data)},
+        {rotulo:'Atividade', chave:'atividade'},
+        {rotulo:'Categoria', chave:'categoria'},
+        {rotulo:'Minutos', chave:'minutos'},
+        {rotulo:'Quem', chave:'quem'},
+        {rotulo:'Faturável', valor:l=> l.faturavel ? 'sim' : 'não'},
+      ],
+      campos:[
+        {rotulo:'Data', nome:'data', tipo:'date', padrao:new Date().toISOString().slice(0,10)},
+        {rotulo:'Minutos', nome:'minutos', tipo:'number'},
+        {rotulo:'Quem', nome:'quem'},
+        {rotulo:'Categoria', nome:'categoria', opcoes:['coleta','relatorio','conteudo','reuniao','conformidade','comercial','admin','outro'], padrao:'conteudo'},
+        {rotulo:'Faturável', nome:'faturavel', opcoes:['true','false'], padrao:'true'},
+        {rotulo:'Atividade', nome:'atividade'},
+      ],
+      validar:d=>{
+        if(!d.atividade) return 'Descreva a atividade.';
+        if(!d.minutos || d.minutos<=0) return 'Minutos precisa ser maior que zero.';
+        d.faturavel = String(d.faturavel) === 'true';
+        return null;
+      },
+    }));
+    return box;
+  }
+
+  // ---------- sessão ----------
+
+  async function iniciarSessao(){
+    state.carregando = true; render();
+    const { data:{ session } } = await sb.auth.getSession();
+    state.user = session ? session.user : null;
+    if(state.user){
+      const { data, error } = await sb.rpc('is_bora_member');
+      state.membro = !error && data === true;
+      if(state.membro) await carregarTudo();
+    }
+    state.carregando = false;
+    render();
+  }
+
+  async function sair(){
+    await sb.auth.signOut();
+    state.user = null; state.membro = false; state.clientes = []; state.inbox = [];
+    state.vista = { tipo:'inbox' };
+    render();
+  }
+
+  iniciarSessao();
+})();
+</script>
+
+</body>
+</html>
