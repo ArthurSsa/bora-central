@@ -176,11 +176,24 @@
 
   const ABAS = [
     ['respostas','Respostas'],
+    ['acessos','Acessos'],
     ['metas','Metas'],
     ['baseline','Baseline'],
     ['marcos','Marcos'],
     ['conformidade','Conformidade'],
     ['horas','Horas'],
+  ];
+
+  // Lista padrão de acessos. Existe para ninguém descobrir no dia 20 que faltava um.
+  const ACESSOS_PADRAO = [
+    'Perfil da Empresa (Google)',
+    'Instagram',
+    'WhatsApp comercial',
+    'Site e hospedagem',
+    'Domínio e DNS',
+    'Meta Business Suite',
+    'Google Analytics',
+    'Banco de fotos e material de marca',
   ];
 
   const ESTAGIOS = ['prospect','onboarding','ativo','pausado','encerrado'];
@@ -190,8 +203,8 @@
   const state = {
     user:null, membro:false, carregando:true,
     clientes:[], inbox:[], vista:{ tipo:'inbox' }, aba:'respostas',
-    detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[] },
-    erro:null, modoLogin:'link', linkEnviadoPara:null,
+    detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[] },
+    erro:null, modoLogin:'link', linkEnviadoPara:null, editandoPV:false,
   };
 
   const app = document.getElementById('app');
@@ -223,17 +236,18 @@
 
   async function carregarDetalhe(clienteId){
     const d = state.detalhe;
-    const [on, me, ba, ma, co, ho] = await Promise.all([
+    const [on, me, ba, ma, co, ho, ac] = await Promise.all([
       sb.from('onboarding_respostas').select('*').eq('cliente_id', clienteId).order('recebido_em',{ascending:false}).limit(1),
       sb.from('metas').select('*').eq('cliente_id', clienteId).order('registrado_em'),
       sb.from('baselines').select('*').eq('cliente_id', clienteId).order('congelado_em'),
       sb.from('marcos').select('*').eq('cliente_id', clienteId).order('ordem').order('data_prevista'),
       sb.from('conformidade_itens').select('*').eq('cliente_id', clienteId).order('norma'),
       sb.from('horas').select('*').eq('cliente_id', clienteId).order('data',{ascending:false}),
+      sb.from('acessos').select('*').eq('cliente_id', clienteId).order('ordem').order('recurso'),
     ]);
     d.onboarding = (on.data && on.data[0]) || null;
     d.metas = me.data || []; d.baselines = ba.data || []; d.marcos = ma.data || [];
-    d.conformidade = co.data || []; d.horas = ho.data || [];
+    d.conformidade = co.data || []; d.horas = ho.data || []; d.acessos = ac.data || [];
   }
 
   async function inserir(tabela, linha){
@@ -533,6 +547,7 @@
   async function abrirCliente(id){
     state.vista = { tipo:'cliente', id };
     state.aba = 'respostas';
+    state.editandoPV = false;
     render();
     await carregarDetalhe(id);
     render();
@@ -560,6 +575,8 @@
     if(c.brand_profile_id) meta.appendChild(el('span',{class:'tag roxo'},'marca vinculada no app'));
     m.appendChild(meta);
 
+    m.appendChild(blocoPrimeiroValor(c));
+
     const tabs = el('div',{class:'tabs'});
     ABAS.forEach(([k,rot])=>{
       const b = el('button',{class:'tab'+(state.aba===k?' active':''), onclick:()=>{ state.aba=k; render(); }}, rot);
@@ -569,6 +586,7 @@
 
     const p = el('div',{class:'panel'});
     if(state.aba==='respostas') p.appendChild(abaRespostas());
+    if(state.aba==='acessos') p.appendChild(abaAcessos(c));
     if(state.aba==='metas') p.appendChild(abaMetas(c));
     if(state.aba==='baseline') p.appendChild(abaBaseline(c));
     if(state.aba==='marcos') p.appendChild(abaMarcos(c));
@@ -576,6 +594,109 @@
     if(state.aba==='horas') p.appendChild(abaHoras(c));
     m.appendChild(p);
     return m;
+  }
+
+  // Primeiro valor: a promessa pequena com data marcada que sustenta a relacao
+  // enquanto o numero que o cliente quer ver ainda nao se moveu (Lacuna #5).
+  function blocoPrimeiroValor(c){
+    const box = el('div',{class:'card', style:'margin-top:18px;border-width:2px'});
+    const tem = !!(c.primeiro_valor_prometido || '').trim();
+
+    const topo = el('div',{style:'display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:baseline'});
+    topo.appendChild(el('p',{class:'eyebrow', style:'margin:0'},'Primeiro valor prometido'));
+    topo.appendChild(el('button',{class:'linkbtn', style:'color:#6E6E6E',
+      onclick:()=>{ state.editandoPV = !state.editandoPV; render(); }}, state.editandoPV ? 'cancelar' : (tem ? 'editar' : 'definir')));
+    box.appendChild(topo);
+
+    if(!state.editandoPV){
+      if(tem){
+        box.appendChild(el('p',{style:'margin:8px 0 0;font-size:1.05rem;line-height:1.45'}, esc(c.primeiro_valor_prometido)));
+        const linha = el('div',{style:'margin-top:10px;display:flex;gap:9px;flex-wrap:wrap;align-items:center'});
+        if(c.primeiro_valor_data){
+          const hoje = new Date(); hoje.setHours(0,0,0,0);
+          const alvo = new Date(c.primeiro_valor_data + 'T00:00:00');
+          const dias = Math.round((alvo - hoje) / 86400000);
+          linha.appendChild(el('span',{class:'tag off'},'até ' + soData(c.primeiro_valor_data)));
+          if(dias > 0) linha.appendChild(el('span',{class:'tag off'}, 'faltam ' + dias + (dias === 1 ? ' dia' : ' dias')));
+          else if(dias === 0) linha.appendChild(el('span',{class:'tag on'},'é hoje'));
+          else linha.appendChild(el('span',{class:'tag on'}, 'atrasado há ' + Math.abs(dias) + (dias === -1 ? ' dia' : ' dias')));
+        } else {
+          linha.appendChild(el('span',{class:'tag on'},'sem data — promessa sem data não conta'));
+        }
+        box.appendChild(linha);
+      } else {
+        box.appendChild(el('p',{class:'muted', style:'margin:10px 0 0'},
+          'Nada declarado ainda. Primeiro valor não é o resultado prometido: é a primeira vez que o cliente percebe que a decisão foi certa — e precisa acontecer entre 14 e 30 dias, com data dita no kickoff.'));
+      }
+      return box;
+    }
+
+    const form = el('form',{style:'margin-top:14px'});
+    const g = el('div',{class:'grid2'});
+    g.appendChild(campo('O que ele vai perceber, e quando','primeiro_valor_prometido','text', c.primeiro_valor_prometido || ''));
+    g.appendChild(campo('Data prometida','primeiro_valor_data','date', c.primeiro_valor_data || ''));
+    form.appendChild(g);
+    form.appendChild(el('p',{class:'muted', style:'margin:0 0 12px;font-size:0.84rem'},
+      'Candidatos que funcionam em 14 dias: ele passa a saber quantas pessoas chegam por dia e por onde; o tempo de resposta cai de horas para minutos; o diagnóstico de conformidade; o perfil corrigido com antes e depois. Ranqueamento e cliente novo não servem — chegam tarde demais.'));
+    form.appendChild(el('button',{class:'btn small', type:'submit'},'Salvar'));
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const d = lerForm(form);
+      if(await atualizar('clientes', c.id, d)){
+        toast('Primeiro valor registrado.');
+        state.editandoPV = false;
+        await carregarTudo(); render();
+      }
+    });
+    box.appendChild(form);
+    return box;
+  }
+
+  function abaAcessos(c){
+    const box = el('div');
+    const linhas = state.detalhe.acessos;
+    const recebidos = linhas.filter(l => l.status === 'recebido').length;
+    const uteis = linhas.filter(l => l.status !== 'nao_aplicavel').length;
+
+    if(linhas.length){
+      const r = el('div',{style:'display:flex;gap:26px;flex-wrap:wrap;margin:0 0 18px;align-items:center'});
+      r.appendChild(el('div',{},'<span class="mono muted" style="font-size:0.64rem;letter-spacing:0.1em;text-transform:uppercase">Já em mãos</span><br><strong class="grotesk" style="font-size:1.3rem">'+recebidos+' de '+uteis+'</strong>'));
+      const travados = linhas.filter(l => l.status === 'bloqueado').length;
+      if(travados) r.appendChild(el('span',{class:'tag on'}, travados + (travados===1?' bloqueado':' bloqueados')));
+      box.appendChild(r);
+    } else {
+      const wrap = el('div',{style:'margin:0 0 18px'});
+      wrap.appendChild(el('button',{class:'btn small', onclick:async()=>{
+        const linhas = ACESSOS_PADRAO.map((recurso, i) => ({ cliente_id:c.id, recurso, ordem:i }));
+        if(await inserir('acessos', linhas)){ await carregarDetalhe(c.id); render(); }
+      }},'Criar a lista padrão de acessos'));
+      box.appendChild(wrap);
+    }
+
+    box.appendChild(secao({
+      tabela:'acessos', cliente:c, linhas,
+      ajuda:'O gargalo mais documentado do onboarding de agência. Peça os acessos junto com o contrato, não depois — e anote quem detém cada um. Costuma estar com um sobrinho, um ex-funcionário ou a agência anterior, e descobrir isso no dia 20 custa o mês.',
+      vazio:'Nenhum acesso mapeado. Comece pela lista padrão acima.',
+      rotuloAdd:'+ adicionar acesso',
+      colunas:[
+        {rotulo:'Recurso', chave:'recurso'},
+        {rotulo:'Quem detém', chave:'quem_detem'},
+        {rotulo:'Status', chave:'status'},
+        {rotulo:'Solicitado', valor:l=> l.solicitado_em ? soData(l.solicitado_em) : null},
+        {rotulo:'Recebido', valor:l=> l.recebido_em ? soData(l.recebido_em) : null},
+        {rotulo:'Nota', chave:'nota'},
+      ],
+      campos:[
+        {rotulo:'Recurso', nome:'recurso'},
+        {rotulo:'Status', nome:'status', opcoes:['pendente','solicitado','recebido','bloqueado','nao_aplicavel'], padrao:'pendente'},
+        {rotulo:'Quem detém', nome:'quem_detem'},
+        {rotulo:'Solicitado em', nome:'solicitado_em', tipo:'date'},
+        {rotulo:'Recebido em', nome:'recebido_em', tipo:'date'},
+        {rotulo:'Nota', nome:'nota', tipo:'textarea'},
+      ],
+      validar:d=> d.recurso ? null : 'Diga qual é o acesso.',
+    }));
+    return box;
   }
 
   function abaRespostas(){
