@@ -1498,251 +1498,306 @@
   // arquivo gerado precisa ser um HTML só, sem nada carregado de fora
   // além da fonte — pra poder ser mandado por WhatsApp e continuar funcionando.
   const CSS_PAGINA_CLIENTE = `
-:root{
+  :root{
     --papel:#FBFAF8;
-    --superficie:#FFFFFF;
-    --tinta:#0A0A0A;
+    --sup:#FFFFFF;
+    --sup2:#F6F3EE;
+    --tinta:#14120F;
     --cinza:#6B6864;
-    --linha:#E3DFDA;
+    --linha:#E7E2DA;
+    --linha2:#F0ECE5;
     --laranja:#FF5E00;
-    --roxo:#8800FF;
-    --nosso:#0A0A0A;
-    --deles:#8800FF;
+    --laranja-forte:#C24700;
+    --nosso:#3A3632;
+    --deles:#7A00E0;
+    --deles-fraco:#F3E8FF;
+    --s1:0 1px 2px rgba(20,18,15,.04), 0 6px 22px rgba(20,18,15,.06);
+    --s2:0 2px 5px rgba(20,18,15,.05), 0 16px 44px rgba(20,18,15,.10);
+    --r:16px;
     --display:'Space Grotesk','Segoe UI',sans-serif;
     --corpo:'Archivo','Helvetica Neue',Arial,sans-serif;
     --dado:'Space Mono','SFMono-Regular',Consolas,monospace;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --papel:#0C0B0A;
-      --superficie:#151412;
-      --tinta:#F4F2EF;
-      --cinza:#9C9791;
-      --linha:#2E2B27;
-      --laranja:#FF7A2E;
-      --roxo:#B166FF;
-      --nosso:#F4F2EF;
-      --deles:#B166FF;
+      --papel:#0C0B0A; --sup:#17150F; --sup2:#1E1B16; --tinta:#F4F2EF; --cinza:#9C9791;
+      --linha:#2C2924; --linha2:#232019; --laranja:#FF7A2E; --laranja-forte:#FF8A3C;
+      --nosso:#C9C3BB; --deles:#B166FF; --deles-fraco:#2A1B3D;
+      --s1:0 1px 2px rgba(0,0,0,.4), 0 6px 22px rgba(0,0,0,.35);
+      --s2:0 2px 5px rgba(0,0,0,.45), 0 16px 44px rgba(0,0,0,.5);
     }
   }
   :root[data-theme="dark"]{
-    --papel:#0C0B0A;
-    --superficie:#151412;
-    --tinta:#F4F2EF;
-    --cinza:#9C9791;
-    --linha:#2E2B27;
-    --laranja:#FF7A2E;
-    --roxo:#B166FF;
-    --nosso:#F4F2EF;
-    --deles:#B166FF;
+    --papel:#0C0B0A; --sup:#17150F; --sup2:#1E1B16; --tinta:#F4F2EF; --cinza:#9C9791;
+    --linha:#2C2924; --linha2:#232019; --laranja:#FF7A2E; --laranja-forte:#FF8A3C;
+    --nosso:#C9C3BB; --deles:#B166FF; --deles-fraco:#2A1B3D;
+    --s1:0 1px 2px rgba(0,0,0,.4), 0 6px 22px rgba(0,0,0,.35);
+    --s2:0 2px 5px rgba(0,0,0,.45), 0 16px 44px rgba(0,0,0,.5);
   }
 
   *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *,*::before,*::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+  }
   body{
     margin:0; background:var(--papel); color:var(--tinta);
     font-family:var(--corpo); font-size:16px; line-height:1.6;
     -webkit-font-smoothing:antialiased;
   }
-  .folha{ max-width:760px; margin:0 auto; padding:0 22px 96px; }
+  .folha{ max-width:780px; margin:0 auto; padding:0 20px 96px; }
+  *:focus-visible{ outline:2.5px solid var(--deles); outline-offset:3px; border-radius:4px; }
 
   .rotulo{
-    font-family:var(--dado); font-size:0.66rem; letter-spacing:0.14em;
+    font-family:var(--dado); font-size:0.62rem; letter-spacing:0.16em;
     text-transform:uppercase; color:var(--cinza); margin:0;
   }
-  .rotulo.laranja{ color:var(--laranja); }
+  .rotulo.laranja{ color:var(--laranja-forte); }
 
-  /* ---- cabeçalho ---- */
-  header{ padding:56px 0 34px; border-bottom:3px solid var(--tinta); }
+  /* ---- capa ---- */
+  header{ padding:56px 0 0; }
   header h1{
-    font-family:var(--display); font-weight:700; font-size:clamp(2.1rem,7vw,3.1rem);
-    line-height:1.02; letter-spacing:-0.025em; margin:14px 0 0; text-wrap:balance;
+    font-family:var(--display); font-weight:700; font-size:clamp(2rem,6.4vw,3.1rem);
+    line-height:1.0; letter-spacing:-0.035em; margin:14px 0 0; text-wrap:balance;
   }
   header h1 em{ font-style:normal; color:var(--laranja); }
-  .subcab{
-    display:flex; flex-wrap:wrap; gap:10px 26px; margin-top:22px;
-    font-family:var(--dado); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em;
-    color:var(--cinza);
+  .cifras{
+    display:flex; gap:32px; flex-wrap:wrap; margin:30px 0 0;
+    padding:22px 0 0; border-top:1px solid var(--linha);
   }
-  .subcab b{ color:var(--tinta); font-weight:700; }
+  .cifra{ background:none; border:none; padding:0; text-align:left; color:inherit; font:inherit; }
+  a.cifra{ text-decoration:none; }
+  .cifra b{
+    display:block; font-family:var(--display); font-weight:700; font-size:2.5rem;
+    line-height:0.92; letter-spacing:-0.045em; font-variant-numeric:tabular-nums;
+  }
+  .cifra b u{ text-decoration:none; color:var(--laranja); }
+  .cifra b em{ font-style:normal; font-size:0.44em; color:var(--cinza); letter-spacing:-0.01em; }
+  .cifra span{
+    display:block; margin-top:9px; font-family:var(--dado); font-size:0.6rem;
+    letter-spacing:0.14em; text-transform:uppercase; color:var(--cinza);
+  }
+  a.cifra span{ color:var(--deles); }
+  a.cifra:hover b{ color:var(--deles); }
 
   .aviso{
-    margin:26px 0 0; padding:16px 18px; background:var(--superficie);
-    border:1px solid var(--linha); border-left:4px solid var(--laranja);
-    font-size:0.94rem; line-height:1.55;
+    margin:30px 0 0; padding:18px 20px; background:var(--sup); border-radius:var(--r);
+    box-shadow:var(--s1); font-size:0.94rem; line-height:1.55;
   }
 
-  /* ---- seções ---- */
-  section{ padding-top:52px; }
-  section > h2{
-    font-family:var(--display); font-weight:700; font-size:1.5rem; letter-spacing:-0.015em;
-    margin:8px 0 6px; text-wrap:balance;
+  /* ---- seções numeradas ---- */
+  section{ padding-top:56px; }
+  .sec-cab{ display:grid; grid-template-columns:52px minmax(0,1fr); gap:0 18px; align-items:start; }
+  @media (max-width:600px){ .sec-cab{ grid-template-columns:minmax(0,1fr); gap:8px; } .sec-cab .num{ font-size:1rem; } }
+  .num{
+    font-family:var(--display); font-weight:700; font-size:1.5rem; color:var(--laranja);
+    letter-spacing:-0.03em; line-height:1.05;
   }
-  section > p.intro{ color:var(--cinza); font-size:0.95rem; margin:0 0 22px; max-width:62ch; }
+  section h2{
+    font-family:var(--display); font-weight:700; font-size:1.55rem; letter-spacing:-0.025em;
+    margin:0 0 6px; text-wrap:balance;
+  }
+  p.intro{ color:var(--cinza); font-size:0.95rem; margin:0 0 24px; max-width:62ch; }
 
   /* ---- promessa ---- */
   .promessa{
-    background:var(--tinta); color:var(--papel); padding:30px 28px;
-    display:grid; gap:16px;
+    background:linear-gradient(135deg,#241F1A,#0E0C0A); color:#F7F4EF;
+    border-radius:var(--r); box-shadow:var(--s2); padding:32px 30px; display:grid; gap:18px;
   }
-  .promessa .rotulo{ color:var(--laranja); }
+  .promessa .rotulo{ color:#FF8A3C; }
   .promessa p{
-    font-family:var(--display); font-weight:500; font-size:clamp(1.15rem,3.6vw,1.5rem);
-    line-height:1.32; margin:0; letter-spacing:-0.01em;
+    font-family:var(--display); font-weight:500; font-size:clamp(1.2rem,3.7vw,1.6rem);
+    line-height:1.28; margin:0; letter-spacing:-0.02em;
   }
   .promessa .data{
-    font-family:var(--dado); font-size:0.74rem; letter-spacing:0.08em; text-transform:uppercase;
-    border-top:1px solid rgba(255,255,255,0.22); padding-top:14px; color:#C9C5C0;
+    font-family:var(--dado); font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase;
+    border-top:1px solid rgba(255,255,255,.18); padding-top:16px; color:#B8B2AA;
   }
-  .promessa .data b{ color:var(--laranja); }
+  .promessa .data b{ color:#FF8A3C; }
+
+  /* ---- cartão genérico ---- */
+  .cartao{ background:var(--sup); border-radius:var(--r); box-shadow:var(--s1); padding:24px 26px; }
 
   /* ---- tabelas ---- */
   .rolagem{ overflow-x:auto; }
-  table{ width:100%; border-collapse:collapse; font-size:0.9rem; }
+  table{ width:100%; border-collapse:separate; border-spacing:0; font-size:0.9rem; }
   th{
-    font-family:var(--dado); font-size:0.62rem; letter-spacing:0.11em; text-transform:uppercase;
+    font-family:var(--dado); font-size:0.58rem; letter-spacing:0.14em; text-transform:uppercase;
     color:var(--cinza); font-weight:400; text-align:left;
-    padding:0 14px 8px 0; border-bottom:2px solid var(--tinta); white-space:nowrap;
+    padding:0 16px 12px 0; border-bottom:1px solid var(--linha); white-space:nowrap;
   }
-  td{ padding:12px 14px 12px 0; border-bottom:1px solid var(--linha); vertical-align:top; line-height:1.45; }
+  td{ padding:15px 16px 15px 0; border-bottom:1px solid var(--linha2); vertical-align:top; line-height:1.45; }
   tr:last-child td{ border-bottom:none; }
-  td.num{ font-family:var(--dado); font-variant-numeric:tabular-nums; white-space:nowrap; font-size:0.95rem; }
-  td.ressalva{ color:var(--cinza); font-size:0.82rem; line-height:1.4; }
+  td.num-col{ font-family:var(--display); font-weight:700; font-size:1.15rem; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  td.ressalva{ color:var(--cinza); font-size:0.83rem; line-height:1.45; }
   .metrica{ font-weight:600; }
 
   /* ---- metas ---- */
-  .meta{ border-top:1px solid var(--linha); padding:20px 0; }
-  .meta:first-of-type{ border-top:2px solid var(--tinta); }
-  .meta h3{
-    font-family:var(--display); font-size:1.02rem; font-weight:700; margin:0 0 3px; letter-spacing:-0.01em;
-  }
+  .meta{ background:var(--sup); border-radius:var(--r); box-shadow:var(--s1); padding:22px 24px; margin-bottom:12px; }
+  .meta h3{ font-family:var(--display); font-size:1.05rem; font-weight:700; margin:0; letter-spacing:-0.015em; }
   .meta .tipo{
-    font-family:var(--dado); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase;
-    color:var(--cinza); border:1px solid var(--linha); padding:2px 6px; margin-left:8px; white-space:nowrap;
+    font-family:var(--dado); font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--cinza); background:var(--sup2); border-radius:100px; padding:3px 9px; margin-left:9px; white-space:nowrap;
   }
-  .marcos-meta{ display:grid; grid-template-columns:1fr 1fr; gap:0 22px; margin-top:14px; }
-  @media (max-width:560px){ .marcos-meta{ grid-template-columns:1fr; gap:14px 0; } }
-  .marcos-meta div .rotulo{ margin-bottom:3px; }
-  .marcos-meta div p{ margin:0; font-size:0.92rem; line-height:1.45; }
+  .marcos-meta{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0 24px; margin-top:16px; }
+  @media (max-width:560px){ .marcos-meta{ grid-template-columns:minmax(0,1fr); gap:14px 0; } }
+  .marcos-meta div .rotulo{ margin-bottom:4px; }
+  .marcos-meta div p{ margin:0; font-size:0.94rem; line-height:1.45; }
   .fracasso{
-    margin-top:14px; padding:11px 14px; background:var(--superficie);
-    border:1px solid var(--linha); border-left:3px solid var(--laranja); font-size:0.88rem; line-height:1.45;
+    margin-top:16px; padding:13px 16px; background:var(--sup2); border-radius:10px;
+    border-left:3px solid var(--laranja); font-size:0.89rem; line-height:1.45;
   }
-  .fracasso b{ font-family:var(--dado); font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--laranja); display:block; margin-bottom:3px; font-weight:700; }
+  .fracasso b{
+    font-family:var(--dado); font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--laranja-forte); display:block; margin-bottom:4px; font-weight:700;
+  }
+  .correcao{
+    font-family:var(--dado); font-size:0.62rem; letter-spacing:0.07em; text-transform:uppercase;
+    color:var(--laranja-forte); margin:14px 0 0; padding-top:12px; border-top:1px dashed var(--linha); line-height:1.6;
+  }
 
-  /* ---- trilhos ---- */
+  /* ---- linha do tempo dos 90 dias ----
+     Um eixo só, dia 0 a 90. Cada marco é um ponto na data em que cai;
+     cheio quando já aconteceu, vazado quando ainda não. Preto é nosso,
+     roxo é de vocês — e cada ponto tem a palavra "nós" ou "vocês" na
+     lista logo abaixo, porque cor sozinha não pode carregar a informação. */
+  .eixo{ background:var(--sup); border-radius:var(--r); box-shadow:var(--s1); padding:30px 26px 20px; margin-bottom:22px; }
+  .pista{ position:relative; height:46px; margin:0 6px; }
+  .pista .base{ position:absolute; left:0; right:0; top:22px; height:2px; background:var(--linha); border-radius:2px; }
+  .pista .feito{ position:absolute; left:0; top:22px; height:2px; background:var(--nosso); border-radius:2px; }
+  .pista .marca{
+    position:absolute; top:16px; width:14px; height:14px; border-radius:50%;
+    transform:translateX(-7px); border:2px solid var(--nosso); background:var(--papel);
+    box-shadow:0 0 0 3px var(--sup);
+  }
+  .pista .marca.ok{ background:var(--nosso); }
+  .pista .marca.cli{ border-color:var(--deles); }
+  .pista .marca.cli.ok{ background:var(--deles); }
+  .pista .hoje{
+    position:absolute; top:2px; bottom:2px; width:2px; background:var(--laranja);
+    transform:translateX(-1px);
+  }
+  .pista .hoje.ini span{ left:0; transform:none; }
+  .pista .hoje.fim span{ left:auto; right:0; transform:none; }
+  .pista .hoje span{
+    position:absolute; top:-4px; left:50%; transform:translateX(-50%);
+    font-family:var(--dado); font-size:0.55rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--laranja-forte); background:var(--sup); padding:0 5px; white-space:nowrap;
+  }
+  .reguas{ display:flex; justify-content:space-between; margin:2px 6px 0; }
+  .reguas span{ font-family:var(--dado); font-size:0.58rem; letter-spacing:0.1em; color:var(--cinza); }
+  .legenda{
+    display:flex; gap:18px; flex-wrap:wrap; margin:18px 0 0; padding-top:14px; border-top:1px solid var(--linha2);
+    font-family:var(--dado); font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--cinza);
+  }
+  .legenda i{ width:11px; height:11px; border-radius:50%; display:inline-block; vertical-align:-1px; margin-right:6px; border:2px solid var(--nosso); background:var(--nosso); }
+  .legenda .vaz i{ background:var(--papel); }
+  .legenda .cli i{ border-color:var(--deles); background:var(--deles); }
+
+  /* ---- passos ---- */
   .trilhos{ display:grid; gap:0; }
   .passo{
-    display:grid; grid-template-columns:88px 1fr; gap:0 20px;
-    padding:16px 0 16px 0; border-bottom:1px solid var(--linha);
+    display:grid; grid-template-columns:96px minmax(0,1fr); gap:0 20px;
+    padding:18px 0; border-bottom:1px solid var(--linha2);
   }
-  .passo:first-child{ border-top:2px solid var(--tinta); }
+  .passo:last-child{ border-bottom:none; }
   .passo .quando{
     font-family:var(--dado); font-size:0.72rem; letter-spacing:0.06em; color:var(--cinza);
     font-variant-numeric:tabular-nums; padding-top:3px;
   }
-  .passo .conteudo{ border-left:3px solid var(--nosso); padding-left:16px; }
-  .passo.deles .conteudo{ border-left-color:var(--deles); }
-  .passo h3{ font-family:var(--display); font-size:1rem; font-weight:700; margin:0; letter-spacing:-0.005em; }
-  .passo p{ margin:4px 0 0; font-size:0.9rem; color:var(--cinza); line-height:1.45; }
-  .dono{
-    font-family:var(--dado); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase;
-    margin-left:9px; padding:2px 6px; white-space:nowrap; vertical-align:2px;
+  .passo .quando .feito{
+    display:block; margin-top:4px; font-size:0.56rem; font-weight:700;
+    letter-spacing:0.12em; text-transform:uppercase; color:#1C6B45;
   }
-  .dono.nos{ border:1px solid var(--linha); color:var(--cinza); }
+  .passo .conteudo{ border-left:3px solid var(--nosso); padding-left:18px; }
+  .passo.deles .conteudo{ border-left-color:var(--deles); }
+  .passo h3{ font-family:var(--display); font-size:1.02rem; font-weight:700; margin:0; letter-spacing:-0.01em; }
+  .passo p{ margin:5px 0 0; font-size:0.9rem; color:var(--cinza); line-height:1.45; }
+  .dono{
+    font-family:var(--dado); font-size:0.56rem; letter-spacing:0.12em; text-transform:uppercase;
+    margin-left:10px; padding:3px 8px; border-radius:100px; white-space:nowrap; vertical-align:2px;
+  }
+  .dono.nos{ background:var(--sup2); color:var(--cinza); }
   .dono.cliente{ background:var(--deles); color:#fff; }
   @media (max-width:520px){
-    .passo{ grid-template-columns:1fr; gap:6px; }
+    .passo{ grid-template-columns:minmax(0,1fr); gap:6px; }
     .passo .quando{ padding-top:0; }
-    .passo .conteudo{ border-left-width:3px; }
+    .passo .quando .feito{ display:inline; margin-left:10px; }
   }
 
-  /* ---- o que depende de vocês ---- */
-  .voces{ border:2px solid var(--deles); background:var(--superficie); padding:26px 24px; }
+  /* ---- sua parte ---- */
+  .voces{
+    background:var(--sup); border-radius:var(--r); box-shadow:var(--s2);
+    border-top:5px solid var(--deles); padding:30px 28px;
+  }
   .voces > .rotulo{ color:var(--deles); }
-  .voces h2{ font-family:var(--display); font-size:1.35rem; margin:10px 0 6px; letter-spacing:-0.015em; }
-  .voces > p{ color:var(--cinza); font-size:0.93rem; margin:0 0 20px; }
+  .voces h2{ font-family:var(--display); font-size:1.45rem; margin:10px 0 6px; letter-spacing:-0.025em; }
+  .voces > p{ color:var(--cinza); font-size:0.94rem; margin:0 0 22px; }
   .lista{ display:grid; gap:0; }
-  .item{ display:flex; gap:14px; align-items:flex-start; padding:13px 0; border-top:1px solid var(--linha); }
+  .item{ display:flex; gap:15px; align-items:flex-start; padding:15px 0; border-top:1px solid var(--linha2); }
   .item:first-child{ border-top:none; padding-top:0; }
-  .caixa{
-    width:16px; height:16px; border:2px solid var(--deles); flex:0 0 auto; margin-top:3px;
-  }
-  .item .oq{ font-weight:600; font-size:0.95rem; line-height:1.35; }
-  .item .obs{ color:var(--cinza); font-size:0.85rem; line-height:1.4; margin-top:2px; }
-  .item.pronto .caixa{ background:var(--linha); border-color:var(--linha); }
-  .item.pronto .oq{ color:var(--cinza); text-decoration:line-through; }
-
-  /* ---- resultados ---- */
-  .vazio{
-    border:2px dashed var(--linha); padding:34px 26px; text-align:center;
-  }
-  .vazio .rotulo{ margin-bottom:12px; }
-  .vazio p{ margin:0 auto; max-width:48ch; color:var(--cinza); font-size:0.93rem; line-height:1.55; }
-  .datas{
-    display:flex; justify-content:center; gap:0; margin-top:26px; flex-wrap:wrap;
-    font-family:var(--dado); font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase;
-  }
-  .datas span{ padding:7px 15px; border:1px solid var(--linha); color:var(--cinza); margin:-1px 0 0 -1px; }
-
-  footer{
-    margin-top:64px; padding-top:26px; border-top:3px solid var(--tinta);
-    font-family:var(--dado); font-size:0.68rem; letter-spacing:0.07em; text-transform:uppercase;
-    color:var(--cinza); display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;
-  }
-  footer b{ color:var(--laranja); }
-
-  .passo .quando .feito{ color:#0E6B3D; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; font-size:0.6rem; }
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .passo .quando .feito{ color:#4CC98A; } }
-  :root[data-theme="dark"] .passo .quando .feito{ color:#4CC98A; }
-  .voces .obs{ color:var(--cinza); font-size:0.9rem; margin:0; }
-
-  /* ---- correção registrada ---- */
-  .correcao{
-    font-family:var(--dado); font-size:0.64rem; letter-spacing:0.06em; text-transform:uppercase;
-    color:var(--laranja); margin:8px 0 0; line-height:1.5;
-  }
-
-  /* ---- itens da lista: agora com corpo e botão de remover ---- */
   .item .corpo{ flex:1 1 auto; min-width:0; }
+  .caixa{ width:17px; height:17px; border:2px solid var(--deles); border-radius:5px; flex:0 0 auto; margin-top:3px; }
+  .item .oq{ font-weight:600; font-size:0.96rem; line-height:1.35; }
+  .item .obs{ color:var(--cinza); font-size:0.86rem; line-height:1.45; margin-top:3px; }
+  .voces .obs{ color:var(--cinza); font-size:0.9rem; margin:0; }
   .item .tirar{
-    flex:0 0 auto; background:none; border:1px solid var(--linha); color:var(--cinza);
-    width:24px; height:24px; line-height:1; cursor:pointer; font-size:1rem; align-self:flex-start;
+    flex:0 0 auto; background:none; border:1px solid var(--linha); border-radius:7px; color:var(--cinza);
+    width:26px; height:26px; line-height:1; cursor:pointer; font-size:1rem; align-self:flex-start;
   }
   .item .tirar:hover{ border-color:var(--deles); color:var(--deles); }
   .mais-item{
-    margin-top:16px; background:none; border:1px dashed var(--deles); color:var(--deles);
-    font-family:var(--dado); font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase;
-    padding:8px 14px; cursor:pointer;
+    margin-top:18px; background:none; border:1px dashed var(--deles); border-radius:100px; color:var(--deles);
+    font-family:var(--dado); font-size:0.64rem; letter-spacing:0.1em; text-transform:uppercase;
+    padding:9px 16px; cursor:pointer;
   }
   .mais-item:hover{ background:var(--deles); color:#fff; }
   .tirar-secao{
-    margin-top:14px; background:none; border:1px dashed var(--linha); color:var(--cinza);
-    font-family:var(--dado); font-size:0.64rem; letter-spacing:0.08em; text-transform:uppercase;
-    padding:6px 12px; cursor:pointer;
+    margin-top:16px; background:none; border:1px dashed var(--linha); border-radius:100px; color:var(--cinza);
+    font-family:var(--dado); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase;
+    padding:7px 14px; cursor:pointer;
   }
+
+  /* ---- resultados ---- */
+  .vazio{ border:2px dashed var(--linha); border-radius:var(--r); padding:38px 28px; text-align:center; }
+  .vazio .rotulo{ margin-bottom:14px; }
+  .vazio p{ margin:0 auto; max-width:50ch; color:var(--cinza); font-size:0.94rem; line-height:1.6; }
+  .datas{ display:flex; justify-content:center; gap:8px; margin-top:28px; flex-wrap:wrap; }
+  .datas span{
+    font-family:var(--dado); font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase;
+    padding:8px 15px; border-radius:100px; background:var(--sup2); color:var(--cinza);
+  }
+
+  footer{
+    margin-top:70px; padding-top:26px; border-top:1px solid var(--linha);
+    font-family:var(--dado); font-size:0.64rem; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--cinza); display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  footer b{ color:var(--laranja-forte); }
 
   /* ---- modo de edição ---- */
   body.editando [data-ed]{
-    outline:1px dashed rgba(136,0,255,0.4); outline-offset:3px; border-radius:2px; cursor:text;
+    outline:1px dashed rgba(122,0,224,.4); outline-offset:3px; border-radius:3px; cursor:text;
   }
-  body.editando [data-ed]:hover{ outline-color:var(--deles); background:rgba(136,0,255,0.05); }
+  body.editando [data-ed]:hover{ outline-color:var(--deles); background:rgba(122,0,224,.05); }
   body.editando [data-ed]:focus{ outline:2px solid var(--deles); outline-offset:3px; background:transparent; }
-  body.editando{ padding-bottom:86px; }
+  body.editando{ padding-bottom:88px; }
 
   #barra[hidden], .tirar[hidden], .tirar-secao[hidden], .mais-item[hidden]{ display:none !important; }
   #barra{
     position:fixed; left:0; right:0; bottom:0; z-index:60;
     background:var(--tinta); color:var(--papel);
     display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-    padding:10px 16px; border-top:3px solid var(--deles);
+    padding:11px 18px; border-top:3px solid var(--deles);
   }
   #barra .dica-barra{
-    font-family:var(--dado); font-size:0.64rem; letter-spacing:0.08em; text-transform:uppercase;
+    font-family:var(--dado); font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase;
     color:#A9A49E; margin-right:auto;
   }
   #barra button{
-    font-family:var(--display); font-weight:700; font-size:0.76rem;
-    padding:8px 13px; border:1.5px solid var(--papel); background:transparent; color:var(--papel); cursor:pointer;
+    font-family:var(--display); font-weight:700; font-size:0.76rem; border-radius:100px;
+    padding:9px 15px; border:1.5px solid var(--papel); background:transparent; color:var(--papel); cursor:pointer;
   }
   #barra button:hover{ background:var(--papel); color:var(--tinta); }
   #barra button.principal{ background:var(--deles); border-color:var(--deles); color:#fff; }
@@ -1751,28 +1806,40 @@
 
   #caixa-copia{
     position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:70;
-    background:var(--superficie); border:2px solid var(--tinta); padding:20px;
-    width:min(560px, calc(100vw - 40px)); box-shadow:0 18px 50px rgba(0,0,0,0.28);
+    background:var(--sup); border-radius:var(--r); box-shadow:var(--s2); padding:24px;
+    width:min(560px, calc(100vw - 40px));
   }
-  #caixa-copia p{ margin:0 0 10px; font-size:0.9rem; }
+  #caixa-copia p{ margin:0 0 12px; font-size:0.9rem; }
   #caixa-copia textarea{
-    width:100%; height:130px; font-family:var(--dado); font-size:0.7rem; padding:9px;
-    border:1.5px solid var(--linha); background:var(--papel); color:var(--tinta); resize:vertical;
+    width:100%; height:130px; font-family:var(--dado); font-size:0.7rem; padding:10px;
+    border:1px solid var(--linha); border-radius:9px; background:var(--papel); color:var(--tinta); resize:vertical;
   }
   #caixa-copia button{
-    margin-top:12px; font-family:var(--display); font-weight:700; font-size:0.76rem;
-    padding:8px 14px; border:1.5px solid var(--tinta); background:var(--tinta); color:var(--papel); cursor:pointer;
+    margin-top:14px; font-family:var(--display); font-weight:700; font-size:0.76rem; border-radius:100px;
+    padding:9px 16px; border:none; background:var(--tinta); color:var(--papel); cursor:pointer;
   }
 
   #aviso-edicao{
-    position:fixed; left:50%; bottom:84px; transform:translate(-50%,14px); z-index:80;
-    background:var(--deles); color:#fff; padding:10px 18px;
+    position:fixed; left:50%; bottom:88px; transform:translate(-50%,14px); z-index:80;
+    background:var(--deles); color:#fff; padding:11px 20px; border-radius:100px;
     font-family:var(--display); font-weight:700; font-size:0.82rem;
     opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
   }
   #aviso-edicao.vendo{ opacity:1; transform:translate(-50%,0); }
 
-  @media print{ #barra, #caixa-copia, #aviso-edicao, .tirar, .tirar-secao, .mais-item{ display:none !important; } }
+  /* ---- impressão: o cliente pode salvar em PDF ---- */
+  @media print{
+    #barra, #caixa-copia, #aviso-edicao, .tirar, .tirar-secao, .mais-item{ display:none !important; }
+    body{ background:#fff; color:#000; font-size:11pt; }
+    .folha{ max-width:none; padding:0; }
+    .cartao, .meta, .eixo, .voces, .aviso{ box-shadow:none; border:1px solid #CCC; }
+    .promessa{ background:#fff !important; color:#000 !important; border:2px solid #000; }
+    .promessa .rotulo, .promessa .data b{ color:#000 !important; }
+    .promessa .data{ border-top-color:#999; color:#333; }
+    section{ padding-top:26px; break-inside:avoid; }
+    .meta, .passo, .item{ break-inside:avoid; }
+    header{ padding-top:0; }
+  }
 `;
 
   // Editor que viaja dentro da página gerada. Fica inerte até alguém abrir o
@@ -2018,7 +2085,7 @@
     // --- ponto de partida
     const linhasBase = d.baselines.map(b => '<tr>'
       + '<td class="metrica"><span' + edFato('baselines', b.id, 'metrica', b.metrica) + '>' + E(b.metrica) + '</span></td>'
-      + '<td class="num">' + E(b.valor != null ? b.valor + (b.unidade ? ' ' + b.unidade : '') : (b.valor_texto || '?')) + '</td>'
+      + '<td class="num-col">' + E(b.valor != null ? b.valor + (b.unidade ? ' ' + b.unidade : '') : (b.valor_texto || '?')) + '</td>'
       + '<td>' + E(rotulo('baselines_fonte', b.fonte)) + '</td>'
       + '<td class="ressalva"><span' + edFato('baselines', b.id, 'limitacao', b.limitacao || '') + '>' + E(b.limitacao || '—') + '</span>' + notaCorrecao(b.id) + '</td>'
       + '</tr>').join('\n          ');
@@ -2094,6 +2161,37 @@
       + '<button class="tirar-secao" type="button">remover esta seção</button>'
       + '</section>').join('\n');
 
+    // ---- linha do tempo dos 90 dias
+    // Um eixo só (dia 0 a 90). Cada marco é um ponto na data em que cai, cheio
+    // se já aconteceu. Preto é nosso, roxo é de vocês — e a mesma informação
+    // aparece em palavra na lista abaixo, porque cor sozinha não basta.
+    const comData = d.marcos.filter(m => m.data_prevista);
+    const posDe = iso => {
+      const x = new Date(String(iso).slice(0,10) + 'T00:00:00');
+      const n = Math.round((x - base) / 86400000);
+      return Math.max(0, Math.min(100, (n / 90) * 100));
+    };
+    const cumpridos = d.marcos.filter(m => m.data_cumprida).length;
+    const posHoje = Math.max(0, Math.min(100, (dia / 90) * 100));
+
+    const eixo = comData.length ? ('<div class="eixo">'
+      + '<p class="rotulo">Os 90 dias</p>'
+      + '<div class="pista">'
+      +   '<span class="base"></span>'
+      +   '<span class="feito" style="width:' + posHoje.toFixed(1) + '%"></span>'
+      +   comData.map(m => '<span class="marca' + (m.responsavel === 'cliente' ? ' cli' : '')
+            + (m.data_cumprida ? ' ok' : '') + '" style="left:' + posDe(m.data_prevista).toFixed(1) + '%"'
+            + ' title="' + E(m.titulo) + '"></span>').join('')
+      +   '<span class="hoje' + (posHoje > 85 ? ' fim' : (posHoje < 8 ? ' ini' : ''))
+            + '" style="left:' + posHoje.toFixed(1) + '%"><span>hoje</span></span>'
+      + '</div>'
+      + '<div class="reguas"><span>Dia 0</span><span>30</span><span>60</span><span>90</span></div>'
+      + '<div class="legenda">'
+      +   '<span><i></i>Cheio: já aconteceu</span>'
+      +   '<span class="vaz"><i></i>Vazado: ainda não</span>'
+      +   '<span class="cli"><i></i>Roxo: depende de vocês</span>'
+      + '</div></div>') : '';
+
     const pv = (c.primeiro_valor_prometido || '').trim();
     const INTRO_PARTIDA = prosa('intro_partida', 'Congelado antes de mexermos em qualquer coisa. A última coluna é o que há de frágil em cada número — dizemos agora para ninguém tratar estimativa como medida daqui a três meses.');
     const INTRO_PRE = prosa('intro_preregistro', 'Escrito antes de começar, de propósito. Se só combinássemos o sucesso, qualquer número do dia 90 se explicaria — e sempre a favor de quem fez o trabalho. O critério de fracasso está aí para vocês poderem cobrar.');
@@ -2102,6 +2200,18 @@
     const RES_TEXTO = prosa('resultados_texto', dia < 30
       ? 'E é assim que deve estar no começo. Esta seção fica vazia até existir número comparável com o ponto de partida — colocar gráfico bonito aqui antes disso seria enfeite.'
       : 'Escreva aqui o que subiu, o que não subiu e o que a gente errou — nessa ordem, porque a terceira é a que faz as outras duas valerem alguma coisa. Compare com o ponto de partida e com o critério de fracasso, sem editar nenhum dos dois.');
+
+    // Numeração das seções: só conta a que de fato existe, senão a página
+    // sai com 01, 03, 04 e o pulo parece erro.
+    let nSec = 0;
+    const num = () => String(++nSec).padStart(2,'0');
+    const cab = (n, titulo, slot, intro, slotIntro) =>
+      '    <div class="sec-cab"><span class="num">' + n + '</span><div>'
+      + '<h2' + prosa(slot, titulo).attr + '>' + E(B(slot, titulo)) + '</h2>'
+      + (intro ? '<p class="intro"' + prosa(slotIntro, intro).attr + '>' + E(B(slotIntro, intro)) + '</p>' : '')
+      + '</div></div>\n';
+
+    const totalPassos = d.marcos.length;
 
     return '<!doctype html>\n<html lang="pt-BR">\n<head>\n<meta charset="utf-8">\n'
 + '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
@@ -2112,9 +2222,11 @@
 + '  <header>\n'
 + '    <p class="rotulo laranja">Bora Postar · plano de trabalho</p>\n'
 + '    <h1>Noventa dias com <em>' + E(nome) + '</em></h1>\n'
-+ '    <div class="subcab">'
-+       (c.vertical ? '<span>' + E(c.vertical) + '</span>' : '')
-+       '<span>Dia <b>' + dia + '</b> de 90</span></div>\n'
++ '    <div class="cifras">\n'
++ '      <div class="cifra"><b><u>' + dia + '</u><em>/90</em></b><span>Dias de trabalho</span></div>\n'
++ (totalPassos ? '      <div class="cifra"><b>' + cumpridos + '<em>/' + totalPassos + '</em></b><span>Passos cumpridos</span></div>\n' : '')
++ (totalDeles ? '      <a class="cifra" href="#sua-parte"><b>' + totalDeles + '</b><span>Dependem de vocês &rarr;</span></a>\n' : '')
++ '    </div>\n'
 + '    <p class="aviso"' + AVISO.attr + '>' + E(AVISO.txt) + '</p>\n'
 + '  </header>\n'
 + (pv ? ('  <section>\n    <p class="rotulo">A primeira coisa que vocês vão perceber</p>\n'
@@ -2123,28 +2235,32 @@
 + '      <div class="data">' + (c.primeiro_valor_data
         ? 'Até <b>' + E(porExtenso(c.primeiro_valor_data)) + '</b> · se não acontecer até lá, cobrem da gente'
         : 'Sem data marcada') + '</div>\n    </div>\n  </section>\n') : '')
-+ (d.baselines.length ? ('  <section>\n    <p class="rotulo">Ponto de partida</p>\n'
-+ '    <h2' + prosa('h2_partida','De onde estamos saindo').attr + '>' + E(B('h2_partida','De onde estamos saindo')) + '</h2>\n'
-+ '    <p class="intro"' + INTRO_PARTIDA.attr + '>' + E(INTRO_PARTIDA.txt) + '</p>\n'
-+ '    <div class="rolagem"><table>\n      <thead><tr><th>O que</th><th>Hoje</th><th>Onde medimos</th><th>O que essa medida não garante</th></tr></thead>\n'
-+ '      <tbody>\n          ' + linhasBase + '\n      </tbody>\n    </table></div>\n  </section>\n') : '')
-+ (d.metas.length ? ('  <section>\n    <p class="rotulo">Pré-registro</p>\n'
-+ '    <h2' + prosa('h2_preregistro','O que vamos perseguir, e o que conta como ter dado errado').attr + '>' + E(B('h2_preregistro','O que vamos perseguir, e o que conta como ter dado errado')) + '</h2>\n'
-+ '    <p class="intro"' + INTRO_PRE.attr + '>' + E(INTRO_PRE.txt) + '</p>\n'
++ (d.baselines.length ? ('  <section>\n'
++ cab(num(), 'De onde estamos saindo', 'h2_partida',
+     'Congelado antes de mexermos em qualquer coisa. A última coluna é o que há de frágil em cada número — dizemos agora para ninguém tratar estimativa como medida daqui a três meses.',
+     'intro_partida')
++ '    <div class="cartao"><div class="rolagem"><table>\n'
++ '      <thead><tr><th>O que</th><th>Hoje</th><th>Onde medimos</th><th>O que essa medida não garante</th></tr></thead>\n'
++ '      <tbody>\n          ' + linhasBase + '\n      </tbody>\n    </table></div></div>\n  </section>\n') : '')
++ (d.metas.length ? ('  <section>\n'
++ cab(num(), 'O que vamos perseguir, e o que conta como ter dado errado', 'h2_preregistro',
+     'Escrito antes de começar, de propósito. Se só combinássemos o sucesso, qualquer número do dia 90 se explicaria — e sempre a favor de quem fez o trabalho. O critério de fracasso está aí para vocês poderem cobrar.',
+     'intro_preregistro')
 + '      ' + blocosMeta + '\n  </section>\n') : '')
-+ (d.marcos.length ? ('  <section>\n    <p class="rotulo">Ordem das coisas</p>\n'
-+ '    <h2' + prosa('h2_passos','Os primeiros passos').attr + '>' + E(B('h2_passos','Os primeiros passos')) + '</h2>\n'
-+ '    <p class="intro"' + INTRO_PASSOS.attr + '>' + E(INTRO_PASSOS.txt) + '</p>\n'
-+ '    <div class="trilhos">\n      ' + passos + '\n    </div>\n  </section>\n') : '')
++ (d.marcos.length ? ('  <section>\n'
++ cab(num(), 'Os primeiros passos', 'h2_passos',
+     'A barra preta é nossa, a roxa é de vocês.', 'intro_passos')
++ '    ' + eixo + '\n'
++ '    <div class="cartao"><div class="trilhos">\n      ' + passos + '\n    </div></div>\n  </section>\n') : '')
 + secoesExtra + '\n'
-+ '  <section>\n    <div class="voces">\n      <p class="rotulo">Sua parte</p>\n'
++ '  <section id="sua-parte">\n    <div class="voces">\n      <p class="rotulo">Sua parte</p>\n'
 + '      <h2' + prosa('h2_voces','O que depende de vocês agora').attr + '>' + E(B('h2_voces','O que depende de vocês agora')) + '</h2>\n'
 + '      <p' + VOCES_INTRO.attr + '>' + E(VOCES_INTRO.txt) + '</p>\n'
 + '      <div class="lista">\n        ' + (listaDeles.join('\n        ') || '<p class="obs">Nada pendente do lado de vocês no momento.</p>') + '\n      </div>\n'
 + '      <button class="mais-item" type="button">+ item</button>\n'
 + '    </div>\n  </section>\n'
-+ '  <section>\n    <p class="rotulo">Resultados</p>\n'
-+ '    <h2' + RES_TITULO.attr + '>' + E(RES_TITULO.txt) + '</h2>\n'
++ '  <section>\n'
++ cab(num(), RES_TITULO.txt, 'resultados_titulo', null, null)
 + '    <div class="vazio">\n      <p class="rotulo">' + (dia < 30 ? 'Primeira leitura' : 'Dia ' + dia) + '</p>\n'
 + '      <p' + RES_TEXTO.attr + '>' + E(RES_TEXTO.txt) + '</p>\n'
 + (dia < 30 ? '      <div class="datas"><span>Dia 30 · ' + maisDias(30) + '</span><span>Dia 60 · ' + maisDias(60) + '</span><span>Dia 90 · ' + maisDias(90) + '</span></div>\n' : '')
@@ -2187,13 +2303,15 @@
     }
 
     const acoes = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;align-items:center'});
-    const gerar = async (comEditor)=>{
-      const html = montarPaginaCliente(c);
-      if(!gerada) await marcarGerada(c);
-      return html;
+    // Anotar "gerada em" é escrituração; entregar o arquivo é o serviço.
+    // A anotação acontece depois e nunca pode derrubar a entrega — falha de
+    // rede aqui não pode ser o motivo de você ficar sem a página.
+    const anotar = ()=>{
+      if(gerada) return;
+      Promise.resolve().then(()=>marcarGerada(c)).catch(err=>console.warn('Não deu pra anotar a geração:', err));
     };
-    acoes.appendChild(el('button',{class:'btn', onclick:async()=>{
-      const html = await gerar();
+    acoes.appendChild(el('button',{class:'btn', onclick:()=>{
+      const html = montarPaginaCliente(c);
       const slug = (c.nome_preferido || c.nome || 'cliente').toLowerCase()
         .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').slice(0,40).replace(/^-|-$/g,'');
       const url = URL.createObjectURL(new Blob([html], { type:'text/html;charset=utf-8' }));
@@ -2202,13 +2320,15 @@
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(url), 4000);
       toast('Página baixada.');
+      anotar();
     }},'Baixar a página'));
-    acoes.appendChild(el('button',{class:'btn ghost', onclick:async()=>{
-      const html = await gerar();
+    acoes.appendChild(el('button',{class:'btn ghost', onclick:()=>{
+      const html = montarPaginaCliente(c);
       const url = URL.createObjectURL(new Blob([html], { type:'text/html;charset=utf-8' }));
       const w = window.open(url + '#editar', '_blank');
       if(!w) toast('O navegador bloqueou a janela. Libere pop-up para este site.');
       setTimeout(()=>URL.revokeObjectURL(url), 60000);
+      anotar();
     }},'Abrir para editar'));
     box.appendChild(acoes);
 
@@ -2235,7 +2355,12 @@
   }
 
   async function marcarGerada(c){
-    if(await salvarPagina(c, { gerada_em:new Date().toISOString() })) await carregarDetalhe(c.id);
+    try{
+      if(await salvarPagina(c, { gerada_em:new Date().toISOString() })){
+        await carregarDetalhe(c.id);
+        if(state.vista.tipo === 'cliente' && state.vista.id === c.id) render();
+      }
+    }catch(err){ console.warn('Não deu pra anotar a geração:', err); }
   }
 
   // Cola das alterações feitas na página. Nunca aplica direto: mostra o que vai
