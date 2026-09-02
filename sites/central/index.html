@@ -323,6 +323,99 @@
   @keyframes sobe{ from{ opacity:0; transform:translateY(7px); } to{ opacity:1; transform:none; } }
   .entra{ animation:sobe .26s cubic-bezier(.2,.7,.3,1) both; }
 
+
+  /* ---------- busca na lateral ---------- */
+  .busca{ margin:2px 10px 8px; position:relative; }
+  .busca input{
+    width:100%; padding:8px 12px 8px 30px; border:1px solid var(--linha); border-radius:9px;
+    background:var(--sup2); font-size:0.86rem;
+  }
+  .busca input:focus{ background:var(--sup); border-color:var(--tinta); }
+  .busca::before{
+    content:''; position:absolute; left:11px; top:50%; margin-top:-5px;
+    width:9px; height:9px; border:1.5px solid var(--fraco); border-radius:50%;
+  }
+  .busca::after{
+    content:''; position:absolute; left:19px; top:50%; margin-top:3px;
+    width:5px; height:1.5px; background:var(--fraco); transform:rotate(45deg);
+  }
+
+  /* ---------- funil ---------- */
+  .funil{ display:grid; grid-auto-flow:column; grid-auto-columns:266px; gap:12px; overflow-x:auto; padding:2px 2px 12px; }
+  .coluna{ background:var(--sup2); border:1px solid var(--linha); border-radius:var(--r); display:flex; flex-direction:column; min-height:180px; }
+  .coluna.alvo{ border-color:var(--laranja); background:var(--laranja-fraco); }
+  .coluna > .cab{
+    display:flex; justify-content:space-between; align-items:baseline; gap:8px;
+    padding:13px 14px 10px; border-bottom:1px solid var(--linha);
+  }
+  .coluna .titulo{ font-family:var(--display); font-weight:700; font-size:0.86rem; }
+  .coluna .conta{ font-family:var(--dado); font-size:0.6rem; letter-spacing:0.1em; color:var(--fraco); }
+  .coluna .soma{ font-family:var(--dado); font-size:0.58rem; letter-spacing:0.08em; color:var(--fraco); padding:0 14px 10px; }
+  .coluna .pilha{ padding:10px; display:grid; gap:8px; flex:1 1 auto; align-content:start; }
+  .coluna .novo{
+    margin:0 10px 12px; background:none; border:1px dashed var(--linha); border-radius:9px; color:var(--fraco);
+    font-family:var(--dado); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; padding:8px;
+  }
+  .coluna .novo:hover{ border-color:var(--tinta); color:var(--tinta); }
+
+  .lead{
+    background:var(--sup); border:1px solid var(--linha); border-radius:10px; padding:11px 12px;
+    box-shadow:var(--s1); cursor:grab; text-align:left; width:100%; color:inherit; display:block;
+    transition:transform .12s ease, box-shadow .14s ease;
+  }
+  .lead:hover{ transform:translateY(-1px); box-shadow:var(--s2); }
+  .lead:active{ cursor:grabbing; }
+  .lead.arrastando{ opacity:.4; }
+  .lead .nome{ font-weight:600; font-size:0.9rem; line-height:1.3; }
+  .lead .linha{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:7px; }
+  .lead .mini{ font-family:var(--dado); font-size:0.56rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--fraco); }
+  .lead .acao{ font-size:0.78rem; color:var(--fraco); margin-top:6px; line-height:1.35; }
+  .lead .acao b{ color:var(--tinta); font-weight:600; }
+  .lead .valor{ font-family:var(--display); font-weight:700; font-size:0.86rem; }
+  .lead .setas{ display:flex; gap:4px; margin-top:9px; }
+  .lead .setas button{
+    background:var(--sup2); border:1px solid var(--linha); border-radius:6px; width:24px; height:22px;
+    font-size:0.7rem; line-height:1; color:var(--fraco); padding:0;
+  }
+  .lead .setas button:hover{ border-color:var(--tinta); color:var(--tinta); }
+  .lead .setas button[disabled]{ opacity:.3; cursor:not-allowed; }
+
+  /* ---------- planilha ---------- */
+  .planilha{ overflow-x:auto; border:1px solid var(--linha); border-radius:11px; background:var(--sup); }
+  .planilha table{ font-size:0.86rem; }
+  .planilha th{
+    padding:11px 12px; border-bottom:1px solid var(--linha); background:var(--sup2);
+    position:sticky; top:0; z-index:2;
+  }
+  .planilha th button{
+    background:none; border:none; padding:0; font:inherit; color:inherit; letter-spacing:inherit;
+    text-transform:inherit; display:inline-flex; gap:5px; align-items:center;
+  }
+  .planilha th button:hover{ color:var(--tinta); }
+  .planilha th .ord{ color:var(--laranja); }
+  .planilha td{ padding:0; border-top:1px solid var(--linha2); border-bottom:none; }
+  .planilha tbody tr:hover td{ background:var(--sup2); }
+  .cel{
+    width:100%; border:none; background:none; padding:11px 12px; font:inherit; color:inherit;
+    min-width:110px; border-radius:0;
+  }
+  .cel:focus{ background:var(--laranja-fraco); outline:2px solid var(--laranja); outline-offset:-2px; }
+  select.cel{ min-width:132px; }
+  .planilha .num{ text-align:right; font-variant-numeric:tabular-nums; }
+  .planilha .apagar{
+    background:none; border:none; color:var(--fraco); font-size:0.95rem; padding:8px 10px; line-height:1;
+  }
+  .planilha .apagar:hover{ color:var(--al); }
+  .ferramentas{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0 0 16px; }
+  .ferramentas input[type="search"]{
+    padding:8px 12px; border:1px solid var(--linha); border-radius:100px; background:var(--sup2); min-width:200px;
+  }
+  .ferramentas input[type="search"]:focus{ background:var(--sup); border-color:var(--tinta); }
+  .colar textarea{
+    width:100%; min-height:110px; padding:11px; border:1px solid var(--linha); border-radius:10px;
+    background:var(--sup2); font-family:var(--dado); font-size:0.76rem; resize:vertical;
+  }
+
   /* ---------- celular: a lateral vira gaveta ---------- */
   @media (max-width:900px){
     .shell{ grid-template-columns:minmax(0,1fr); padding:14px; gap:14px; }
@@ -450,6 +543,11 @@
       bora:    ['Nós','neutro'],
       cliente: ['Cliente','roxo'],
     },
+    etapa_funil: {
+      mapeado:['Mapeado','neutro'], contatado:['Contatado','andamento'],
+      conversando:['Conversando','andamento'], reuniao:['Reunião','roxo'],
+      proposta:['Proposta','espera'], fechado:['Fechou','ok'], perdido:['Perdido','neutro'],
+    },
     estagio: {
       prospect:   ['Ainda não assinou','neutro'],
       onboarding: ['Primeiros 90 dias','andamento'],
@@ -505,6 +603,8 @@
     detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[], pagina:null, correcoes:[] },
     erro:null, modoLogin:'link', linkEnviadoPara:null, editandoPV:false,
     gaveta:false, voltarPara:null,
+    oportunidades:[], buscaLista:'', colando:false, ordemLista:{ campo:'nome', desc:false },
+    buscaCliente:'',
     tudo:{ acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] },
   };
 
@@ -518,6 +618,8 @@
     const h = (location.hash || '').replace(/^#\/?/, '');
     const [a, b, c] = h.split('/').filter(Boolean);
     if(a === 'c' && b) return { tipo:'cliente', id:b, aba:c || null };
+    if(a === 'funil') return { tipo:'funil' };
+    if(a === 'lista') return { tipo:'lista' };
     if(a === 'inbox') return { tipo:'inbox' };
     if(a === 'novo') return { tipo:'novo' };
     return { tipo:'agora' };
@@ -525,6 +627,8 @@
 
   function enderecoDe(vista, aba){
     if(vista.tipo === 'cliente') return '#/c/' + vista.id + '/' + (aba || state.aba || 'respostas');
+    if(vista.tipo === 'funil') return '#/funil';
+    if(vista.tipo === 'lista') return '#/lista';
     if(vista.tipo === 'inbox') return '#/inbox';
     if(vista.tipo === 'novo') return '#/novo';
     return '#/agora';
@@ -532,16 +636,20 @@
 
   // ir() troca a tela E o endereço. Nada muda de tela por outro caminho:
   // é o que mantém o botão de voltar do navegador sempre certo.
-  let ignorarHash = false;
   function ir(vista, opts){
     opts = opts || {};
     const alvo = enderecoDe(vista, opts.aba);
     if(location.hash !== alvo){
-      ignorarHash = true;
       if(opts.substituir) location.replace(alvo); else location.hash = alvo;
-      setTimeout(()=>{ ignorarHash = false; }, 0);
     }
     aplicarRota(vista, opts);
+  }
+
+  // Onde a tela está agora, no mesmo formato de rotaAtual(), pra dar pra
+  // comparar sem depender de flag nenhuma.
+  function rotaDaTela(){
+    if(state.vista.tipo === 'cliente') return { tipo:'cliente', id:state.vista.id, aba:state.aba };
+    return { tipo:state.vista.tipo, aba:null };
   }
 
   function aplicarRota(vista, opts){
@@ -566,8 +674,10 @@
   }
 
   window.addEventListener('hashchange', ()=>{
-    if(ignorarHash) return;   // fomos nós que mexemos; aplicarRota já rodou
-    const r = rotaAtual();
+    const r = rotaAtual(), atual = rotaDaTela();
+    // Já estamos onde o endereço manda: foi ir() que mexeu, não o usuário.
+    if(r.tipo === atual.tipo
+       && (r.tipo !== 'cliente' || (r.id === atual.id && (!r.aba || r.aba === atual.aba)))) return;
     state.voltarPara = null;  // veio do botão do navegador: a volta contextual não vale mais
     aplicarRota(r, { aba:r.aba });
   });
@@ -592,7 +702,7 @@
     // As seis tabelas vêm inteiras, sem filtro de cliente: é o que a tela Agora
     // precisa pra cruzar tudo. São dezenas de linhas no total, não milhares —
     // no dia em que forem, isso vira uma view no banco, não mais selects aqui.
-    const [cli, inbox, ac, me, ba, ma, co, ho] = await Promise.all([
+    const [cli, inbox, ac, me, ba, ma, co, ho, op] = await Promise.all([
       sb.from('clientes').select('*').order('nome'),
       sb.from('onboarding_respostas').select('*').is('cliente_id', null).order('recebido_em', { ascending:false }),
       sb.from('acessos').select('*'),
@@ -601,6 +711,7 @@
       sb.from('marcos').select('*'),
       sb.from('conformidade_itens').select('*'),
       sb.from('horas').select('*'),
+      sb.from('oportunidades').select('*').order('ordem'),
     ]);
     if(cli.error) state.erro = cli.error.message;
     state.clientes = cli.data || [];
@@ -609,6 +720,7 @@
       acessos: ac.data || [], metas: me.data || [], baselines: ba.data || [],
       marcos: ma.data || [], conformidade: co.data || [], horas: ho.data || [],
     };
+    state.oportunidades = op.data || [];
   }
 
   async function carregarDetalhe(clienteId){
@@ -789,6 +901,20 @@
       : 'nada em aberto')+'</span>';
     s.appendChild(ba);
 
+    // Captação vem antes de clientes de propósito: com dois clientes, o trabalho
+    // do dia é conseguir o terceiro.
+    const emJogo = state.oportunidades.filter(o => o.etapa !== 'perdido' && o.etapa !== 'fechado');
+    const paradas = emJogo.filter(o => o.proxima_acao_em && diasAte(o.proxima_acao_em) < 0).length;
+    s.appendChild(el('h4',{},'Captação'));
+    const bf = el('button',{class:'navitem'+(state.vista.tipo==='funil'?' active':''), onclick:()=>ir({tipo:'funil'})});
+    bf.innerHTML = '<b>Funil</b><span class="sub">'+(emJogo.length
+      ? emJogo.length+' em jogo'+(paradas?' · '+paradas+' atrasada'+(paradas===1?'':'s'):'')
+      : 'ninguém no funil')+'</span>';
+    s.appendChild(bf);
+    const bl = el('button',{class:'navitem'+(state.vista.tipo==='lista'?' active':''), onclick:()=>ir({tipo:'lista'})});
+    bl.innerHTML = '<b>Lista</b><span class="sub">'+state.oportunidades.length+' no total</span>';
+    s.appendChild(bl);
+
     const h1 = el('h4',{},'Caixa de entrada');
     if(state.inbox.length) h1.appendChild(el('span',{class:'pill'}, String(state.inbox.length)));
     s.appendChild(h1);
@@ -799,10 +925,21 @@
     s.appendChild(bi);
 
     s.appendChild(el('h4',{},'Clientes'));
-    if(!state.clientes.length){
-      s.appendChild(el('div',{class:'navitem muted'},'Nenhum cliente ainda'));
+    // A busca só aparece quando começa a doer. Com três clientes ela é ruído.
+    if(state.clientes.length > 6){
+      const cx = el('div',{class:'busca'});
+      const inp = el('input',{type:'search', placeholder:'Buscar cliente…', value:state.buscaCliente});
+      inp.addEventListener('input', ()=>{ state.buscaCliente = inp.value; render();
+        const n = document.querySelector('.busca input'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } });
+      cx.appendChild(inp);
+      s.appendChild(cx);
+    }
+    const q = (state.buscaCliente || '').trim().toLowerCase();
+    const lista = q ? state.clientes.filter(c => String(c.nome).toLowerCase().includes(q)) : state.clientes;
+    if(!lista.length){
+      s.appendChild(el('div',{class:'navitem muted'}, q ? 'Nenhum com esse nome' : 'Nenhum cliente ainda'));
     } else {
-      state.clientes.forEach(c=>{
+      lista.forEach(c=>{
         const b = el('button',{class:'navitem'+(state.vista.tipo==='cliente'&&state.vista.id===c.id?' active':''), onclick:()=>abrirCliente(c.id)});
         b.innerHTML = '<b>'+esc(c.nome)+'</b><span class="sub">'+esc(rotulo('estagio',c.estagio))+'</span>';
         s.appendChild(b);
@@ -816,6 +953,8 @@
 
   function conteudo(){
     if(state.vista.tipo==='agora') return telaAgora();
+    if(state.vista.tipo==='funil') return telaFunil();
+    if(state.vista.tipo==='lista') return telaLista();
     if(state.vista.tipo==='inbox') return telaInbox();
     if(state.vista.tipo==='novo') return telaNovoCliente();
     return telaCliente();
@@ -838,7 +977,7 @@
   function pendencias(){
     const p = [];
     const t = state.tudo || { acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] };
-    const add = (urgencia, cliente, aba, oq, porq) => p.push({ urgencia, cliente, aba, oq, porq });
+    const add = (urgencia, cliente, aba, oq, porq, destino) => p.push({ urgencia, cliente, aba, oq, porq, destino });
 
     // 1. Respostas que chegaram e não viraram cliente. Começa a envelhecer no minuto um.
     state.inbox.forEach(sub=>{
@@ -847,6 +986,30 @@
       add(velho ? 'alta' : 'media', null, null,
         'Vincular a resposta de ' + (sub.nome_informado || 'alguém sem nome'),
         'Chegou pelo formulário ' + (d === null ? '' : emDias(d)) + ' e ainda não está ligada a nenhum cliente.');
+    });
+
+    // 0. Captação. Vem antes dos clientes porque, com dois na casa, o trabalho
+    // do dia é conseguir o terceiro — e lead esquecido não avisa que esfriou.
+    const emJogo = state.oportunidades.filter(o => o.etapa !== 'perdido' && o.etapa !== 'fechado');
+    emJogo.forEach(o=>{
+      const d = o.proxima_acao_em ? diasAte(o.proxima_acao_em) : null;
+      if((o.proxima_acao || '').trim() && d !== null && d < 0){
+        add('alta', null, null, 'Combinado com ' + o.nome + ' venceu ' + emDias(d),
+          '"' + o.proxima_acao + '". Prazo que você mesmo marcou.', 'funil');
+      } else if((o.proxima_acao || '').trim() && d !== null && d <= 2){
+        add('media', null, null, o.nome + ': ' + o.proxima_acao,
+          'Marcado pra ' + emDias(d) + '.', 'funil');
+      } else if(!(o.proxima_acao || '').trim()){
+        const parado = o.movido_em ? Math.abs(diasAte(o.movido_em)) : 0;
+        add(parado >= 14 ? 'alta' : 'media', null, null,
+          o.nome + ' está sem próxima ação',
+          'Em "' + rotulo('etapa_funil', o.etapa) + '"' + (parado ? ' há ' + parado + ' dias' : '')
+          + '. Oportunidade sem próxima ação com data morre sozinha.', 'funil');
+      }
+    });
+    state.oportunidades.filter(o => o.etapa === 'fechado' && !o.cliente_id).forEach(o=>{
+      add('alta', null, null, o.nome + ' fechou e ainda não virou cliente',
+        'Sem a ficha, nada do onboarding começa: nem acesso, nem baseline, nem promessa.', 'funil');
     });
 
     const ativos = state.clientes.filter(c => c.estagio === 'onboarding' || c.estagio === 'ativo');
@@ -974,15 +1137,446 @@
       }
       const b = el('button',{class:'pend '+p.urgencia, onclick:()=>{
         if(p.cliente){ state.voltarPara = 'agora'; abrirCliente(p.cliente.id, p.aba); }
+        else if(p.destino) ir({tipo:p.destino});
         else ir({tipo:'inbox'});
       }});
-      b.appendChild(el('div',{class:'quem'}, p.cliente ? esc(p.cliente.nome) : 'Caixa de entrada'));
+      b.appendChild(el('div',{class:'quem'},
+        p.cliente ? esc(p.cliente.nome) : (p.destino === 'funil' ? 'Captação' : 'Caixa de entrada')));
       b.appendChild(el('div',{class:'oq'}, esc(p.oq)));
       if(p.porq) b.appendChild(el('div',{class:'porq'}, esc(p.porq)));
       m.appendChild(b);
     });
 
     return m;
+  }
+
+  // ---------- captação ----------
+
+  // As etapas do funil, na ordem em que acontecem. A ordem é o que dá sentido
+  // ao "avançar" e ao "voltar" — e ao arrastar.
+  const ETAPAS_FUNIL = [
+    ['mapeado',     'Mapeado',     'Está na lista, ninguém falou ainda'],
+    ['contatado',   'Contatado',   'Mandamos mensagem, sem resposta'],
+    ['conversando', 'Conversando', 'Respondeu, conversa aberta'],
+    ['reuniao',     'Reunião',     'Reunião marcada ou feita'],
+    ['proposta',    'Proposta',    'Proposta enviada, esperando resposta'],
+    ['fechado',     'Fechou',      'Virou cliente'],
+    ['perdido',     'Perdido',     'Não vai acontecer, e sabemos por quê'],
+  ];
+  const ETAPA_ROT = Object.fromEntries(ETAPAS_FUNIL.map(e => [e[0], e[1]]));
+  const idxEtapa = e => ETAPAS_FUNIL.findIndex(x => x[0] === e);
+
+  const dinheiro = v => v == null || v === ''
+    ? '—'
+    : Number(v).toLocaleString('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits:0 });
+
+  async function salvarOportunidade(id, campos){
+    const { error } = await sb.from('oportunidades').update(campos).eq('id', id);
+    if(error){ toast('Não deu: ' + error.message); return false; }
+    return true;
+  }
+
+  async function moverOportunidade(o, etapa){
+    if(o.etapa === etapa) return;
+    const antes = o.etapa;
+    o.etapa = etapa;                         // otimista: a tela responde na hora
+    o.movido_em = new Date().toISOString();
+    render();
+    if(!await salvarOportunidade(o.id, { etapa })){
+      o.etapa = antes;                       // não gravou: desfaz
+      render();
+      return;
+    }
+    if(etapa === 'fechado' && !o.cliente_id){
+      toast('Fechou. Crie o cliente pelo botão do cartão.');
+    }
+    await carregarTudo();
+    render();
+  }
+
+  // ---------- funil ----------
+
+  function telaFunil(){
+    const m = el('main');
+    const cabeca = el('div',{class:'bloco'});
+    cabeca.appendChild(el('p',{class:'rot laranja'},'Captação'));
+    cabeca.appendChild(el('h1',{class:'page'},'Funil'));
+    cabeca.appendChild(el('p',{class:'intro'},
+      'Todo mundo que pode virar cliente, e em que pé está. Arraste o cartão entre as colunas, '
+      + 'ou use as setas nele — o teclado faz a mesma coisa que o mouse.'));
+
+    const ativos = state.oportunidades.filter(o => o.etapa !== 'perdido' && o.etapa !== 'fechado');
+    const valorEmJogo = ativos.reduce((s,o)=> s + (Number(o.valor_mensal) || 0), 0);
+    const semAcao = ativos.filter(o => !(o.proxima_acao || '').trim()).length;
+    const atrasadas = ativos.filter(o => o.proxima_acao_em && diasAte(o.proxima_acao_em) < 0).length;
+
+    const fila = el('div',{class:'capa-fila'});
+    const cif = (grande, pequeno, rot, destaque) => {
+      const d = el('div');
+      d.innerHTML = '<span class="cifra">' + (destaque ? '<u>' : '') + esc(grande) + (destaque ? '</u>' : '')
+        + (pequeno ? '<em>' + esc(pequeno) + '</em>' : '') + '</span><p class="rot">' + esc(rot) + '</p>';
+      return d;
+    };
+    fila.appendChild(cif(ativos.length, '', 'Em jogo', true));
+    fila.appendChild(cif(dinheiro(valorEmJogo).replace(/\s/g,' '), '/mês', 'Se todos fecharem'));
+    fila.appendChild(cif(state.oportunidades.filter(o => o.etapa === 'fechado').length, '', 'Fecharam'));
+    cabeca.appendChild(fila);
+    m.appendChild(cabeca);
+
+    if(semAcao || atrasadas){
+      const av = el('div',{class:'bloco', style:'padding:16px 20px'});
+      const partes = [];
+      if(atrasadas) partes.push(atrasadas + (atrasadas===1 ? ' com próxima ação atrasada' : ' com próxima ação atrasada'));
+      if(semAcao) partes.push(semAcao + (semAcao===1 ? ' sem próxima ação marcada' : ' sem próxima ação marcada'));
+      av.appendChild(el('div',{class:'erro'},
+        partes.join(' e ') + '. Oportunidade sem próxima ação com data é oportunidade que morre sozinha.'));
+      m.appendChild(av);
+    }
+
+    const bloco = el('div',{class:'bloco'});
+    const grade = el('div',{class:'funil'});
+    ETAPAS_FUNIL.forEach(([chave, rot, ajuda])=>{
+      grade.appendChild(colunaFunil(chave, rot, ajuda));
+    });
+    bloco.appendChild(grade);
+    m.appendChild(bloco);
+    return m;
+  }
+
+  function colunaFunil(chave, rot, ajuda){
+    const col = el('div',{class:'coluna', 'data-etapa':chave});
+    const linhas = state.oportunidades
+      .filter(o => o.etapa === chave)
+      .sort((a,b)=> (a.ordem||0) - (b.ordem||0) || String(a.nome).localeCompare(String(b.nome)));
+
+    const cab = el('div',{class:'cab'});
+    cab.appendChild(el('span',{class:'titulo'}, esc(rot)));
+    cab.appendChild(el('span',{class:'conta'}, String(linhas.length)));
+    col.appendChild(cab);
+    col.appendChild(el('p',{class:'soma'}, esc(ajuda)));
+
+    const pilha = el('div',{class:'pilha'});
+    linhas.forEach(o => pilha.appendChild(cartaoLead(o)));
+    if(!linhas.length) pilha.appendChild(el('p',{class:'mini', style:'color:#A9A29A;padding:4px 2px'},'vazio'));
+    col.appendChild(pilha);
+
+    const novo = el('button',{class:'novo', onclick:()=>novaOportunidade(chave)},'+ oportunidade');
+    col.appendChild(novo);
+
+    // Arrastar: a coluna aceita o cartão e se marca enquanto ele está por cima.
+    col.addEventListener('dragover', e=>{ e.preventDefault(); col.classList.add('alvo'); });
+    col.addEventListener('dragleave', ()=> col.classList.remove('alvo'));
+    col.addEventListener('drop', async e=>{
+      e.preventDefault(); col.classList.remove('alvo');
+      const id = e.dataTransfer.getData('text/plain');
+      const o = state.oportunidades.find(x => x.id === id);
+      if(o) await moverOportunidade(o, chave);
+    });
+    return col;
+  }
+
+  function cartaoLead(o){
+    const c = el('div',{class:'lead', draggable:'true', tabindex:'0'});
+    c.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('text/plain', o.id);
+      e.dataTransfer.effectAllowed = 'move';
+      c.classList.add('arrastando');
+    });
+    c.addEventListener('dragend', ()=> c.classList.remove('arrastando'));
+
+    c.appendChild(el('div',{class:'nome'}, esc(o.nome)));
+
+    const linha = el('div',{class:'linha'});
+    if(o.valor_mensal != null) linha.appendChild(el('span',{class:'valor'}, esc(dinheiro(o.valor_mensal))));
+    if(o.bairro) linha.appendChild(el('span',{class:'mini'}, esc(o.bairro)));
+    if(o.origem) linha.appendChild(el('span',{class:'mini'}, esc(o.origem)));
+    if(linha.childNodes.length) c.appendChild(linha);
+
+    const parado = o.movido_em ? Math.abs(diasAte(o.movido_em)) : null;
+    if((o.proxima_acao || '').trim()){
+      const d = o.proxima_acao_em ? diasAte(o.proxima_acao_em) : null;
+      const quando = d === null ? 'sem data' : emDias(d);
+      const atrasada = d !== null && d < 0;
+      const p = el('p',{class:'acao'});
+      p.innerHTML = '<b>' + esc(o.proxima_acao) + '</b><br>' + esc(quando);
+      if(atrasada) p.style.color = 'var(--al)';
+      c.appendChild(p);
+    } else if(o.etapa !== 'fechado' && o.etapa !== 'perdido'){
+      c.appendChild(el('p',{class:'acao', style:'color:var(--es)'},'Sem próxima ação'));
+    }
+
+    if(parado !== null && parado >= 7 && o.etapa !== 'fechado' && o.etapa !== 'perdido'){
+      c.appendChild(el('p',{class:'mini', style:'margin-top:6px'},'parado há ' + parado + ' dias'));
+    }
+    if(o.etapa === 'perdido' && (o.perdido_motivo||'').trim()){
+      c.appendChild(el('p',{class:'acao'}, esc(o.perdido_motivo)));
+    }
+
+    // Alternativa ao arrastar. Existe por acessibilidade, mas na prática é o
+    // que se usa no celular, onde arrastar entre colunas é sofrimento.
+    const i = idxEtapa(o.etapa);
+    const setas = el('div',{class:'setas'});
+    const bVolta = el('button',{type:'button', title:'voltar uma etapa',
+      onclick:e=>{ e.stopPropagation(); moverOportunidade(o, ETAPAS_FUNIL[i-1][0]); }},'←');
+    if(i <= 0) bVolta.setAttribute('disabled','disabled');
+    const bAvanca = el('button',{type:'button', title:'avançar uma etapa',
+      onclick:e=>{ e.stopPropagation(); moverOportunidade(o, ETAPAS_FUNIL[i+1][0]); }},'→');
+    if(i >= ETAPAS_FUNIL.length - 1) bAvanca.setAttribute('disabled','disabled');
+    setas.appendChild(bVolta);
+    setas.appendChild(bAvanca);
+    setas.appendChild(el('button',{type:'button', title:'abrir na lista',
+      onclick:e=>{ e.stopPropagation(); state.buscaLista = o.nome; ir({tipo:'lista'}); }},'⋯'));
+    if(o.etapa === 'fechado' && !o.cliente_id){
+      setas.appendChild(el('button',{type:'button', title:'criar cliente com estes dados',
+        style:'width:auto;padding:0 8px', onclick:e=>{ e.stopPropagation(); virarCliente(o); }},'virar cliente'));
+    }
+    c.appendChild(setas);
+
+    c.addEventListener('keydown', e=>{
+      if(e.key === 'ArrowRight' && i < ETAPAS_FUNIL.length - 1){ e.preventDefault(); moverOportunidade(o, ETAPAS_FUNIL[i+1][0]); }
+      if(e.key === 'ArrowLeft' && i > 0){ e.preventDefault(); moverOportunidade(o, ETAPAS_FUNIL[i-1][0]); }
+    });
+    return c;
+  }
+
+  async function novaOportunidade(etapa){
+    const nome = prompt('Nome de quem pode virar cliente:');
+    if(!nome || !nome.trim()) return;
+    const { error } = await sb.from('oportunidades').insert({ nome:nome.trim(), etapa });
+    if(error){ toast('Não deu: ' + error.message); return; }
+    await carregarTudo(); render();
+  }
+
+  // Fechou: os dados que já estão na oportunidade viram a ficha do cliente,
+  // sem ninguém redigitar. O vínculo fica guardado nos dois sentidos.
+  async function virarCliente(o){
+    const { data, error } = await sb.from('clientes').insert({
+      nome: o.nome, nome_preferido: o.nome, vertical: o.vertical || null, estagio: 'onboarding',
+    }).select('id').single();
+    if(error){ toast('Não deu: ' + error.message); return; }
+    await salvarOportunidade(o.id, { cliente_id: data.id });
+    const acessos = ACESSOS_PADRAO.map((recurso, i) => ({ cliente_id:data.id, recurso, ordem:i }));
+    await sb.from('acessos').insert(acessos);
+    toast('Cliente criado com a lista de acessos.');
+    await carregarTudo();
+    abrirCliente(data.id, 'acessos');
+  }
+
+  // ---------- planilha ----------
+
+  const COLUNAS_LISTA = [
+    { chave:'nome',           rot:'Nome',          tipo:'text' },
+    { chave:'etapa',          rot:'Etapa',         tipo:'select', grupo:ETAPAS_FUNIL },
+    { chave:'contato',        rot:'Contato',       tipo:'text' },
+    { chave:'bairro',         rot:'Bairro',        tipo:'text' },
+    { chave:'vertical',       rot:'Ramo',          tipo:'text' },
+    { chave:'origem',         rot:'Veio de',       tipo:'text' },
+    { chave:'valor_mensal',   rot:'R$/mês',        tipo:'number' },
+    { chave:'proxima_acao',   rot:'Próxima ação',  tipo:'text' },
+    { chave:'proxima_acao_em',rot:'Quando',        tipo:'date' },
+    { chave:'nota',           rot:'Observação',    tipo:'text' },
+  ];
+
+  function telaLista(){
+    const m = el('main');
+    const cabeca = el('div',{class:'bloco'});
+    cabeca.appendChild(el('p',{class:'rot laranja'},'Captação'));
+    cabeca.appendChild(el('h1',{class:'page'},'Lista'));
+    cabeca.appendChild(el('p',{class:'intro'},
+      'A mesma gente do funil, em planilha. Clique numa célula e escreva: salva sozinho ao sair dela. '
+      + 'Dá pra colar direto do Excel e baixar em CSV.'));
+    m.appendChild(cabeca);
+
+    const bloco = el('div',{class:'bloco'});
+
+    const fer = el('div',{class:'ferramentas'});
+    const busca = el('input',{type:'search', placeholder:'Filtrar por qualquer coisa…', value:state.buscaLista || ''});
+    busca.addEventListener('input', ()=>{
+      state.buscaLista = busca.value;
+      const alvo = document.querySelector('.planilha');
+      if(alvo) alvo.replaceWith(gradeLista());
+    });
+    fer.appendChild(busca);
+    fer.appendChild(el('button',{class:'btn ghost small', onclick:()=>novaOportunidade('mapeado')},'+ linha'));
+    fer.appendChild(el('button',{class:'btn ghost small', onclick:baixarCsv},'Baixar CSV'));
+    fer.appendChild(el('button',{class:'btn ghost small',
+      onclick:()=>{ state.colando = !state.colando; render(); }}, state.colando ? 'fechar' : 'Colar do Excel'));
+    bloco.appendChild(fer);
+
+    if(state.colando) bloco.appendChild(caixaColarLista());
+    bloco.appendChild(gradeLista());
+    m.appendChild(bloco);
+    return m;
+  }
+
+  function listaFiltrada(){
+    const q = (state.buscaLista || '').trim().toLowerCase();
+    let linhas = state.oportunidades.slice();
+    if(q) linhas = linhas.filter(o => COLUNAS_LISTA.some(c =>
+      String(o[c.chave] == null ? '' : o[c.chave]).toLowerCase().includes(q)));
+    const { campo, desc } = state.ordemLista;
+    linhas.sort((a,b)=>{
+      let x = a[campo], y = b[campo];
+      if(campo === 'etapa'){ x = idxEtapa(x); y = idxEtapa(y); }
+      // Vazio vai sempre pro fim, nos dois sentidos. Ordenar por valor e ver
+      // primeiro quem não tem valor nenhum é o oposto do que se quer.
+      const vx = x == null || x === '', vy = y == null || y === '';
+      if(vx && vy) return 0;
+      if(vx) return 1;
+      if(vy) return -1;
+      const r = (typeof x === 'number' && typeof y === 'number')
+        ? x - y : String(x).localeCompare(String(y), 'pt-BR', { numeric:true });
+      return desc ? -r : r;
+    });
+    return linhas;
+  }
+
+  function gradeLista(){
+    const box = el('div',{class:'planilha'});
+    const linhas = listaFiltrada();
+    const t = el('table');
+
+    const thead = el('thead'); const trh = el('tr');
+    COLUNAS_LISTA.forEach(c=>{
+      const th = el('th');
+      const b = el('button',{type:'button', onclick:()=>{
+        const o = state.ordemLista;
+        state.ordemLista = { campo:c.chave, desc: o.campo === c.chave ? !o.desc : false };
+        box.replaceWith(gradeLista());
+      }});
+      b.innerHTML = esc(c.rot) + (state.ordemLista.campo === c.chave
+        ? '<span class="ord">' + (state.ordemLista.desc ? '↓' : '↑') + '</span>' : '');
+      th.appendChild(b);
+      trh.appendChild(th);
+    });
+    trh.appendChild(el('th',{},''));
+    thead.appendChild(trh); t.appendChild(thead);
+
+    const tb = el('tbody');
+    if(!linhas.length){
+      const tr = el('tr'); const td = el('td',{colspan:String(COLUNAS_LISTA.length + 1)});
+      td.appendChild(el('div',{class:'vazio', style:'border:none;background:none'},
+        state.buscaLista ? 'Nada encontrado com esse filtro.' : 'Nenhuma oportunidade ainda. Use "+ linha" ou cole do Excel.'));
+      tr.appendChild(td); tb.appendChild(tr);
+    }
+    linhas.forEach(o=>{
+      const tr = el('tr');
+      COLUNAS_LISTA.forEach(c => tr.appendChild(celula(o, c)));
+      const acao = el('td');
+      acao.appendChild(el('button',{class:'apagar', title:'remover', onclick:async()=>{
+        if(await apagar('oportunidades', o.id)){ await carregarTudo(); render(); }
+      }},'×'));
+      tr.appendChild(acao);
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    box.appendChild(t);
+    return box;
+  }
+
+  function celula(o, c){
+    const td = el('td');
+    if(c.tipo === 'select'){
+      const s = el('select',{class:'cel'});
+      c.grupo.forEach(([v, rot])=>{
+        const op = el('option',{value:v}, rot);
+        if(o[c.chave] === v) op.setAttribute('selected','selected');
+        s.appendChild(op);
+      });
+      s.addEventListener('change', ()=> moverOportunidade(o, s.value));
+      td.appendChild(s);
+      return td;
+    }
+    const i = el('input',{
+      class:'cel' + (c.tipo === 'number' ? ' num' : ''),
+      type: c.tipo === 'number' ? 'number' : (c.tipo === 'date' ? 'date' : 'text'),
+      value: o[c.chave] == null ? '' : o[c.chave],
+    });
+    // Salva ao sair da célula, não a cada tecla: uma gravação por edição em vez
+    // de uma por letra digitada.
+    i.addEventListener('change', async ()=>{
+      const v = i.value.trim();
+      const novo = v === '' ? null : (c.tipo === 'number' ? Number(v) : v);
+      if(String(o[c.chave] == null ? '' : o[c.chave]) === String(novo == null ? '' : novo)) return;
+      const campos = {}; campos[c.chave] = novo;
+      if(await salvarOportunidade(o.id, campos)){ o[c.chave] = novo; toast('Salvo.'); }
+      else i.value = o[c.chave] == null ? '' : o[c.chave];
+    });
+    // Enter desce pra mesma coluna da linha de baixo, como em planilha.
+    i.addEventListener('keydown', e=>{
+      if(e.key !== 'Enter') return;
+      e.preventDefault();
+      i.blur();
+      const linha = td.parentNode, prox = linha.nextElementSibling;
+      if(prox){
+        const alvo = prox.children[Array.prototype.indexOf.call(linha.children, td)];
+        const campo = alvo && alvo.querySelector('.cel');
+        if(campo) campo.focus();
+      }
+    });
+    td.appendChild(i);
+    return td;
+  }
+
+  function caixaColarLista(){
+    const box = el('div',{class:'card flat colar', style:'margin-bottom:16px'});
+    box.appendChild(el('p',{class:'rot', style:'margin:0 0 6px'},'Colar do Excel'));
+    box.appendChild(el('p',{class:'muted', style:'margin:0 0 10px;font-size:0.85rem'},
+      'Copie as células da planilha e cole aqui. Uma linha por oportunidade, colunas separadas por tabulação, '
+      + 'na ordem: nome, contato, bairro, ramo, veio de, R$/mês. Só o nome é obrigatório.'));
+    const ta = el('textarea',{placeholder:'Padaria do Zé\tzé@wa\tAldeota\tpadaria\tmapa\t900'});
+    box.appendChild(ta);
+    const b = el('button',{class:'btn small', style:'margin-top:10px'},'Conferir e adicionar');
+    const saida = el('div');
+    b.addEventListener('click', async ()=>{
+      const linhas = ta.value.split('\n').map(l => l.trim()).filter(Boolean);
+      if(!linhas.length){ toast('Cole alguma coisa primeiro.'); return; }
+      const novas = linhas.map(l=>{
+        const p = l.split('\t').map(x => x.trim());
+        return {
+          nome: p[0] || '', contato: p[1] || null, bairro: p[2] || null,
+          vertical: p[3] || null, origem: p[4] || 'colado do Excel',
+          valor_mensal: p[5] ? Number(String(p[5]).replace(/[^\d,.-]/g,'').replace(',','.')) || null : null,
+          etapa: 'mapeado',
+        };
+      }).filter(x => x.nome);
+      if(!novas.length){ toast('Nenhuma linha tinha nome.'); return; }
+      saida.innerHTML = '';
+      saida.appendChild(el('p',{class:'muted', style:'margin:12px 0 8px;font-size:0.86rem'},
+        novas.length + (novas.length === 1 ? ' linha vai entrar:' : ' linhas vão entrar:')));
+      saida.appendChild(el('p',{style:'margin:0 0 12px;font-size:0.86rem'},
+        novas.slice(0,6).map(n => esc(n.nome)).join(' · ') + (novas.length > 6 ? ' e mais ' + (novas.length-6) : '')));
+      const ok = el('button',{class:'btn small'},'Adicionar ' + novas.length);
+      ok.addEventListener('click', async ()=>{
+        ok.disabled = true;
+        const { error } = await sb.from('oportunidades').insert(novas);
+        if(error){ toast('Não deu: ' + error.message); ok.disabled = false; return; }
+        toast(novas.length + ' adicionadas.');
+        state.colando = false;
+        await carregarTudo(); render();
+      });
+      saida.appendChild(ok);
+    });
+    box.appendChild(b);
+    box.appendChild(saida);
+    return box;
+  }
+
+  function baixarCsv(){
+    const linhas = listaFiltrada();
+    if(!linhas.length){ toast('Nada pra baixar.'); return; }
+    const aspas = v => '"' + String(v == null ? '' : v).replace(/"/g,'""') + '"';
+    const csv = [ COLUNAS_LISTA.map(c => aspas(c.rot)).join(';') ]
+      .concat(linhas.map(o => COLUNAS_LISTA.map(c =>
+        aspas(c.chave === 'etapa' ? ETAPA_ROT[o.etapa] : o[c.chave])).join(';')))
+      .join('\r\n');
+    // BOM na frente: sem ele o Excel em português abre os acentos errados.
+    const url = URL.createObjectURL(new Blob(['﻿' + csv], { type:'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'captacao-bora-postar.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    toast('CSV baixado.');
   }
 
   // ---------- caixa de entrada ----------
@@ -1225,6 +1819,14 @@
     if(state.aba === k) return;
     state.aba = k;
     ir(state.vista, { aba:k, substituir:true });   // trocar de aba não enche o histórico
+    // Sem isso você troca de aba e continua olhando o meio do conteúdo anterior.
+    const caixa = document.querySelector('.abas-caixa');
+    if(caixa){
+      const y = caixa.getBoundingClientRect().top + window.scrollY - 62;
+      if(window.scrollY > y) window.scrollTo({ top:Math.max(0,y), behavior:'smooth' });
+      const ativa = document.querySelector('.tab[aria-selected="true"]');
+      if(ativa) ativa.scrollIntoView({ block:'nearest', inline:'center', behavior:'smooth' });
+    }
   }
 
   // O pontinho na aba diz se aquilo está resolvido, pela metade ou vazio —
@@ -2812,7 +3414,7 @@
           state.vista = { tipo:'cliente', id:r.id };
           state.aba = (r.aba && ABAS.some(a => a[0] === r.aba)) ? r.aba : 'respostas';
           carregarDetalhe(r.id).then(render);
-        } else if(r.tipo === 'inbox' || r.tipo === 'novo'){
+        } else if(r.tipo === 'inbox' || r.tipo === 'novo' || r.tipo === 'funil' || r.tipo === 'lista'){
           state.vista = { tipo:r.tipo };
         } else {
           state.vista = { tipo:'agora' };

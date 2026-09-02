@@ -16,13 +16,20 @@
     --purple:#8800FF;
     --gray:#6E6E6E;
     --line:#DEDEDE;
+    /* Alinhado com a Central: papel morno, cartão branco flutuando, sombra
+       macia. O que fica: laranja, roxo, Space Grotesk, o selo e a tarja. */
+    --paper:#F5F2EC;
+    --soft:#FBF9F5;
+    --hair:#E8E2D8;
+    --s1:0 1px 2px rgba(26,24,21,.04), 0 6px 22px rgba(26,24,21,.06);
+    --s2:0 2px 5px rgba(26,24,21,.05), 0 16px 44px rgba(26,24,21,.10);
   }
 
   *{ box-sizing:border-box; }
   html,body{ height:100%; }
   body{
     margin:0;
-    background:var(--white);
+    background:var(--paper);
     color:var(--black);
     font-family:'Archivo',system-ui,sans-serif;
     -webkit-font-smoothing:antialiased;
@@ -37,7 +44,7 @@
   .grid-bg{
     position:fixed; inset:0; z-index:0; pointer-events:none;
     background-image:
-      radial-gradient(circle, rgba(10,10,10,0.09) 1px, transparent 1px);
+      radial-gradient(circle, rgba(10,10,10,0.06) 1px, transparent 1px);
     background-size:24px 24px;
     -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 15%, black 40%, transparent 90%);
             mask-image: radial-gradient(ellipse 85% 65% at 50% 15%, black 40%, transparent 90%);
@@ -68,12 +75,11 @@
     width:100%; max-width:660px; margin:14px auto 0; padding:0 20px;
   }
   .progressbar{
-    height:9px; background:#E2E2E2; position:relative; overflow:hidden;
+    height:8px; background:#E6E0D6; border-radius:100px; position:relative; overflow:hidden;
   }
   .progressbar .fill{
-    position:absolute; left:0; top:0; height:100%; width:0%;
-    background:var(--orange);
-    box-shadow:0 0 12px 2px rgba(255,94,0,0.85);
+    position:absolute; left:0; top:0; height:100%; width:0%; border-radius:100px;
+    background:linear-gradient(90deg,#FF8A3C,var(--orange));
     transition:width .5s cubic-bezier(.4,0,.2,1);
   }
 
@@ -89,16 +95,24 @@
   .card{
     width:100%;
     background:var(--white);
-    border:3px solid var(--black);
-    box-shadow:9px 9px 0 var(--orange);
+    border:none;
+    border-radius:20px;
+    box-shadow:var(--s2);
     padding:clamp(26px,5vw,50px);
     position:relative;
   }
+  /* A tarja laranja no topo é o que sobrou do contorno duro: mesma assinatura,
+     sem o peso. */
+  .card::before{
+    content:''; position:absolute; left:0; right:0; top:0; height:5px;
+    border-radius:20px 20px 0 0;
+    background:linear-gradient(90deg,var(--orange),#FF8A3C);
+  }
+  .card.dark::before{ background:var(--orange); }
   .card.dark{
-    background:var(--black);
+    background:linear-gradient(135deg,#241F1A,#0A0A0A);
     color:var(--white);
-    border-color:var(--black);
-    box-shadow:9px 9px 0 var(--purple);
+    box-shadow:var(--s2);
   }
 
   .step{ display:none; }
@@ -160,20 +174,20 @@
   .btn{
     font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.92rem;
     letter-spacing:0.01em;
-    padding:13px 22px; border-radius:4px; border:2.5px solid var(--black); cursor:pointer;
+    padding:13px 24px; border-radius:100px; border:1.5px solid var(--black); cursor:pointer;
     display:inline-flex; align-items:center; gap:9px; background:transparent; color:var(--black);
     transition:transform .12s ease, background .12s ease, color .12s ease, box-shadow .12s ease;
   }
   .btn svg{ width:15px; height:15px; flex:none; }
   .btn-primary{ background:var(--black); color:var(--white); }
-  .btn-primary:hover{ background:var(--orange); border-color:var(--orange); transform:translate(-2px,-2px); box-shadow:3px 3px 0 var(--black); }
+  .btn-primary:hover{ background:var(--orange); border-color:var(--orange); transform:translateY(-1px); box-shadow:var(--s1); }
   .btn-ghost{ background:transparent; color:var(--black); }
-  .btn-ghost:hover{ background:var(--black); color:var(--white); transform:translate(-2px,-2px); box-shadow:3px 3px 0 var(--orange); }
+  .btn-ghost:hover{ background:var(--black); color:var(--white); transform:translateY(-1px); box-shadow:var(--s1); }
   .card.dark .btn{ border-color:var(--white); color:var(--white); }
   .card.dark .btn-primary{ background:var(--orange); border-color:var(--orange); color:var(--black); }
-  .card.dark .btn-primary:hover{ background:var(--white); border-color:var(--white); box-shadow:3px 3px 0 var(--orange); }
-  .card.dark .btn-ghost:hover{ background:var(--white); color:var(--black); box-shadow:3px 3px 0 var(--orange); }
-  .btn:active{ transform:translate(0,0); box-shadow:none; }
+  .card.dark .btn-primary:hover{ background:var(--white); border-color:var(--white); box-shadow:var(--s1); }
+  .card.dark .btn-ghost:hover{ background:var(--white); color:var(--black); box-shadow:var(--s1); }
+  .btn:active{ transform:none; box-shadow:none; }
 
   *:focus-visible{ outline:3px solid var(--purple); outline-offset:2px; }
 
@@ -182,8 +196,8 @@
   .card.dark .foot-note{ color:#A8A8A8; }
 
   .rascunho{
-    margin-top:24px; border-left:3px solid var(--orange); padding:12px 14px;
-    background:rgba(255,94,0,0.08); font-size:0.88rem; line-height:1.5;
+    margin-top:24px; border-left:3px solid var(--orange); border-radius:0 12px 12px 0;
+    padding:14px 16px; background:#FFF1E8; font-size:0.88rem; line-height:1.5;
   }
   .rascunho b{ font-family:'Space Grotesk',sans-serif; }
   .rascunho button{
@@ -199,17 +213,18 @@
   .qgroup textarea{
     width:100%; resize:none; overflow:hidden;
     font-family:'Archivo',sans-serif; font-size:0.98rem; color:var(--black);
-    border:none; border-bottom:2.5px solid var(--black);
+    border:none; border-bottom:2px solid var(--hair);
     background:transparent; padding:6px 2px 10px;
     line-height:1.5; min-height:32px;
     transition:border-color .15s ease;
   }
   .qgroup textarea::placeholder{ color:#B7B7B7; }
+  .qgroup textarea:hover{ border-bottom-color:#C9C2B7; }
   .qgroup textarea:focus{ border-bottom-color:var(--purple); outline:none; }
 
   .nav-row{
     display:flex; align-items:center; justify-content:space-between;
-    margin-top:34px; padding-top:20px; border-top:2px solid var(--black);
+    margin-top:34px; padding-top:20px; border-top:1px solid var(--hair);
     gap:12px; flex-wrap:wrap;
   }
   .answered-note{ font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--gray); }
