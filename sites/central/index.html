@@ -74,7 +74,7 @@
   .card.flat{ border-width:1px; border-color:var(--line); }
 
   table{ width:100%; border-collapse:collapse; font-size:0.88rem; }
-  th{ text-align:left; font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); padding:0 10px 7px 0; border-bottom:1px solid var(--line); font-weight:400; }
+  th{ text-align:left; font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); padding:0 10px 7px 0; border-bottom:1px solid var(--line); font-weight:400; white-space:nowrap; }
   td{ padding:9px 10px 9px 0; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.45; }
   tr:last-child td{ border-bottom:none; }
   .wrap{ overflow-x:auto; }
@@ -104,6 +104,71 @@
   .tag.on{ background:var(--orange); color:#fff; border-color:var(--orange); }
   .tag.off{ background:#fff; color:var(--gray); border-color:var(--line); }
   .tag.roxo{ background:var(--purple); color:#fff; border-color:var(--purple); }
+
+  /* Cores de estado. Separadas do laranja e do roxo da marca de propósito:
+     laranja é "olha aqui" e roxo é "isso é do cliente"; estado é outra coisa. */
+  .chip{
+    display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+    font-size:0.74rem; font-weight:600; padding:3px 9px 3px 7px; border-radius:2px;
+    border:1px solid transparent; line-height:1.3;
+  }
+  .chip::before{ content:''; width:7px; height:7px; border-radius:50%; background:currentColor; flex:0 0 auto; }
+  .chip.ok{      background:#E7F4EC; color:#0E6B3D; border-color:#BFE0CD; }
+  .chip.alerta{  background:#FBEAE7; color:#A93226; border-color:#F0CCC6; }
+  .chip.espera{  background:#FCF2DF; color:#8A5A05; border-color:#EEDCB4; }
+  .chip.andamento{ background:#E7EEF8; color:#1B4F8F; border-color:#C6D8EE; }
+  .chip.neutro{  background:#F1F0EE; color:#5F5B57; border-color:#E0DEDA; }
+  .chip.roxo{    background:#F2E8FF; color:#6A00C7; border-color:#DFC9F7; }
+
+  /* Termômetro de onboarding */
+  .termo{ border:2px solid var(--black); background:var(--white); margin-top:18px; }
+  .termo .topo{
+    display:flex; justify-content:space-between; align-items:baseline; gap:14px; flex-wrap:wrap;
+    padding:14px 16px 12px; border-bottom:1px solid var(--line);
+  }
+  .termo .topo .quanto{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.05rem; }
+  .barra{ height:6px; background:var(--soft); display:flex; }
+  .barra i{ display:block; background:var(--orange); }
+  .etapas{ display:grid; grid-template-columns:repeat(6,1fr); }
+  @media (max-width:820px){ .etapas{ grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:480px){ .etapas{ grid-template-columns:repeat(2,1fr); } }
+  .etapa{
+    background:none; border:none; border-right:1px solid var(--line); border-top:1px solid var(--line);
+    padding:12px 12px 14px; text-align:left; display:block; width:100%;
+  }
+  .etapa:hover{ background:var(--soft); }
+  .etapa .n{
+    font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.1em;
+    display:flex; align-items:center; gap:6px; color:var(--gray); margin-bottom:6px;
+  }
+  .etapa .bola{ width:12px; height:12px; border:2px solid var(--line); border-radius:50%; flex:0 0 auto; }
+  .etapa.feito .bola{ background:#0E6B3D; border-color:#0E6B3D; }
+  .etapa.meio .bola{ background:linear-gradient(90deg,#B8860B 50%, #fff 50%); border-color:#B8860B; }
+  .etapa.falta .bola{ background:#fff; border-color:#D6D2CD; }
+  .etapa .rot{ font-size:0.82rem; font-weight:600; line-height:1.25; }
+  .etapa.falta .rot{ color:var(--gray); font-weight:500; }
+  .etapa .sub{ font-family:'Space Mono',monospace; font-size:0.62rem; color:var(--gray); margin-top:3px; display:block; }
+
+  /* Cabeçalho explicativo de cada aba */
+  .expl{ display:flex; gap:12px; align-items:flex-start; margin:0 0 20px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+  .expl .marca{ width:4px; align-self:stretch; background:var(--orange); flex:0 0 auto; }
+  .expl h3{ font-family:'Space Grotesk',sans-serif; font-size:1.02rem; margin:0 0 3px; }
+  .expl p{ margin:0; font-size:0.87rem; color:var(--gray); line-height:1.5; max-width:66ch; }
+  .expl .quando{ display:block; margin-top:6px; font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.07em; text-transform:uppercase; color:var(--black); }
+
+  /* Resumos numéricos no topo das abas */
+  .placares{ display:flex; gap:10px; flex-wrap:wrap; margin:0 0 20px; }
+  .placares .p{ border:1px solid var(--line); padding:9px 13px; min-width:96px; }
+  .placares .p b{ font-family:'Space Grotesk',sans-serif; font-size:1.35rem; display:block; line-height:1.05; }
+  .placares .p span{ font-family:'Space Mono',monospace; font-size:0.6rem; letter-spacing:0.09em; text-transform:uppercase; color:var(--gray); }
+  .placares .p.destaca{ border-color:var(--black); border-width:2px; }
+
+  .minibarra{ height:5px; background:var(--soft); margin-top:7px; width:100%; }
+  .minibarra i{ display:block; height:100%; background:#0E6B3D; }
+
+  .dica{ display:block; font-size:0.76rem; color:var(--gray); line-height:1.4; margin-top:4px; }
+  td .forte{ font-weight:600; }
+  .vazio strong{ display:block; font-family:'Space Grotesk',sans-serif; color:var(--black); font-size:0.98rem; margin-bottom:5px; }
 
   .qa{ margin-bottom:16px; padding-left:13px; border-left:2.5px solid var(--orange); }
   .qa.vazia{ border-left-color:var(--line); }
@@ -193,15 +258,91 @@
     ]},
   ];
 
+  // Cada aba carrega a explicação do que ela é. Painel sem isso vira sete tabelas
+  // iguais, e quem abre não sabe por onde começar nem por que aquilo existe.
   const ABAS = [
-    ['respostas','Respostas'],
-    ['acessos','Acessos'],
-    ['metas','Metas'],
-    ['baseline','Baseline'],
-    ['marcos','Marcos'],
-    ['conformidade','Conformidade'],
-    ['horas','Horas'],
+    ['respostas','Respostas', 'O que eles escreveram no formulário',
+      'A matéria-prima de todo o resto. Baseline, metas e conteúdo saem daqui — quando tiver dúvida do que fazer, releia isto.',
+      'Chega sozinho quando alguém envia o formulário'],
+    ['acessos','Acessos', 'Quais contas já estão na nossa mão',
+      'É o que mais trava onboarding de agência, e trava por um motivo bobo: ninguém sabe quem detém o quê. Costuma estar com um sobrinho, um ex-funcionário ou a agência anterior.',
+      'Preencher no primeiro dia, junto com o contrato'],
+    ['metas','Metas', 'O que perseguimos, escrito antes de começar',
+      'O campo "o que contaria como fracasso" é o coração da aba. Sem ele, qualquer número do dia 90 vira história contada a favor de quem fez o trabalho.',
+      'Preencher no kickoff, antes de publicar qualquer coisa'],
+    ['baseline','Baseline', 'De onde estamos saindo, congelado',
+      'Números anotados antes de mexermos em nada, com a limitação de cada um declarada na hora. Depois não dá para congelar: o que passou, passou.',
+      'Preencher antes da primeira publicação'],
+    ['marcos','Marcos', 'A ordem das coisas, com data e dono',
+      'Três a cinco marcos, cada um com data e com quem é responsável. Os que forem do cliente aparecem na página que ele lê.',
+      'Preencher no kickoff'],
+    ['conformidade','Conformidade', 'O que pode e o que não pode ser publicado',
+      'Profissão regulada tem regra de publicação. Aprovação registrada, com quem aprovou e quando, é o que protege a agência e o cliente.',
+      'Preencher antes da primeira peça sair'],
+    ['horas','Horas', 'Quanto custa entregar um mês',
+      'Medido, não estimado. É o número que falta para o preço deixar de ser opinião — e para saber o que vale a pena automatizar.',
+      'Lançar toda semana, senão vira chute'],
+    ['pagina','Página do cliente', 'O plano de 90 dias que o cliente lê',
+      'Monta com os dados desta ficha a página que vira relatório no dia 90. Baixa um arquivo pronto para publicar.',
+      'Gerar depois do kickoff, e de novo nos dias 30, 60 e 90'],
   ];
+
+  // Tradução do banco para português. O painel nunca mostra o valor cru:
+  // "nao_conforme" não diz nada a quem abre o painel às sete da manhã.
+  const ROTULOS = {
+    acessos_status: {
+      pendente:      ['Ainda não pedimos','espera'],
+      solicitado:    ['Pedimos, esperando','andamento'],
+      recebido:      ['Na nossa mão','ok'],
+      bloqueado:     ['Travado','alerta'],
+      nao_aplicavel: ['Não se aplica','neutro'],
+    },
+    conformidade_status: {
+      pendente:      ['Sem veredito','espera'],
+      conforme:      ['Pode publicar','ok'],
+      nao_conforme:  ['Não pode publicar','alerta'],
+      nao_aplicavel: ['Não se aplica','neutro'],
+    },
+    metas_tipo: {
+      antecedente: ['Sinal antecedente','roxo'],
+      resultado:   ['Resultado','neutro'],
+    },
+    marcos_responsavel: {
+      bora:    ['Nós','neutro'],
+      cliente: ['Cliente','roxo'],
+    },
+    estagio: {
+      prospect:   ['Ainda não assinou','neutro'],
+      onboarding: ['Primeiros 90 dias','andamento'],
+      ativo:      ['Em andamento','ok'],
+      pausado:    ['Pausado','espera'],
+      encerrado:  ['Encerrado','neutro'],
+    },
+    baselines_fonte: {
+      perfil_empresa:'Perfil da Empresa (Google)', instagram:'Instagram', whatsapp:'WhatsApp',
+      site:'Site', negocio:'Do próprio negócio', outro:'Outra fonte',
+    },
+    horas_categoria: {
+      coleta:'Coleta de dados', relatorio:'Relatório', conteudo:'Conteúdo', reuniao:'Reunião',
+      conformidade:'Conformidade', comercial:'Comercial', admin:'Administrativo', outro:'Outro',
+    },
+  };
+
+  const rotulo = (grupo, valor) => {
+    const g = ROTULOS[grupo] || {};
+    const r = g[valor];
+    if(!r) return valor || '—';
+    return Array.isArray(r) ? r[0] : r;
+  };
+  const corDe = (grupo, valor) => {
+    const r = (ROTULOS[grupo] || {})[valor];
+    return Array.isArray(r) ? r[1] : 'neutro';
+  };
+  // Devolve o HTML de um chip já escapado.
+  const chip = (grupo, valor) =>
+    '<span class="chip '+corDe(grupo,valor)+'">'+esc(rotulo(grupo,valor))+'</span>';
+  // Opções de select no formato [valor, rótulo], para o banco continuar recebendo o enum.
+  const opcoesDe = grupo => Object.keys(ROTULOS[grupo]).map(k => [k, rotulo(grupo,k)]);
 
   // Lista padrão de acessos. Existe para ninguém descobrir no dia 20 que faltava um.
   const ACESSOS_PADRAO = [
@@ -404,10 +545,11 @@
     return box;
   }
 
-  function campo(rotulo, nome, tipo, valor){
+  function campo(rot, nome, tipo, valor, dica){
     const f = el('div',{class:'field'});
-    f.appendChild(el('label',{for:'f_'+nome},esc(rotulo)));
+    f.appendChild(el('label',{for:'f_'+nome},esc(rot)));
     f.appendChild(el('input',{id:'f_'+nome, name:nome, type:tipo||'text', value:valor==null?'':valor}));
+    if(dica) f.appendChild(el('span',{class:'dica'}, esc(dica)));
     return f;
   }
 
@@ -447,7 +589,7 @@
     } else {
       state.clientes.forEach(c=>{
         const b = el('button',{class:'navitem'+(state.vista.tipo==='cliente'&&state.vista.id===c.id?' active':''), onclick:()=>abrirCliente(c.id)});
-        b.innerHTML = esc(c.nome)+'<span class="sub">'+esc(c.estagio)+(c.vertical?' · '+esc(c.vertical):'')+'</span>';
+        b.innerHTML = esc(c.nome)+'<span class="sub">'+esc(rotulo('estagio',c.estagio))+(c.vertical?' · '+esc(c.vertical):'')+'</span>';
         s.appendChild(b);
       });
     }
@@ -597,16 +739,16 @@
     }
 
     const conta = u => pend.filter(p => p.urgencia === u).length;
-    const placar = el('div',{class:'placar'});
+    const resumo = el('div',{class:'placar'});
     [['alta','urgente'],['media','esta semana'],['baixa','quando der']].forEach(([u,rot])=>{
       const n = conta(u);
       if(!n) return;
       const b = el('div',{class:'n '+u});
       b.appendChild(el('b',{}, String(n)));
       b.appendChild(el('span',{}, rot));
-      placar.appendChild(b);
+      resumo.appendChild(b);
     });
-    m.appendChild(placar);
+    m.appendChild(resumo);
 
     let atual = null;
     pend.forEach(p=>{
@@ -706,7 +848,8 @@
     g.appendChild(campo('Nome','nome'));
     g.appendChild(campo('Como prefere ser chamado','nome_preferido'));
     g.appendChild(campo('Vertical','vertical'));
-    g.appendChild(campoSelect('Estágio','estagio',ESTAGIOS,'prospect'));
+    g.appendChild(campoSelect('Em que pé está','estagio',opcoesDe('estagio'),'prospect',
+      'Só quem está em "primeiros 90 dias" ou "em andamento" aparece na tela Agora.'));
     g.appendChild(campo('Responsável na Bora','responsavel'));
     g.appendChild(campo('Início do contrato','inicio_contrato','date'));
     form.appendChild(g);
@@ -725,16 +868,20 @@
     return m;
   }
 
-  function campoSelect(rotulo, nome, opcoes, valor){
+  // Aceita 'valor' solto ou o par ['valor_no_banco','Rótulo em português'].
+  function campoSelect(rot, nome, opcoes, valor, dica){
     const f = el('div',{class:'field'});
-    f.appendChild(el('label',{for:'f_'+nome},esc(rotulo)));
+    f.appendChild(el('label',{for:'f_'+nome},esc(rot)));
     const s = el('select',{id:'f_'+nome, name:nome});
     opcoes.forEach(o=>{
-      const op = el('option',{value:o}, esc(o));
-      if(o===valor) op.setAttribute('selected','selected');
+      const v = Array.isArray(o) ? o[0] : o;
+      const t = Array.isArray(o) ? o[1] : o;
+      const op = el('option',{value:v}, esc(t));
+      if(v===valor) op.setAttribute('selected','selected');
       s.appendChild(op);
     });
     f.appendChild(s);
+    if(dica) f.appendChild(el('span',{class:'dica'}, esc(dica)));
     return f;
   }
 
@@ -772,7 +919,7 @@
 
     const meta = el('div',{style:'display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:10px'});
     const sel = el('select',{style:'padding:5px 8px;border:1.5px solid #0A0A0A;font-size:0.78rem'});
-    ESTAGIOS.forEach(e2=>{ const o = el('option',{value:e2}, e2); if(e2===c.estagio) o.setAttribute('selected','selected'); sel.appendChild(o); });
+    ESTAGIOS.forEach(e2=>{ const o = el('option',{value:e2}, rotulo('estagio',e2)); if(e2===c.estagio) o.setAttribute('selected','selected'); sel.appendChild(o); });
     sel.addEventListener('change', async ()=>{
       if(await atualizar('clientes', c.id, { estagio: sel.value })){ toast('Estágio atualizado.'); await carregarTudo(); render(); }
     });
@@ -782,6 +929,7 @@
     if(c.brand_profile_id) meta.appendChild(el('span',{class:'tag roxo'},'marca vinculada no app'));
     m.appendChild(meta);
 
+    m.appendChild(termometro(c));
     m.appendChild(blocoPrimeiroValor(c));
 
     const tabs = el('div',{class:'tabs'});
@@ -792,7 +940,9 @@
     m.appendChild(tabs);
 
     const p = el('div',{class:'panel'});
+    p.appendChild(explicacaoAba(state.aba));
     if(state.aba==='respostas') p.appendChild(abaRespostas());
+    if(state.aba==='pagina') p.appendChild(abaPagina(c));
     if(state.aba==='acessos') p.appendChild(abaAcessos(c));
     if(state.aba==='metas') p.appendChild(abaMetas(c));
     if(state.aba==='baseline') p.appendChild(abaBaseline(c));
@@ -801,6 +951,81 @@
     if(state.aba==='horas') p.appendChild(abaHoras(c));
     m.appendChild(p);
     return m;
+  }
+
+  // Diz, em uma linha, o que a aba é e quando se preenche. Sem isso são sete
+  // tabelas idênticas e ninguém sabe por onde começar.
+  function explicacaoAba(chave){
+    const a = ABAS.find(x => x[0] === chave);
+    const box = el('div',{class:'expl'});
+    if(!a) return box;
+    box.appendChild(el('div',{class:'marca'}));
+    const txt = el('div');
+    txt.appendChild(el('h3',{}, esc(a[2])));
+    txt.appendChild(el('p',{}, esc(a[3]) + '<span class="quando">' + esc(a[4]) + '</span>'));
+    box.appendChild(txt);
+    return box;
+  }
+
+  // Termômetro: as seis etapas que precisam estar de pé antes de o trabalho
+  // virar rotina. Cada uma leva para a aba onde se resolve.
+  function etapasDoCliente(c){
+    const d = state.detalhe;
+    const acessosUteis = d.acessos.filter(a => a.status !== 'nao_aplicavel');
+    const acessosOk = acessosUteis.filter(a => a.status === 'recebido').length;
+    const metasComFracasso = d.metas.filter(m => (m.fracasso || '').trim()).length;
+    const confSemVeredito = d.conformidade.filter(i => i.status === 'pendente').length;
+    const temPV = !!(c.primeiro_valor_prometido || '').trim() && !!c.primeiro_valor_data;
+
+    return [
+      { rot:'Respostas', aba:'respostas',
+        feito: d.onboarding ? 1 : 0, total:1,
+        sub: d.onboarding ? contarRespondidas(d.onboarding.respostas) + ' de 24' : 'nada vinculado' },
+      { rot:'Acessos', aba:'acessos',
+        feito: acessosOk, total: acessosUteis.length || 1,
+        sub: acessosUteis.length ? acessosOk + ' de ' + acessosUteis.length : 'lista não criada' },
+      { rot:'Baseline', aba:'baseline',
+        feito: d.baselines.length ? 1 : 0, total:1,
+        sub: d.baselines.length ? d.baselines.length + ' congelados' : 'nada congelado' },
+      { rot:'Metas', aba:'metas',
+        feito: metasComFracasso, total: d.metas.length || 1,
+        sub: d.metas.length ? metasComFracasso + ' de ' + d.metas.length + ' completas' : 'nenhuma meta' },
+      { rot:'Primeiro valor', aba:'respostas',
+        feito: temPV ? 1 : 0, total:1,
+        sub: temPV ? 'até ' + soData(c.primeiro_valor_data) : 'sem promessa com data' },
+      { rot:'Conformidade', aba:'conformidade',
+        feito: d.conformidade.length ? d.conformidade.length - confSemVeredito : 0,
+        total: d.conformidade.length || 1,
+        sub: d.conformidade.length ? (confSemVeredito ? confSemVeredito + ' sem veredito' : 'tudo avaliado') : 'nada avaliado' },
+    ];
+  }
+
+  function termometro(c){
+    const etapas = etapasDoCliente(c);
+    const prontas = etapas.filter(e => e.feito >= e.total).length;
+    const pct = Math.round((prontas / etapas.length) * 100);
+
+    const box = el('div',{class:'termo'});
+    const topo = el('div',{class:'topo'});
+    topo.appendChild(el('p',{class:'eyebrow', style:'margin:0'},'Como está o onboarding'));
+    topo.appendChild(el('span',{class:'quanto'}, prontas + ' de ' + etapas.length + ' etapas de pé'));
+    box.appendChild(topo);
+
+    const barra = el('div',{class:'barra'});
+    barra.appendChild(el('i',{style:'width:'+pct+'%'}));
+    box.appendChild(barra);
+
+    const grade = el('div',{class:'etapas'});
+    etapas.forEach((e2, i)=>{
+      const estado = e2.feito >= e2.total ? 'feito' : (e2.feito > 0 ? 'meio' : 'falta');
+      const b = el('button',{class:'etapa '+estado, onclick:()=>{ state.aba = e2.aba; render(); }});
+      b.innerHTML = '<span class="n"><span class="bola"></span>' + String(i+1).padStart(2,'0') + '</span>'
+        + '<span class="rot">' + esc(e2.rot) + '</span>'
+        + '<span class="sub">' + esc(e2.sub) + '</span>';
+      grade.appendChild(b);
+    });
+    box.appendChild(grade);
+    return box;
   }
 
   // Primeiro valor: a promessa pequena com data marcada que sustenta a relacao
@@ -859,47 +1084,69 @@
     return box;
   }
 
+  // Placar reaproveitado no topo das abas: número grande, rótulo pequeno.
+  function placar(itens){
+    const box = el('div',{class:'placares'});
+    itens.forEach(i=>{
+      if(i.esconderSeZero && !i.valor) return;
+      const p = el('div',{class:'p'+(i.destaca?' destaca':'')});
+      p.appendChild(el('b',{}, String(i.valor)));
+      p.appendChild(el('span',{}, esc(i.rotulo)));
+      if(i.de){
+        const b = el('div',{class:'minibarra'});
+        b.appendChild(el('i',{style:'width:'+Math.round((i.parte/i.de)*100)+'%'}));
+        p.appendChild(b);
+      }
+      box.appendChild(p);
+    });
+    return box;
+  }
+
   function abaAcessos(c){
     const box = el('div');
     const linhas = state.detalhe.acessos;
-    const recebidos = linhas.filter(l => l.status === 'recebido').length;
-    const uteis = linhas.filter(l => l.status !== 'nao_aplicavel').length;
+    const uteis = linhas.filter(l => l.status !== 'nao_aplicavel');
+    const recebidos = uteis.filter(l => l.status === 'recebido').length;
+    const travados = linhas.filter(l => l.status === 'bloqueado').length;
+    const naoPedidos = linhas.filter(l => l.status === 'pendente').length;
 
     if(linhas.length){
-      const r = el('div',{style:'display:flex;gap:26px;flex-wrap:wrap;margin:0 0 18px;align-items:center'});
-      r.appendChild(el('div',{},'<span class="mono muted" style="font-size:0.64rem;letter-spacing:0.1em;text-transform:uppercase">Já em mãos</span><br><strong class="grotesk" style="font-size:1.3rem">'+recebidos+' de '+uteis+'</strong>'));
-      const travados = linhas.filter(l => l.status === 'bloqueado').length;
-      if(travados) r.appendChild(el('span',{class:'tag on'}, travados + (travados===1?' bloqueado':' bloqueados')));
-      box.appendChild(r);
+      box.appendChild(placar([
+        { rotulo:'Na nossa mão', valor: recebidos + ' de ' + uteis.length, destaca:true,
+          parte:recebidos, de:Math.max(uteis.length,1) },
+        { rotulo:'Travados', valor: travados, esconderSeZero:true },
+        { rotulo:'Ninguém pediu', valor: naoPedidos, esconderSeZero:true },
+      ]));
     } else {
       const wrap = el('div',{style:'margin:0 0 18px'});
       wrap.appendChild(el('button',{class:'btn small', onclick:async()=>{
-        const linhas = ACESSOS_PADRAO.map((recurso, i) => ({ cliente_id:c.id, recurso, ordem:i }));
-        if(await inserir('acessos', linhas)){ await carregarDetalhe(c.id); render(); }
+        const novas = ACESSOS_PADRAO.map((recurso, i) => ({ cliente_id:c.id, recurso, ordem:i }));
+        if(await inserir('acessos', novas)){ await carregarDetalhe(c.id); render(); }
       }},'Criar a lista padrão de acessos'));
+      wrap.appendChild(el('span',{class:'dica'},'Cria as 8 contas que a gente sempre precisa, todas como "ainda não pedimos". Depois é só ir mudando o status.'));
       box.appendChild(wrap);
     }
 
     box.appendChild(secao({
       tabela:'acessos', cliente:c, linhas,
-      ajuda:'O gargalo mais documentado do onboarding de agência. Peça os acessos junto com o contrato, não depois — e anote quem detém cada um. Costuma estar com um sobrinho, um ex-funcionário ou a agência anterior, e descobrir isso no dia 20 custa o mês.',
-      vazio:'Nenhum acesso mapeado. Comece pela lista padrão acima.',
+      vazio:{ titulo:'Nenhum acesso mapeado ainda',
+              texto:'Comece pela lista padrão acima e vá marcando quem detém cada conta.' },
       rotuloAdd:'+ adicionar acesso',
       colunas:[
-        {rotulo:'Recurso', chave:'recurso'},
-        {rotulo:'Quem detém', chave:'quem_detem'},
-        {rotulo:'Status', chave:'status'},
-        {rotulo:'Solicitado', valor:l=> l.solicitado_em ? soData(l.solicitado_em) : null},
-        {rotulo:'Recebido', valor:l=> l.recebido_em ? soData(l.recebido_em) : null},
-        {rotulo:'Nota', chave:'nota'},
+        {rotulo:'Conta', chave:'recurso', forte:true},
+        {rotulo:'Situação', chave:'status', chip:'acessos_status'},
+        {rotulo:'Com quem está', chave:'quem_detem'},
+        {rotulo:'Pedimos em', valor:l=> l.solicitado_em ? soData(l.solicitado_em) : null},
+        {rotulo:'Chegou em', valor:l=> l.recebido_em ? soData(l.recebido_em) : null},
+        {rotulo:'Observação', chave:'nota'},
       ],
       campos:[
-        {rotulo:'Recurso', nome:'recurso'},
-        {rotulo:'Status', nome:'status', opcoes:['pendente','solicitado','recebido','bloqueado','nao_aplicavel'], padrao:'pendente'},
-        {rotulo:'Quem detém', nome:'quem_detem'},
-        {rotulo:'Solicitado em', nome:'solicitado_em', tipo:'date'},
-        {rotulo:'Recebido em', nome:'recebido_em', tipo:'date'},
-        {rotulo:'Nota', nome:'nota', tipo:'textarea'},
+        {rotulo:'Qual conta', nome:'recurso', dica:'Ex.: Instagram, WhatsApp comercial, Perfil da Empresa'},
+        {rotulo:'Situação', nome:'status', grupo:'acessos_status', padrao:'pendente'},
+        {rotulo:'Com quem está', nome:'quem_detem', dica:'A pessoa de verdade. "Sobrinho da dona" é resposta válida e útil.'},
+        {rotulo:'Pedimos em', nome:'solicitado_em', tipo:'date'},
+        {rotulo:'Chegou em', nome:'recebido_em', tipo:'date'},
+        {rotulo:'Observação', nome:'nota', tipo:'textarea', dica:'O que está atrapalhando, ou o que precisa ser feito antes.'},
       ],
       validar:d=> d.recurso ? null : 'Diga qual é o acesso.',
     }));
@@ -908,7 +1155,12 @@
 
   function abaRespostas(){
     const on = state.detalhe.onboarding;
-    if(!on) return el('div',{class:'vazio'},'Nenhuma resposta de onboarding vinculada a este cliente ainda. Vincule uma pela caixa de entrada.');
+    if(!on){
+      const v = el('div',{class:'vazio'});
+      v.appendChild(el('strong',{},'Nenhuma resposta vinculada'));
+      v.appendChild(el('span',{},'Quando alguém enviar o formulário, a resposta cai na caixa de entrada. De lá, você liga ela a este cliente.'));
+      return v;
+    }
     const box = el('div');
     box.appendChild(el('p',{class:'mono muted', style:'font-size:0.7rem;margin:0 0 18px'},
       'Recebido em '+dataBR(on.recebido_em)+' · '+contarRespondidas(on.respostas)+' de 24 respondidas'));
@@ -932,15 +1184,405 @@
     return box;
   }
 
+  // ---------- página de 90 dias do cliente ----------
+
+  // Folha de estilo da página do cliente. Vive aqui como texto porque o
+  // arquivo gerado precisa ser um HTML só, sem nada carregado de fora
+  // além da fonte — pra poder ser mandado por WhatsApp e continuar funcionando.
+  const CSS_PAGINA_CLIENTE = `
+:root{
+    --papel:#FBFAF8;
+    --superficie:#FFFFFF;
+    --tinta:#0A0A0A;
+    --cinza:#6B6864;
+    --linha:#E3DFDA;
+    --laranja:#FF5E00;
+    --roxo:#8800FF;
+    --nosso:#0A0A0A;
+    --deles:#8800FF;
+    --display:'Space Grotesk','Segoe UI',sans-serif;
+    --corpo:'Archivo','Helvetica Neue',Arial,sans-serif;
+    --dado:'Space Mono','SFMono-Regular',Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --papel:#0C0B0A;
+      --superficie:#151412;
+      --tinta:#F4F2EF;
+      --cinza:#9C9791;
+      --linha:#2E2B27;
+      --laranja:#FF7A2E;
+      --roxo:#B166FF;
+      --nosso:#F4F2EF;
+      --deles:#B166FF;
+    }
+  }
+  :root[data-theme="dark"]{
+    --papel:#0C0B0A;
+    --superficie:#151412;
+    --tinta:#F4F2EF;
+    --cinza:#9C9791;
+    --linha:#2E2B27;
+    --laranja:#FF7A2E;
+    --roxo:#B166FF;
+    --nosso:#F4F2EF;
+    --deles:#B166FF;
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--papel); color:var(--tinta);
+    font-family:var(--corpo); font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .folha{ max-width:760px; margin:0 auto; padding:0 22px 96px; }
+
+  .rotulo{
+    font-family:var(--dado); font-size:0.66rem; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--cinza); margin:0;
+  }
+  .rotulo.laranja{ color:var(--laranja); }
+
+  /* ---- cabeçalho ---- */
+  header{ padding:56px 0 34px; border-bottom:3px solid var(--tinta); }
+  header h1{
+    font-family:var(--display); font-weight:700; font-size:clamp(2.1rem,7vw,3.1rem);
+    line-height:1.02; letter-spacing:-0.025em; margin:14px 0 0; text-wrap:balance;
+  }
+  header h1 em{ font-style:normal; color:var(--laranja); }
+  .subcab{
+    display:flex; flex-wrap:wrap; gap:10px 26px; margin-top:22px;
+    font-family:var(--dado); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--cinza);
+  }
+  .subcab b{ color:var(--tinta); font-weight:700; }
+
+  .aviso{
+    margin:26px 0 0; padding:16px 18px; background:var(--superficie);
+    border:1px solid var(--linha); border-left:4px solid var(--laranja);
+    font-size:0.94rem; line-height:1.55;
+  }
+
+  /* ---- seções ---- */
+  section{ padding-top:52px; }
+  section > h2{
+    font-family:var(--display); font-weight:700; font-size:1.5rem; letter-spacing:-0.015em;
+    margin:8px 0 6px; text-wrap:balance;
+  }
+  section > p.intro{ color:var(--cinza); font-size:0.95rem; margin:0 0 22px; max-width:62ch; }
+
+  /* ---- promessa ---- */
+  .promessa{
+    background:var(--tinta); color:var(--papel); padding:30px 28px;
+    display:grid; gap:16px;
+  }
+  .promessa .rotulo{ color:var(--laranja); }
+  .promessa p{
+    font-family:var(--display); font-weight:500; font-size:clamp(1.15rem,3.6vw,1.5rem);
+    line-height:1.32; margin:0; letter-spacing:-0.01em;
+  }
+  .promessa .data{
+    font-family:var(--dado); font-size:0.74rem; letter-spacing:0.08em; text-transform:uppercase;
+    border-top:1px solid rgba(255,255,255,0.22); padding-top:14px; color:#C9C5C0;
+  }
+  .promessa .data b{ color:var(--laranja); }
+
+  /* ---- tabelas ---- */
+  .rolagem{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:0.9rem; }
+  th{
+    font-family:var(--dado); font-size:0.62rem; letter-spacing:0.11em; text-transform:uppercase;
+    color:var(--cinza); font-weight:400; text-align:left;
+    padding:0 14px 8px 0; border-bottom:2px solid var(--tinta); white-space:nowrap;
+  }
+  td{ padding:12px 14px 12px 0; border-bottom:1px solid var(--linha); vertical-align:top; line-height:1.45; }
+  tr:last-child td{ border-bottom:none; }
+  td.num{ font-family:var(--dado); font-variant-numeric:tabular-nums; white-space:nowrap; font-size:0.95rem; }
+  td.ressalva{ color:var(--cinza); font-size:0.82rem; line-height:1.4; }
+  .metrica{ font-weight:600; }
+
+  /* ---- metas ---- */
+  .meta{ border-top:1px solid var(--linha); padding:20px 0; }
+  .meta:first-of-type{ border-top:2px solid var(--tinta); }
+  .meta h3{
+    font-family:var(--display); font-size:1.02rem; font-weight:700; margin:0 0 3px; letter-spacing:-0.01em;
+  }
+  .meta .tipo{
+    font-family:var(--dado); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--cinza); border:1px solid var(--linha); padding:2px 6px; margin-left:8px; white-space:nowrap;
+  }
+  .marcos-meta{ display:grid; grid-template-columns:1fr 1fr; gap:0 22px; margin-top:14px; }
+  @media (max-width:560px){ .marcos-meta{ grid-template-columns:1fr; gap:14px 0; } }
+  .marcos-meta div .rotulo{ margin-bottom:3px; }
+  .marcos-meta div p{ margin:0; font-size:0.92rem; line-height:1.45; }
+  .fracasso{
+    margin-top:14px; padding:11px 14px; background:var(--superficie);
+    border:1px solid var(--linha); border-left:3px solid var(--laranja); font-size:0.88rem; line-height:1.45;
+  }
+  .fracasso b{ font-family:var(--dado); font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--laranja); display:block; margin-bottom:3px; font-weight:700; }
+
+  /* ---- trilhos ---- */
+  .trilhos{ display:grid; gap:0; }
+  .passo{
+    display:grid; grid-template-columns:88px 1fr; gap:0 20px;
+    padding:16px 0 16px 0; border-bottom:1px solid var(--linha);
+  }
+  .passo:first-child{ border-top:2px solid var(--tinta); }
+  .passo .quando{
+    font-family:var(--dado); font-size:0.72rem; letter-spacing:0.06em; color:var(--cinza);
+    font-variant-numeric:tabular-nums; padding-top:3px;
+  }
+  .passo .conteudo{ border-left:3px solid var(--nosso); padding-left:16px; }
+  .passo.deles .conteudo{ border-left-color:var(--deles); }
+  .passo h3{ font-family:var(--display); font-size:1rem; font-weight:700; margin:0; letter-spacing:-0.005em; }
+  .passo p{ margin:4px 0 0; font-size:0.9rem; color:var(--cinza); line-height:1.45; }
+  .dono{
+    font-family:var(--dado); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase;
+    margin-left:9px; padding:2px 6px; white-space:nowrap; vertical-align:2px;
+  }
+  .dono.nos{ border:1px solid var(--linha); color:var(--cinza); }
+  .dono.cliente{ background:var(--deles); color:#fff; }
+  @media (max-width:520px){
+    .passo{ grid-template-columns:1fr; gap:6px; }
+    .passo .quando{ padding-top:0; }
+    .passo .conteudo{ border-left-width:3px; }
+  }
+
+  /* ---- o que depende de vocês ---- */
+  .voces{ border:2px solid var(--deles); background:var(--superficie); padding:26px 24px; }
+  .voces > .rotulo{ color:var(--deles); }
+  .voces h2{ font-family:var(--display); font-size:1.35rem; margin:10px 0 6px; letter-spacing:-0.015em; }
+  .voces > p{ color:var(--cinza); font-size:0.93rem; margin:0 0 20px; }
+  .lista{ display:grid; gap:0; }
+  .item{ display:flex; gap:14px; align-items:flex-start; padding:13px 0; border-top:1px solid var(--linha); }
+  .item:first-child{ border-top:none; padding-top:0; }
+  .caixa{
+    width:16px; height:16px; border:2px solid var(--deles); flex:0 0 auto; margin-top:3px;
+  }
+  .item .oq{ font-weight:600; font-size:0.95rem; line-height:1.35; }
+  .item .obs{ color:var(--cinza); font-size:0.85rem; line-height:1.4; margin-top:2px; }
+  .item.pronto .caixa{ background:var(--linha); border-color:var(--linha); }
+  .item.pronto .oq{ color:var(--cinza); text-decoration:line-through; }
+
+  /* ---- resultados ---- */
+  .vazio{
+    border:2px dashed var(--linha); padding:34px 26px; text-align:center;
+  }
+  .vazio .rotulo{ margin-bottom:12px; }
+  .vazio p{ margin:0 auto; max-width:48ch; color:var(--cinza); font-size:0.93rem; line-height:1.55; }
+  .datas{
+    display:flex; justify-content:center; gap:0; margin-top:26px; flex-wrap:wrap;
+    font-family:var(--dado); font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase;
+  }
+  .datas span{ padding:7px 15px; border:1px solid var(--linha); color:var(--cinza); margin:-1px 0 0 -1px; }
+
+  footer{
+    margin-top:64px; padding-top:26px; border-top:3px solid var(--tinta);
+    font-family:var(--dado); font-size:0.68rem; letter-spacing:0.07em; text-transform:uppercase;
+    color:var(--cinza); display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  footer b{ color:var(--laranja); }
+
+  .passo .quando .feito{ color:#0E6B3D; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; font-size:0.6rem; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .passo .quando .feito{ color:#4CC98A; } }
+  :root[data-theme="dark"] .passo .quando .feito{ color:#4CC98A; }
+  .voces .obs{ color:var(--cinza); font-size:0.9rem; margin:0; }
+`;
+
+
+  // Monta o arquivo que o cliente lê. Mesmo objeto em dois momentos: no dia 0 é o
+  // plano, no dia 90 é o relatório. Sai daqui com os dados desta ficha, sem
+  // ninguém redigitar nada — e sem inventar: o que não está no banco não aparece.
+  function montarPaginaCliente(c){
+    const d = state.detalhe;
+    const nome = c.nome_preferido || c.nome;
+    const base = c.inicio_contrato ? new Date(c.inicio_contrato + 'T00:00:00') : HOJE();
+    const dia = Math.max(0, Math.round((HOJE() - base) / 86400000));
+    const maisDias = n => {
+      const x = new Date(base); x.setDate(x.getDate() + n);
+      return x.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' }).replace('.','');
+    };
+    const E = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const porExtenso = iso => {
+      if(!iso) return '';
+      const x = new Date(String(iso).slice(0,10) + 'T00:00:00');
+      return x.toLocaleDateString('pt-BR', { day:'numeric', month:'long', year:'numeric' });
+    };
+
+    // --- ponto de partida
+    const linhasBase = d.baselines.map(b => '<tr>'
+      + '<td class="metrica">' + E(b.metrica) + '</td>'
+      + '<td class="num">' + E(b.valor != null ? b.valor + (b.unidade ? ' ' + b.unidade : '') : (b.valor_texto || '?')) + '</td>'
+      + '<td>' + E(rotulo('baselines_fonte', b.fonte)) + '</td>'
+      + '<td class="ressalva">' + E(b.limitacao || '—') + '</td>'
+      + '</tr>').join('\n          ');
+
+    // --- pré-registro
+    const blocosMeta = d.metas.map(m => {
+      const frac = (m.fracasso || '').trim();
+      return '<div class="meta">'
+        + '<h3>' + E(m.metrica) + '<span class="tipo">' + E(rotulo('metas_tipo', m.tipo)) + '</span></h3>'
+        + '<div class="marcos-meta">'
+        +   '<div><p class="rotulo">Dia 30</p><p>' + E(m.sucesso_30 || 'Sem meta') + '</p></div>'
+        +   '<div><p class="rotulo">Dia 90</p><p>' + E(m.sucesso_90 || 'Sem meta') + '</p></div>'
+        + '</div>'
+        + (frac ? '<div class="fracasso"><b>Deu errado se</b>' + E(frac) + '</div>' : '')
+        + '</div>';
+    }).join('\n      ');
+
+    // --- ordem das coisas
+    const passos = d.marcos.slice().sort((a,b)=>
+      String(a.data_prevista||'9999').localeCompare(String(b.data_prevista||'9999')) || (a.ordem||0)-(b.ordem||0)
+    ).map(m => {
+      const deles = m.responsavel === 'cliente';
+      const quando = m.data_prevista
+        ? new Date(m.data_prevista + 'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','')
+        : '—';
+      return '<div class="passo' + (deles ? ' deles' : '') + '">'
+        + '<div class="quando">' + E(quando) + (m.data_cumprida ? '<br><span class="feito">feito</span>' : '') + '</div>'
+        + '<div class="conteudo">'
+        +   '<h3>' + E(m.titulo) + '<span class="dono ' + (deles ? 'cliente' : 'nos') + '">' + (deles ? 'vocês' : 'nós') + '</span></h3>'
+        +   (m.descricao ? '<p>' + E(m.descricao) + '</p>' : '')
+        + '</div></div>';
+    }).join('\n      ');
+
+    // --- a coluna deles: acessos que faltam + marcos do cliente em aberto
+    const faltando = d.acessos.filter(a => a.status === 'pendente' || a.status === 'solicitado' || a.status === 'bloqueado');
+    const marcosDeles = d.marcos.filter(m => m.responsavel === 'cliente' && !m.data_cumprida);
+    const itensDeles = faltando.map(a => ({
+      oq: 'Acesso ao ' + a.recurso,
+      obs: [a.quem_detem ? 'Está com ' + a.quem_detem + '.' : '', a.nota || ''].filter(Boolean).join(' '),
+    })).concat(marcosDeles.map(m => ({ oq: m.titulo, obs: m.descricao || '' })));
+
+    const listaDeles = itensDeles.length
+      ? itensDeles.map(i => '<div class="item"><div class="caixa"></div><div>'
+          + '<div class="oq">' + E(i.oq) + '</div>'
+          + (i.obs ? '<div class="obs">' + E(i.obs) + '</div>' : '')
+          + '</div></div>').join('\n        ')
+      : '<p class="obs">Nada pendente do lado de vocês no momento.</p>';
+
+    const pv = (c.primeiro_valor_prometido || '').trim();
+
+    return '<!doctype html>\n<html lang="pt-BR">\n<head>\n<meta charset="utf-8">\n'
++ '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
++ '<title>' + E(nome) + ' — 90 dias com a Bora Postar</title>\n'
++ '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Archivo:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">\n'
++ '<style>\n' + CSS_PAGINA_CLIENTE + '</style>\n</head>\n<body>\n<div class="folha">\n'
++ '  <header>\n'
++ '    <p class="rotulo laranja">Bora Postar · plano de trabalho</p>\n'
++ '    <h1>Noventa dias com <em>' + E(nome) + '</em></h1>\n'
++ '    <div class="subcab">'
++       (c.vertical ? '<span>' + E(c.vertical) + '</span>' : '')
++       '<span>Dia <b>' + dia + '</b> de 90</span></div>\n'
++ '    <p class="aviso">Esta página é o plano hoje e o relatório no dia 90 — mesmo link, atualizado por nós. Enquanto os números não se movem ela mostra o que combinamos e o que falta. Quando começarem a se mover, mostra o que aconteceu, incluindo o que não deu certo.</p>\n'
++ '  </header>\n'
++ (pv ? ('  <section>\n    <p class="rotulo">A primeira coisa que vocês vão perceber</p>\n'
++ '    <div class="promessa">\n      <p class="rotulo">Primeiro valor prometido</p>\n'
++ '      <p>' + E(pv) + '</p>\n'
++ '      <div class="data">' + (c.primeiro_valor_data
+        ? 'Até <b>' + E(porExtenso(c.primeiro_valor_data)) + '</b> · se não acontecer até lá, cobrem da gente'
+        : 'Sem data marcada') + '</div>\n    </div>\n  </section>\n') : '')
++ (d.baselines.length ? ('  <section>\n    <p class="rotulo">Ponto de partida</p>\n'
++ '    <h2>De onde estamos saindo</h2>\n'
++ '    <p class="intro">Congelado antes de mexermos em qualquer coisa. A última coluna é o que há de frágil em cada número — dizemos agora para ninguém tratar estimativa como medida daqui a três meses.</p>\n'
++ '    <div class="rolagem"><table>\n      <thead><tr><th>O que</th><th>Hoje</th><th>Onde medimos</th><th>O que essa medida não garante</th></tr></thead>\n'
++ '      <tbody>\n          ' + linhasBase + '\n      </tbody>\n    </table></div>\n  </section>\n') : '')
++ (d.metas.length ? ('  <section>\n    <p class="rotulo">Pré-registro</p>\n'
++ '    <h2>O que vamos perseguir, e o que conta como ter dado errado</h2>\n'
++ '    <p class="intro">Escrito antes de começar, de propósito. Se só combinássemos o sucesso, qualquer número do dia 90 se explicaria — e sempre a favor de quem fez o trabalho. O critério de fracasso está aí para vocês poderem cobrar.</p>\n'
++ '      ' + blocosMeta + '\n  </section>\n') : '')
++ (d.marcos.length ? ('  <section>\n    <p class="rotulo">Ordem das coisas</p>\n'
++ '    <h2>Os primeiros passos</h2>\n'
++ '    <p class="intro">A barra preta é nossa, a roxa é de vocês.</p>\n'
++ '    <div class="trilhos">\n      ' + passos + '\n    </div>\n  </section>\n') : '')
++ '  <section>\n    <div class="voces">\n      <p class="rotulo">Sua parte</p>\n'
++ '      <h2>O que depende de vocês agora</h2>\n'
++ '      <p>' + (itensDeles.length
+      ? itensDeles.length + (itensDeles.length === 1 ? ' coisa, e o plano espera por ela.' : ' coisas, e o plano inteiro espera por elas.')
+      : 'Nada travado do lado de vocês.') + '</p>\n'
++ '      <div class="lista">\n        ' + listaDeles + '\n      </div>\n    </div>\n  </section>\n'
++ '  <section>\n    <p class="rotulo">Resultados</p>\n'
++ (dia < 30
+    ? ('    <h2>Ainda não há o que mostrar</h2>\n'
++ '    <p class="intro">E é assim que deve estar no começo. Esta seção fica vazia até existir número comparável com o ponto de partida — colocar gráfico bonito aqui antes disso seria enfeite.</p>\n'
++ '    <div class="vazio">\n      <p class="rotulo">Primeira leitura</p>\n'
++ '      <p>A primeira medição real sai no dia 30. Ela vem com o que subiu, o que não subiu e o que a gente errou — nessa ordem, porque a terceira é a parte que faz as outras duas valerem alguma coisa.</p>\n'
++ '      <div class="datas"><span>Dia 30 · ' + maisDias(30) + '</span><span>Dia 60 · ' + maisDias(60) + '</span><span>Dia 90 · ' + maisDias(90) + '</span></div>\n    </div>\n')
+    : ('    <h2>O que aconteceu até aqui</h2>\n'
++ '    <div class="vazio">\n      <p class="rotulo">A preencher</p>\n'
++ '      <p>Estamos no dia ' + dia + '. Escreva aqui, à mão, o que subiu, o que não subiu e o que erramos — nessa ordem. Compare com o ponto de partida e com o critério de fracasso que está logo acima, sem editar nenhum dos dois.</p>\n    </div>\n'))
++ '  </section>\n'
++ '  <footer>\n    <span>Bora Postar · Fortaleza</span>\n'
++ '    <span>Atualizado em <b>' + E(new Date().toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'})) + '</b></span>\n'
++ '  </footer>\n</div>\n</body>\n</html>\n';
+  }
+
+  function abaPagina(c){
+    const box = el('div');
+    const d = state.detalhe;
+    const faltas = [];
+    if(!(c.primeiro_valor_prometido||'').trim()) faltas.push(['O primeiro valor prometido','respostas']);
+    if(!d.baselines.length) faltas.push(['O ponto de partida (baseline)','baseline']);
+    if(!d.metas.length) faltas.push(['As metas com critério de fracasso','metas']);
+    if(!d.marcos.length) faltas.push(['Os marcos com data','marcos']);
+
+    box.appendChild(placar([
+      { rotulo:'Números de partida', valor:d.baselines.length },
+      { rotulo:'Metas', valor:d.metas.length },
+      { rotulo:'Passos', valor:d.marcos.length },
+      { rotulo:'Pendências do cliente', valor:
+        d.acessos.filter(a=>['pendente','solicitado','bloqueado'].includes(a.status)).length
+        + d.marcos.filter(m=>m.responsavel==='cliente' && !m.data_cumprida).length, destaca:true },
+    ]));
+
+    if(faltas.length){
+      const av = el('div',{class:'erro', style:'margin:0 0 18px'});
+      av.innerHTML = 'A página sai mesmo assim, mas sem estas partes: <strong>'
+        + faltas.map(f=>esc(f[0])).join('</strong>, <strong>') + '</strong>. Seção sem dado simplesmente não aparece — nada é inventado.';
+      box.appendChild(av);
+    }
+
+    const acoes = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;align-items:center'});
+    acoes.appendChild(el('button',{class:'btn', onclick:()=>{
+      const html = montarPaginaCliente(c);
+      const nome = (c.nome_preferido || c.nome || 'cliente').toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').slice(0,40).replace(/^-|-$/g,'');
+      const url = URL.createObjectURL(new Blob([html], { type:'text/html;charset=utf-8' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = '90-dias-' + (nome || 'cliente') + '.html';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+      toast('Página baixada.');
+    }},'Baixar a página'));
+    acoes.appendChild(el('button',{class:'btn ghost', onclick:()=>{
+      const w = window.open('', '_blank');
+      if(!w){ toast('O navegador bloqueou a janela. Libere pop-up para este site.'); return; }
+      w.document.write(montarPaginaCliente(c)); w.document.close();
+    }},'Ver antes de baixar'));
+    box.appendChild(acoes);
+
+    box.appendChild(el('p',{class:'dica', style:'margin-top:12px;max-width:66ch'},
+      'O arquivo é um HTML só, sem nada de fora. Dá pra mandar por WhatsApp, subir na Vercel ou anexar no e-mail. '
+      + 'Gere de novo nos dias 30, 60 e 90 — o pré-registro continua igual, e é isso que permite conferir o que foi prometido.'));
+    return box;
+  }
+
   // ---------- tabela genérica com formulário de inclusão ----------
 
   function secao(opts){
-    // opts: { titulo, ajuda, linhas, colunas, campos, tabela, cliente }
+    // opts: { ajuda, linhas, colunas, campos, tabela, cliente, vazio:{titulo,texto} }
     const box = el('div');
     if(opts.ajuda) box.appendChild(el('p',{class:'muted', style:'margin:0 0 16px'}, opts.ajuda));
 
     if(!opts.linhas.length){
-      box.appendChild(el('div',{class:'vazio'}, opts.vazio || 'Nada registrado ainda.'));
+      const v = el('div',{class:'vazio'});
+      if(opts.vazio && opts.vazio.titulo){
+        v.appendChild(el('strong',{}, esc(opts.vazio.titulo)));
+        v.appendChild(el('span',{}, esc(opts.vazio.texto || '')));
+      } else {
+        v.textContent = (opts.vazio && opts.vazio.texto) || opts.vazio || 'Nada registrado ainda.';
+      }
+      box.appendChild(v);
     } else {
       const w = el('div',{class:'wrap'});
       const t = el('table');
@@ -953,8 +1595,14 @@
         const tr = el('tr');
         opts.colunas.forEach(col=>{
           const td = el('td');
-          const v = col.valor ? col.valor(l) : l[col.chave];
-          td.innerHTML = (v===null||v===undefined||v==='') ? '<span class="muted">—</span>' : esc(v);
+          if(col.chip){
+            td.innerHTML = chip(col.chip, l[col.chave]);
+          } else {
+            const v = col.valor ? col.valor(l) : l[col.chave];
+            const vazio = (v===null||v===undefined||v==='');
+            td.innerHTML = vazio ? '<span class="muted">—</span>'
+              : (col.forte ? '<span class="forte">'+esc(v)+'</span>' : esc(v));
+          }
           tr.appendChild(td);
         });
         const acao = el('td',{style:'text-align:right;white-space:nowrap'});
@@ -972,14 +1620,16 @@
     const form = el('form',{class:'card flat', style:'margin-top:12px'});
     const g = el('div',{class: opts.colunasForm===3 ? 'grid3' : 'grid2'});
     opts.campos.forEach(c=>{
-      if(c.opcoes) g.appendChild(campoSelect(c.rotulo, c.nome, c.opcoes, c.padrao));
+      const opcoes = c.grupo ? opcoesDe(c.grupo) : c.opcoes;
+      if(opcoes) g.appendChild(campoSelect(c.rotulo, c.nome, opcoes, c.padrao, c.dica));
       else if(c.tipo==='textarea'){
         const f = el('div',{class:'field', style:'grid-column:1/-1'});
         f.appendChild(el('label',{for:'f_'+c.nome}, esc(c.rotulo)));
         f.appendChild(el('textarea',{id:'f_'+c.nome, name:c.nome}));
+        if(c.dica) f.appendChild(el('span',{class:'dica'}, esc(c.dica)));
         g.appendChild(f);
       }
-      else g.appendChild(campo(c.rotulo, c.nome, c.tipo, c.padrao));
+      else g.appendChild(campo(c.rotulo, c.nome, c.tipo, c.padrao, c.dica));
     });
     form.appendChild(g);
     form.appendChild(el('button',{class:'btn small', type:'submit'},'Salvar'));
@@ -998,110 +1648,163 @@
   }
 
   function abaMetas(c){
-    return secao({
-      tabela:'metas', cliente:c, linhas:state.detalhe.metas,
-      ajuda:'Pré-registro: escrito ANTES de começar. O campo "fracasso" é o que impede contar história depois olhando só o número que subiu.',
-      vazio:'Nenhuma meta pré-registrada. Sem isso, o relatório vira narrativa.',
+    const linhas = state.detalhe.metas;
+    const box = el('div');
+    const completas = linhas.filter(l => (l.fracasso||'').trim()).length;
+    if(linhas.length){
+      box.appendChild(placar([
+        { rotulo:'Metas', valor: linhas.length },
+        { rotulo:'Com fracasso escrito', valor: completas + ' de ' + linhas.length, destaca:true,
+          parte:completas, de:linhas.length },
+        { rotulo:'Sinais antecedentes', valor: linhas.filter(l=>l.tipo==='antecedente').length },
+      ]));
+      if(completas < linhas.length){
+        box.appendChild(el('div',{class:'erro', style:'margin:0 0 18px'},
+          (linhas.length - completas) + (linhas.length - completas === 1 ? ' meta está' : ' metas estão')
+          + ' sem critério de fracasso. Enquanto isso durar, o relatório do dia 90 se explica sozinho.'));
+      }
+    }
+    box.appendChild(secao({
+      tabela:'metas', cliente:c, linhas,
+      vazio:{ titulo:'Nenhuma meta pré-registrada',
+              texto:'Sem sucesso e fracasso escritos antes de começar, o relatório vira narrativa. Preencha no kickoff.' },
       rotuloAdd:'+ pré-registrar uma meta',
       colunas:[
-        {rotulo:'Métrica', chave:'metrica'},
-        {rotulo:'Tipo', chave:'tipo'},
-        {rotulo:'Partida', valor:l=> l.valor_partida},
-        {rotulo:'30 dias', chave:'sucesso_30'},
-        {rotulo:'60 dias', chave:'sucesso_60'},
-        {rotulo:'90 dias', chave:'sucesso_90'},
-        {rotulo:'Fracasso', chave:'fracasso'},
+        {rotulo:'O que vamos medir', chave:'metrica', forte:true},
+        {rotulo:'Tipo', chave:'tipo', chip:'metas_tipo'},
+        {rotulo:'Hoje', valor:l=> l.valor_partida},
+        {rotulo:'Em 30 dias', chave:'sucesso_30'},
+        {rotulo:'Em 90 dias', chave:'sucesso_90'},
+        {rotulo:'Deu errado se', valor:l=> (l.fracasso||'').trim() || null},
       ],
       campos:[
-        {rotulo:'Métrica', nome:'metrica'},
-        {rotulo:'Tipo', nome:'tipo', opcoes:['antecedente','resultado'], padrao:'antecedente'},
-        {rotulo:'Valor de partida', nome:'valor_partida', tipo:'number'},
-        {rotulo:'Prazo realista (meses)', nome:'prazo_realista_meses', tipo:'number'},
+        {rotulo:'O que vamos medir', nome:'metrica', dica:'Ex.: conversas novas no WhatsApp por semana'},
+        {rotulo:'Tipo', nome:'tipo', grupo:'metas_tipo', padrao:'antecedente',
+         dica:'Antecedente mexe em semanas (alcance, salvamento, conversa). Resultado mexe em meses (aluno novo, ticket).'},
+        {rotulo:'Valor de hoje', nome:'valor_partida', tipo:'number', dica:'Se ninguém sabe, deixe vazio e anote isso no baseline.'},
+        {rotulo:'Prazo realista (meses)', nome:'prazo_realista_meses', tipo:'number', dica:'Quanto tempo esse número leva de verdade pra se mover.'},
         {rotulo:'Sucesso em 30 dias', nome:'sucesso_30'},
         {rotulo:'Sucesso em 60 dias', nome:'sucesso_60'},
         {rotulo:'Sucesso em 90 dias', nome:'sucesso_90'},
-        {rotulo:'O que contaria como fracasso', nome:'fracasso', tipo:'textarea'},
+        {rotulo:'O que contaria como fracasso', nome:'fracasso', tipo:'textarea',
+         dica:'O campo mais importante da aba. Escreva a frase que, se acontecer, obriga a gente a admitir que não funcionou. Ex.: "continuar em 3 conversas por semana no dia 60".'},
       ],
       validar:d=> d.metrica ? null : 'Diga qual é a métrica.',
-    });
+    }));
+    return box;
   }
 
   function abaBaseline(c){
     return secao({
       tabela:'baselines', cliente:c, linhas:state.detalhe.baselines,
-      ajuda:'Números congelados antes de mexer em qualquer coisa. Janela mínima recomendada: 90 dias. Se não houver histórico, registre o que houver e declare a limitação.',
-      vazio:'Nenhum número congelado. Sem baseline não dá para afirmar movimento depois.',
+      vazio:{ titulo:'Nenhum número congelado',
+              texto:'Sem baseline não dá pra afirmar que alguma coisa se moveu. E não dá pra congelar depois: o que passou, passou.' },
       rotuloAdd:'+ congelar um número',
       colunas:[
-        {rotulo:'Métrica', chave:'metrica'},
-        {rotulo:'Fonte', chave:'fonte'},
-        {rotulo:'Valor', valor:l=> l.valor!=null ? l.valor + (l.unidade? ' '+l.unidade : '') : l.valor_texto},
-        {rotulo:'Janela', valor:l=> l.janela_inicio ? soData(l.janela_inicio)+' → '+soData(l.janela_fim) : null},
-        {rotulo:'Congelado', valor:l=> dataBR(l.congelado_em)},
-        {rotulo:'Limitação', chave:'limitacao'},
+        {rotulo:'O que', chave:'metrica', forte:true},
+        {rotulo:'Quanto', valor:l=> l.valor!=null ? l.valor + (l.unidade? ' '+l.unidade : '') : l.valor_texto},
+        {rotulo:'Onde medimos', valor:l=> rotulo('baselines_fonte', l.fonte)},
+        {rotulo:'Período', valor:l=> l.janela_inicio ? soData(l.janela_inicio)+' → '+soData(l.janela_fim) : null},
+        {rotulo:'Congelado em', valor:l=> dataBR(l.congelado_em)},
+        {rotulo:'O que esse número não garante', chave:'limitacao'},
       ],
       campos:[
-        {rotulo:'Métrica', nome:'metrica'},
-        {rotulo:'Fonte', nome:'fonte', opcoes:['perfil_empresa','instagram','whatsapp','site','negocio','outro'], padrao:'perfil_empresa'},
-        {rotulo:'Valor (número)', nome:'valor', tipo:'number'},
-        {rotulo:'Unidade', nome:'unidade'},
-        {rotulo:'Valor (texto, se não for número)', nome:'valor_texto'},
-        {rotulo:'Início da janela', nome:'janela_inicio', tipo:'date'},
-        {rotulo:'Fim da janela', nome:'janela_fim', tipo:'date'},
-        {rotulo:'Limitação declarada', nome:'limitacao', tipo:'textarea'},
+        {rotulo:'O que está medindo', nome:'metrica', dica:'Ex.: seguidores no Instagram, alunos ativos, dias desde o último post'},
+        {rotulo:'Onde mediu', nome:'fonte', grupo:'baselines_fonte', padrao:'perfil_empresa'},
+        {rotulo:'Quanto (número)', nome:'valor', tipo:'number'},
+        {rotulo:'Unidade', nome:'unidade', dica:'Ex.: contas, posts, dias, BRL'},
+        {rotulo:'Ou em texto, se não for número', nome:'valor_texto'},
+        {rotulo:'Começo do período', nome:'janela_inicio', tipo:'date', dica:'Ideal: 90 dias para trás. Se não houver histórico, deixe vazio e diga isso na limitação.'},
+        {rotulo:'Fim do período', nome:'janela_fim', tipo:'date'},
+        {rotulo:'O que esse número não garante', nome:'limitacao', tipo:'textarea',
+         dica:'Esta frase vai aparecer na página que o cliente lê. Ex.: "estimativa dita de cabeça, não medida" ou "visto de fora, sem separar quem é de Fortaleza".'},
       ],
       validar:d=> d.metrica ? null : 'Diga qual é a métrica.',
     });
   }
 
   function abaMarcos(c){
-    return secao({
-      tabela:'marcos', cliente:c, linhas:state.detalhe.marcos,
-      ajuda:'Os 3 a 5 marcos do documento de uma página, com data e com quem é responsável por cada um.',
-      vazio:'Nenhum marco definido.',
+    const linhas = state.detalhe.marcos;
+    const box = el('div');
+    const cumpridos = linhas.filter(l => l.data_cumprida).length;
+    const atrasados = linhas.filter(l => !l.data_cumprida && l.data_prevista && diasAte(l.data_prevista) < 0).length;
+    if(linhas.length){
+      box.appendChild(placar([
+        { rotulo:'Cumpridos', valor: cumpridos + ' de ' + linhas.length, destaca:true, parte:cumpridos, de:linhas.length },
+        { rotulo:'Atrasados', valor: atrasados, esconderSeZero:true },
+        { rotulo:'Do cliente', valor: linhas.filter(l=>l.responsavel==='cliente').length },
+      ]));
+    }
+    box.appendChild(secao({
+      tabela:'marcos', cliente:c, linhas,
+      vazio:{ titulo:'Nenhum marco definido',
+              texto:'Três a cinco passos com data e dono. Os que forem do cliente entram na página que ele lê.' },
       rotuloAdd:'+ adicionar marco',
       colunas:[
-        {rotulo:'Marco', chave:'titulo'},
-        {rotulo:'Descrição', chave:'descricao'},
-        {rotulo:'Prevista', valor:l=> soData(l.data_prevista)},
-        {rotulo:'Cumprida', valor:l=> l.data_cumprida ? soData(l.data_cumprida) : null},
-        {rotulo:'Quem', chave:'responsavel'},
+        {rotulo:'Passo', chave:'titulo', forte:true},
+        {rotulo:'Quem faz', chave:'responsavel', chip:'marcos_responsavel'},
+        {rotulo:'Quando', valor:l=>{
+          if(!l.data_prevista) return null;
+          if(l.data_cumprida) return soData(l.data_prevista);
+          const d = diasAte(l.data_prevista);
+          return soData(l.data_prevista) + (d === null ? '' : ' · ' + emDias(d));
+        }},
+        {rotulo:'Situação', valor:l=> l.data_cumprida ? 'Feito em ' + soData(l.data_cumprida) : 'Em aberto'},
+        {rotulo:'Detalhe', chave:'descricao'},
       ],
       campos:[
-        {rotulo:'Título', nome:'titulo'},
-        {rotulo:'Responsável', nome:'responsavel', opcoes:['bora','cliente'], padrao:'bora'},
+        {rotulo:'O passo', nome:'titulo', dica:'Ex.: acessos entregues, baseline congelado, primeira leva no ar'},
+        {rotulo:'Quem faz', nome:'responsavel', grupo:'marcos_responsavel', padrao:'bora',
+         dica:'O que for do cliente vira item da lista dele na página de 90 dias.'},
         {rotulo:'Data prevista', nome:'data_prevista', tipo:'date'},
-        {rotulo:'Data cumprida', nome:'data_cumprida', tipo:'date'},
-        {rotulo:'Descrição', nome:'descricao', tipo:'textarea'},
+        {rotulo:'Data em que foi feito', nome:'data_cumprida', tipo:'date', dica:'Deixe vazio até acontecer.'},
+        {rotulo:'Detalhe', nome:'descricao', tipo:'textarea', dica:'Uma frase explicando o que é. Aparece na página do cliente.'},
       ],
       validar:d=> d.titulo ? null : 'O marco precisa de um título.',
-    });
+    }));
+    return box;
   }
 
   function abaConformidade(c){
-    return secao({
-      tabela:'conformidade_itens', cliente:c, linhas:state.detalhe.conformidade,
-      ajuda:'A aprovação rastreável é o produto, não o gargalo. Quem aprovou e quando fica registrado aqui.',
-      vazio:'Nenhum item de conformidade registrado.',
+    const linhas = state.detalhe.conformidade;
+    const box = el('div');
+    const bloqueia = linhas.filter(l => l.status === 'nao_conforme').length;
+    const semVeredito = linhas.filter(l => l.status === 'pendente').length;
+    if(linhas.length){
+      box.appendChild(placar([
+        { rotulo:'Pode publicar', valor: linhas.filter(l=>l.status==='conforme').length, destaca:true },
+        { rotulo:'Não pode publicar', valor: bloqueia, esconderSeZero:true },
+        { rotulo:'Sem veredito', valor: semVeredito, esconderSeZero:true },
+      ]));
+      if(bloqueia){
+        box.appendChild(el('div',{class:'erro', style:'margin:0 0 18px'},
+          bloqueia + (bloqueia===1 ? ' item está' : ' itens estão') + ' fora da norma. Publicar assim pode obrigar a tirar do ar depois.'));
+      }
+    }
+    box.appendChild(secao({
+      tabela:'conformidade_itens', cliente:c, linhas,
+      vazio:{ titulo:'Nada avaliado ainda',
+              texto:'Se a profissão do cliente for regulada, isso precisa estar resolvido antes da primeira peça sair.' },
       rotuloAdd:'+ adicionar item',
       colunas:[
-        {rotulo:'Item', chave:'item'},
-        {rotulo:'Norma', chave:'norma'},
-        {rotulo:'Vertical', chave:'vertical'},
-        {rotulo:'Status', chave:'status'},
-        {rotulo:'Aprovado por', chave:'aprovado_por'},
+        {rotulo:'O que', chave:'item', forte:true},
+        {rotulo:'Veredito', chave:'status', chip:'conformidade_status'},
+        {rotulo:'Regra que se aplica', chave:'norma'},
+        {rotulo:'Quem decidiu', chave:'aprovado_por'},
         {rotulo:'Quando', valor:l=> l.aprovado_em ? dataBR(l.aprovado_em) : null},
+        {rotulo:'Observação', chave:'nota'},
       ],
       campos:[
-        {rotulo:'Item', nome:'item'},
-        {rotulo:'Status', nome:'status', opcoes:['pendente','conforme','nao_conforme','nao_aplicavel'], padrao:'pendente'},
-        {rotulo:'Norma', nome:'norma'},
-        {rotulo:'Vertical', nome:'vertical'},
-        {rotulo:'Aprovado por', nome:'aprovado_por'},
-        {rotulo:'Nota', nome:'nota', tipo:'textarea'},
+        {rotulo:'O que está sendo avaliado', nome:'item', dica:'Ex.: antes e depois de aluno, depoimento, promessa de resultado'},
+        {rotulo:'Veredito', nome:'status', grupo:'conformidade_status', padrao:'pendente'},
+        {rotulo:'Regra que se aplica', nome:'norma', dica:'Ex.: CONFEF 508/2023 Art. 4º. Se não souber, escreva a dúvida e deixe sem veredito.'},
+        {rotulo:'Área', nome:'vertical'},
+        {rotulo:'Quem decidiu', nome:'aprovado_por', dica:'Quem assinou embaixo. É o que protege a agência depois.'},
+        {rotulo:'Observação', nome:'nota', tipo:'textarea'},
       ],
       validar:d=> d.item ? null : 'Descreva o item.',
-    });
+    }));
+    return box;
   }
 
   function abaHoras(c){
@@ -1110,33 +1813,34 @@
     const fat = linhas.filter(l=>l.faturavel).reduce((s,l)=>s+(l.minutos||0),0);
     const box = el('div');
     if(linhas.length){
-      const r = el('div',{style:'display:flex;gap:26px;flex-wrap:wrap;margin:0 0 18px'});
-      r.appendChild(el('div',{},'<span class="mono muted" style="font-size:0.64rem;letter-spacing:0.1em;text-transform:uppercase">Total</span><br><strong class="grotesk" style="font-size:1.3rem">'+(total/60).toFixed(1)+' h</strong>'));
-      r.appendChild(el('div',{},'<span class="mono muted" style="font-size:0.64rem;letter-spacing:0.1em;text-transform:uppercase">Faturável</span><br><strong class="grotesk" style="font-size:1.3rem">'+(fat/60).toFixed(1)+' h</strong>'));
-      r.appendChild(el('div',{},'<span class="mono muted" style="font-size:0.64rem;letter-spacing:0.1em;text-transform:uppercase">Lançamentos</span><br><strong class="grotesk" style="font-size:1.3rem">'+linhas.length+'</strong>'));
-      box.appendChild(r);
+      box.appendChild(placar([
+        { rotulo:'Horas no total', valor:(total/60).toFixed(1)+' h', destaca:true },
+        { rotulo:'Faturáveis', valor:(fat/60).toFixed(1)+' h', parte:fat, de:Math.max(total,1) },
+        { rotulo:'Lançamentos', valor:linhas.length },
+      ]));
     }
     box.appendChild(secao({
       tabela:'horas', cliente:c, linhas,
-      ajuda:'Quanto custa entregar um mês de serviço — medido, não estimado. É o número que falta para o preço deixar de ser opinião.',
-      vazio:'Nenhuma hora lançada. Sem isso, não dá para saber se o preço cobre o custo.',
+      vazio:{ titulo:'Nenhuma hora lançada',
+              texto:'Sem isso não dá pra saber se o preço cobre o custo, nem o que vale a pena automatizar.' },
       rotuloAdd:'+ lançar horas',
       colunasForm:3,
       colunas:[
-        {rotulo:'Data', valor:l=> soData(l.data)},
-        {rotulo:'Atividade', chave:'atividade'},
-        {rotulo:'Categoria', chave:'categoria'},
-        {rotulo:'Minutos', chave:'minutos'},
+        {rotulo:'Dia', valor:l=> soData(l.data)},
+        {rotulo:'O que foi feito', chave:'atividade', forte:true},
+        {rotulo:'Tipo', valor:l=> rotulo('horas_categoria', l.categoria)},
+        {rotulo:'Tempo', valor:l=> l.minutos >= 60 ? (l.minutos/60).toFixed(1)+' h' : l.minutos+' min'},
         {rotulo:'Quem', chave:'quem'},
-        {rotulo:'Faturável', valor:l=> l.faturavel ? 'sim' : 'não'},
+        {rotulo:'Cobra do cliente', valor:l=> l.faturavel ? 'Sim' : 'Não'},
       ],
       campos:[
-        {rotulo:'Data', nome:'data', tipo:'date', padrao:new Date().toISOString().slice(0,10)},
-        {rotulo:'Minutos', nome:'minutos', tipo:'number'},
-        {rotulo:'Quem', nome:'quem'},
-        {rotulo:'Categoria', nome:'categoria', opcoes:['coleta','relatorio','conteudo','reuniao','conformidade','comercial','admin','outro'], padrao:'conteudo'},
-        {rotulo:'Faturável', nome:'faturavel', opcoes:['true','false'], padrao:'true'},
-        {rotulo:'Atividade', nome:'atividade'},
+        {rotulo:'Dia', nome:'data', tipo:'date', padrao:new Date().toISOString().slice(0,10)},
+        {rotulo:'Quantos minutos', nome:'minutos', tipo:'number', dica:'Uma hora e meia = 90'},
+        {rotulo:'Quem fez', nome:'quem'},
+        {rotulo:'Tipo', nome:'categoria', grupo:'horas_categoria', padrao:'conteudo'},
+        {rotulo:'Cobra do cliente', nome:'faturavel', opcoes:[['true','Sim'],['false','Não']], padrao:'true',
+         dica:'Reunião de venda e retrabalho nosso não se cobra — mas se lança, senão a conta do custo mente.'},
+        {rotulo:'O que foi feito', nome:'atividade'},
       ],
       validar:d=>{
         if(!d.atividade) return 'Descreva a atividade.';
