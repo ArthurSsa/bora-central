@@ -181,6 +181,16 @@
   .foot-note{ margin-top:28px; font-size:0.82rem; color:var(--gray); }
   .card.dark .foot-note{ color:#A8A8A8; }
 
+  .rascunho{
+    margin-top:24px; border-left:3px solid var(--orange); padding:12px 14px;
+    background:rgba(255,94,0,0.08); font-size:0.88rem; line-height:1.5;
+  }
+  .rascunho b{ font-family:'Space Grotesk',sans-serif; }
+  .rascunho button{
+    background:none; border:none; color:var(--orange); font-family:'Space Mono',monospace;
+    font-size:0.72rem; text-decoration:underline; padding:0; margin-left:6px; cursor:pointer;
+  }
+
   .qgroup{ margin-bottom:26px; }
   .qgroup label{
     display:block; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:1.04rem;
@@ -431,8 +441,70 @@
   function attachTextareaBehavior(){
     textareas().forEach(ta => {
       autoGrow(ta);
-      ta.addEventListener('input', () => { autoGrow(ta); updateProgress(); });
+      ta.addEventListener('input', () => { autoGrow(ta); updateProgress(); agendarRascunho(); });
     });
+  }
+
+  // ---- rascunho local ----
+  // São 24 perguntas, de 10 a 15 minutos. Fechar a aba não pode apagar tudo.
+  // Fica só no navegador de quem responde: nada sai daqui antes do envio, e
+  // qualquer falha aqui (aba anônima, cota cheia) é silenciosa de propósito —
+  // rascunho quebrado não pode impedir alguém de responder o formulário.
+  const RASCUNHO = 'bora-conhecer-rascunho-v1';
+  let rascunhoTimer;
+
+  function agendarRascunho(){
+    clearTimeout(rascunhoTimer);
+    rascunhoTimer = setTimeout(salvarRascunho, 700);
+  }
+
+  function salvarRascunho(){
+    try{
+      const dados = {};
+      let algum = false;
+      textareas().forEach(ta => {
+        if(ta.value.trim()){ dados[ta.id] = ta.value; algum = true; }
+      });
+      if(algum) localStorage.setItem(RASCUNHO, JSON.stringify({ em: Date.now(), dados }));
+      else localStorage.removeItem(RASCUNHO);
+    }catch(err){ /* segue sem rascunho */ }
+  }
+
+  function limparRascunho(){
+    try{ localStorage.removeItem(RASCUNHO); }catch(err){}
+  }
+
+  function restaurarRascunho(){
+    let salvo = null;
+    try{ salvo = JSON.parse(localStorage.getItem(RASCUNHO) || 'null'); }catch(err){ return; }
+    if(!salvo || !salvo.dados) return;
+
+    let n = 0;
+    Object.keys(salvo.dados).forEach(id => {
+      const ta = document.getElementById(id);
+      if(ta && !ta.value.trim()){ ta.value = salvo.dados[id]; n++; }
+    });
+    if(!n) return;
+
+    const quando = new Date(salvo.em || Date.now());
+    const aviso = document.createElement('div');
+    aviso.className = 'rascunho';
+    aviso.innerHTML = '<b>Achamos o que você já tinha escrito.</b> ' + n +
+      (n === 1 ? ' resposta foi recuperada' : ' respostas foram recuperadas') +
+      ' de ' + quando.toLocaleDateString('pt-BR') + '. Elas ficaram salvas só aqui no seu navegador.';
+    const descartar = document.createElement('button');
+    descartar.type = 'button';
+    descartar.textContent = 'começar do zero';
+    descartar.addEventListener('click', () => {
+      textareas().forEach(ta => { ta.value = ''; autoGrow(ta); });
+      limparRascunho();
+      aviso.remove();
+      updateProgress();
+    });
+    aviso.appendChild(descartar);
+
+    const intro = document.querySelector('.step[data-step="0"] .foot-note');
+    if(intro) intro.parentNode.insertBefore(aviso, intro);
   }
 
   function updateProgress(){
@@ -575,7 +647,11 @@
   }
 
   function pdfFileName(nome){
-    const base = nome ? nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-') : 'cliente';
+    // A pergunta \u00e9 "como prefere ser chamado", mas ningu\u00e9m garante que a resposta
+    // seja curta. Corta em 40 caracteres pra n\u00e3o gerar nome de arquivo imposs\u00edvel.
+    const base = nome
+      ? (nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').slice(0,40).replace(/^-|-$/g,'') || 'cliente')
+      : 'cliente';
     return `respostas-${base}-bora-postar.pdf`;
   }
 
@@ -905,8 +981,13 @@
   }
 
   document.getElementById('downloadBtn').addEventListener('click', () => {
-    downloadPdf();
-    showToast('PDF baixado!');
+    try{
+      downloadPdf();
+      showToast('PDF baixado!');
+    }catch(err){
+      console.error('Erro ao gerar o PDF:', err);
+      showToast('Não deu pra gerar o PDF agora. Suas respostas estão salvas — pode enviar mesmo assim.');
+    }
   });
 
   document.getElementById('sendBtn').addEventListener('click', () => {
@@ -914,11 +995,19 @@
     const originalHTML = btn.innerHTML;
     const nome = (document.getElementById('nome_pref')?.value || '').trim();
 
-    const pdfDoc = buildPdfDoc();
-    const pdfDataUri = pdfDoc.output('datauristring');
-    const pdfBase64 = pdfDataUri.split(',')[1];
+    // O PDF é um anexo bonito, não o conteúdo. Se a biblioteca não carregou ou
+    // o desenho falhou, o envio continua sem ele: perder as respostas de quem
+    // escreveu 15 minutos por causa de um CDN fora do ar seria imperdoável.
     const fname = pdfFileName(nome);
-    pdfDoc.save(fname);
+    let pdfBase64 = null;
+    try{
+      const pdfDoc = buildPdfDoc();
+      pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
+      pdfDoc.save(fname);
+    }catch(err){
+      console.error('Erro ao gerar o PDF:', err);
+      showToast('O PDF não saiu, mas suas respostas vão do mesmo jeito.');
+    }
 
     btn.disabled = true;
     btn.innerHTML = 'Enviando...';
@@ -932,25 +1021,31 @@
         secret: SHARED_SECRET,
         name: nome || 'Cliente',
         message: buildPlainText(),
-        attachments: [
-          { base64: pdfBase64, filename: fname, mimeType: 'application/pdf' },
-        ],
+        attachments: pdfBase64
+          ? [ { base64: pdfBase64, filename: fname, mimeType: 'application/pdf' } ]
+          : [],
       }),
     })
       .then((res) => res.json())
       .then((json) => {
         if (json.status !== 'ok') throw new Error(json.message || 'Falha no envio');
-        showToast('Enviado! Chegou na caixa da Bora Postar com o PDF em anexo. ✓');
+        limparRascunho();
+        showToast(pdfBase64
+          ? 'Enviado! Chegou na caixa da Bora Postar com o PDF em anexo. ✓'
+          : 'Enviado! Chegou na caixa da Bora Postar. ✓');
         btn.innerHTML = 'Enviado ✓';
       })
       .catch((err) => {
         console.error('Erro ao enviar:', err);
-        showToast('Não deu pra enviar agora. O PDF já baixou — tenta de novo em instantes ou manda ele por WhatsApp.');
+        showToast(pdfBase64
+          ? 'Não deu pra enviar agora. O PDF já baixou — tenta de novo em instantes ou manda ele por WhatsApp.'
+          : 'Não deu pra enviar agora. Suas respostas continuam salvas aqui — tenta de novo em instantes.');
         btn.disabled = false;
         btn.innerHTML = originalHTML;
       });
   });
 
+  restaurarRascunho();
   attachTextareaBehavior();
   updateProgress();
 })();

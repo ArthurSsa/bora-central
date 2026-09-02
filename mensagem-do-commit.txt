@@ -1,0 +1,38 @@
+Tela Agora, rascunho no formulário e migrações que faltavam
+
+Central:
+- nova tela "Agora", primeira do painel e agora a padrão. Junta em uma
+  lista só tudo o que o banco sabe que está em aberto: resposta sem
+  cliente, acesso bloqueado ou pedido há dias, baseline não congelado,
+  meta sem critério de fracasso, primeiro valor sem data ou atrasado,
+  item fora da norma, marco vencido, cliente ativo sem horas lançadas.
+  Cada linha leva direto pro cliente na aba certa.
+- regra que vale pra tudo aqui: só vira pendência o que sai de um campo
+  vazio, um status ou uma data. Nada de opinião sobre o trabalho.
+- carregarTudo() passa a trazer as seis tabelas inteiras. São dezenas de
+  linhas; no dia em que forem milhares, isso vira view no banco.
+- abrirCliente(id, aba) aceita a aba de destino.
+
+Formulário:
+- rascunho salvo no navegador a cada digitação. São 24 perguntas e 15
+  minutos: fechar a aba não pode mais apagar tudo. Ao voltar, aviso com
+  quantas respostas foram recuperadas e a opção de começar do zero.
+  Some sozinho depois do envio confirmado.
+- o PDF deixou de ser obrigatório pro envio. Se o CDN cair ou o desenho
+  falhar, as respostas vão do mesmo jeito, sem anexo, e a gravação no
+  banco acontece igual. Antes uma falha ali derrubava o envio inteiro.
+- nome do arquivo cortado em 40 caracteres.
+
+Banco:
+- entram no repositório as três migrações que só existiam no Supabase
+  (restrição de execute nas funções, allowlist de membros da Bora,
+  tabela de acessos), e a primeira é renomeada pro carimbo real.
+
+Verificado com Playwright e rede simulada: 14 pendências nos dados de
+teste com a urgência e o destino certos; rascunho salva, restaura,
+descarta e limpa; envio sem jsPDF chega com texto e sem anexo; PDF real
+continua saindo com os acentos corretos.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01US6VadUGP122ozv7M1HuXV
+

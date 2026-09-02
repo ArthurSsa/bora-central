@@ -116,6 +116,25 @@
   .login{ max-width:380px; margin:9vh auto; background:#fff; border:2px solid var(--black); box-shadow:9px 9px 0 var(--orange); padding:32px; }
   .erro{ background:#FFF1EA; border-left:3px solid var(--orange); padding:10px 12px; font-size:0.85rem; margin:12px 0; }
   .vazio{ padding:26px; text-align:center; color:var(--gray); font-size:0.9rem; border:1px dashed var(--line); }
+
+  /* Agora: uma pendência por linha, clicável, a urgência na barra da esquerda */
+  .pend{
+    display:block; width:100%; text-align:left; background:#fff; border:1.5px solid var(--line);
+    border-left-width:5px; padding:12px 14px; margin-bottom:8px; line-height:1.4;
+  }
+  .pend:hover{ background:var(--soft); border-color:var(--black); }
+  .pend.alta{ border-left-color:var(--orange); }
+  .pend.media{ border-left-color:var(--purple); }
+  .pend.baixa{ border-left-color:var(--line); }
+  .pend .quem{ font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); }
+  .pend .oq{ font-size:0.96rem; font-weight:600; margin-top:2px; }
+  .pend .porq{ font-size:0.84rem; color:var(--gray); margin-top:3px; }
+  .placar{ display:flex; gap:10px; flex-wrap:wrap; margin:18px 0 6px; }
+  .placar .n{ border:2px solid var(--black); padding:10px 14px; min-width:104px; }
+  .placar .n b{ font-family:'Space Grotesk',sans-serif; font-size:1.5rem; display:block; line-height:1; }
+  .placar .n span{ font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); }
+  .placar .n.alta{ border-color:var(--orange); }
+  .placar .n.media{ border-color:var(--purple); }
   .toast{
     position:fixed; left:50%; bottom:24px; transform:translate(-50%,16px);
     background:var(--black); color:#fff; padding:11px 20px; border:2px solid var(--orange);
@@ -202,9 +221,10 @@
 
   const state = {
     user:null, membro:false, carregando:true,
-    clientes:[], inbox:[], vista:{ tipo:'inbox' }, aba:'respostas',
+    clientes:[], inbox:[], vista:{ tipo:'agora' }, aba:'respostas',
     detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[] },
     erro:null, modoLogin:'link', linkEnviadoPara:null, editandoPV:false,
+    tudo:{ acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] },
   };
 
   const app = document.getElementById('app');
@@ -225,13 +245,26 @@
 
   async function carregarTudo(){
     state.erro = null;
-    const [cli, inbox] = await Promise.all([
+    // As seis tabelas vêm inteiras, sem filtro de cliente: é o que a tela Agora
+    // precisa pra cruzar tudo. São dezenas de linhas no total, não milhares —
+    // no dia em que forem, isso vira uma view no banco, não mais selects aqui.
+    const [cli, inbox, ac, me, ba, ma, co, ho] = await Promise.all([
       sb.from('clientes').select('*').order('nome'),
       sb.from('onboarding_respostas').select('*').is('cliente_id', null).order('recebido_em', { ascending:false }),
+      sb.from('acessos').select('*'),
+      sb.from('metas').select('*'),
+      sb.from('baselines').select('*'),
+      sb.from('marcos').select('*'),
+      sb.from('conformidade_itens').select('*'),
+      sb.from('horas').select('*'),
     ]);
     if(cli.error) state.erro = cli.error.message;
     state.clientes = cli.data || [];
     state.inbox = inbox.data || [];
+    state.tudo = {
+      acessos: ac.data || [], metas: me.data || [], baselines: ba.data || [],
+      marcos: ma.data || [], conformidade: co.data || [], horas: ho.data || [],
+    };
   }
 
   async function carregarDetalhe(clienteId){
@@ -390,6 +423,15 @@
   function lateral(){
     const s = el('div',{class:'side'});
 
+    const pend = pendencias();
+    const altas = pend.filter(p => p.urgencia === 'alta').length;
+    s.appendChild(el('h4',{},'Painel'));
+    const ba = el('button',{class:'navitem'+(state.vista.tipo==='agora'?' active':''), onclick:()=>{ state.vista={tipo:'agora'}; render(); }});
+    ba.innerHTML = 'Agora<span class="sub">'+(pend.length
+      ? (altas ? altas+' urgente'+(altas===1?'':'s')+' de '+pend.length : pend.length+' em aberto')
+      : 'nada em aberto')+'</span>';
+    s.appendChild(ba);
+
     const h1 = el('h4',{},'Caixa de entrada');
     if(state.inbox.length) h1.appendChild(el('span',{class:'pill'}, String(state.inbox.length)));
     s.appendChild(h1);
@@ -416,9 +458,174 @@
   }
 
   function conteudo(){
+    if(state.vista.tipo==='agora') return telaAgora();
     if(state.vista.tipo==='inbox') return telaInbox();
     if(state.vista.tipo==='novo') return telaNovoCliente();
     return telaCliente();
+  }
+
+  // ---------- agora ----------
+
+  // Regra: uma pendência só existe se der pra apontar o que fazer e onde.
+  // "Melhorar o Instagram" não é pendência. "Acesso ao Meta Business bloqueado
+  // há 12 dias" é. Nada aqui é opinião: tudo sai de um campo vazio, um status
+  // ou uma data no banco.
+  const HOJE = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+  const diasAte = iso => {
+    if(!iso) return null;
+    const d = new Date(String(iso).slice(0,10) + 'T00:00:00');
+    return isNaN(d) ? null : Math.round((d - HOJE()) / 86400000);
+  };
+  const emDias = n => n === 0 ? 'hoje' : (n > 0 ? 'em ' + n + (n===1?' dia':' dias') : 'há ' + Math.abs(n) + (n===-1?' dia':' dias'));
+
+  function pendencias(){
+    const p = [];
+    const t = state.tudo || { acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] };
+    const add = (urgencia, cliente, aba, oq, porq) => p.push({ urgencia, cliente, aba, oq, porq });
+
+    // 1. Respostas que chegaram e não viraram cliente. Começa a envelhecer no minuto um.
+    state.inbox.forEach(sub=>{
+      const d = diasAte(sub.recebido_em);
+      const velho = d !== null && d <= -3;
+      add(velho ? 'alta' : 'media', null, null,
+        'Vincular a resposta de ' + (sub.nome_informado || 'alguém sem nome'),
+        'Chegou pelo formulário ' + (d === null ? '' : emDias(d)) + ' e ainda não está ligada a nenhum cliente.');
+    });
+
+    const ativos = state.clientes.filter(c => c.estagio === 'onboarding' || c.estagio === 'ativo');
+
+    ativos.forEach(c=>{
+      const meus = tab => t[tab].filter(l => l.cliente_id === c.id);
+
+      // 2. Acessos. O gargalo mais documentado do onboarding (Lacuna #5).
+      const ac = meus('acessos');
+      const bloq = ac.filter(l => l.status === 'bloqueado');
+      if(bloq.length) add('alta', c, 'acessos',
+        bloq.length + ' acesso' + (bloq.length===1?'':'s') + ' bloqueado' + (bloq.length===1?'':'s'),
+        bloq.map(l => l.recurso).join(', ') + '. Bloqueado não destrava sozinho: precisa de uma ligação, não de mais um lembrete.');
+      const parados = ac.filter(l => l.status === 'solicitado' && diasAte(l.solicitado_em) !== null && diasAte(l.solicitado_em) <= -5);
+      if(parados.length) add('alta', c, 'acessos',
+        parados.length + ' acesso' + (parados.length===1?'':'s') + ' pedido' + (parados.length===1?'':'s') + ' e sem resposta',
+        parados.map(l => l.recurso + ' (' + emDias(diasAte(l.solicitado_em)) + ')').join(', ') + '.');
+      const naoPedidos = ac.filter(l => l.status === 'pendente');
+      if(naoPedidos.length) add('media', c, 'acessos',
+        naoPedidos.length + ' acesso' + (naoPedidos.length===1?'':'s') + ' que ninguém pediu ainda',
+        naoPedidos.map(l => l.recurso).join(', ') + '.');
+      if(!ac.length) add('media', c, 'acessos',
+        'Nenhum acesso registrado',
+        'Sem a lista de acessos, a primeira semana descobre o que falta no pior momento possível.');
+
+      // 3. Baseline. Congelar antes de mexer, ou não há como provar nada depois (Lacuna #3).
+      if(!meus('baselines').length) add('alta', c, 'baseline',
+        'Baseline não congelado',
+        'Qualquer coisa publicada antes disso vira resultado que não dá pra provar. Congelar é a primeira tarefa, não a última.');
+
+      // 4. Metas pre-registradas.
+      const metas = meus('metas');
+      if(!metas.length) add('media', c, 'metas',
+        'Nenhuma meta pré-registrada',
+        'Sem sucesso e fracasso escritos antes, os números do dia 90 se explicam sozinhos — e sempre a favor da agência.');
+      else {
+        const semFracasso = metas.filter(m => !(m.fracasso || '').trim());
+        if(semFracasso.length) add('media', c, 'metas',
+          semFracasso.length + ' meta' + (semFracasso.length===1?'':'s') + ' sem critério de fracasso',
+          semFracasso.map(m => m.metrica).join(', ') + '. Meta sem fracasso declarado não é meta, é torcida.');
+      }
+
+      // 5. Primeiro valor: a promessa pequena com data (Lacuna #5).
+      const pv = (c.primeiro_valor_prometido || '').trim();
+      if(!pv) add('alta', c, 'respostas',
+        'Primeiro valor não definido',
+        'Precisa estar dito no kickoff, com data entre 14 e 30 dias. Depois disso já é tarde.');
+      else if(!c.primeiro_valor_data) add('alta', c, 'respostas',
+        'Primeiro valor sem data',
+        '"' + pv + '" — promessa sem data não cobra ninguém.');
+      else {
+        const d = diasAte(c.primeiro_valor_data);
+        if(d < 0) add('alta', c, 'respostas', 'Primeiro valor atrasado ' + emDias(d),
+          '"' + pv + '". Atrasar isso custa mais que atrasar um post: é a promessa que sustenta a relação até o número se mexer.');
+        else if(d <= 7) add('media', c, 'respostas', 'Primeiro valor vence ' + emDias(d),
+          '"' + pv + '"');
+      }
+
+      // 6. Conformidade. Não conforme é publicação que pode ter que sair do ar.
+      const co = meus('conformidade');
+      const ruins = co.filter(l => l.status === 'nao_conforme');
+      if(ruins.length) add('alta', c, 'conformidade',
+        ruins.length + ' item' + (ruins.length===1?'':'s') + ' fora da norma',
+        ruins.map(l => (l.norma ? l.norma + ': ' : '') + l.item).join(' | '));
+      const aVer = co.filter(l => l.status === 'pendente');
+      if(aVer.length) add('media', c, 'conformidade',
+        aVer.length + ' item' + (aVer.length===1?'':'s') + ' de conformidade sem veredito',
+        aVer.map(l => l.item).join(' | '));
+
+      // 7. Marcos com data.
+      meus('marcos').filter(m => !m.data_cumprida && m.data_prevista).forEach(m=>{
+        const d = diasAte(m.data_prevista);
+        const dele = m.responsavel === 'cliente';
+        if(d < 0) add('alta', c, 'marcos', 'Marco atrasado ' + emDias(d) + ': ' + m.titulo,
+          dele ? 'É do cliente. Atraso do cliente não se cobra por mensagem no dia seguinte ao prazo, se combina de novo com data nova.' : 'É nosso.');
+        else if(d <= 7) add('media', c, 'marcos', 'Marco vence ' + emDias(d) + ': ' + m.titulo,
+          dele ? 'Depende do cliente — avisar hoje, não no dia.' : 'É nosso.');
+      });
+
+      // 8. Horas. Bloco G: só dá pra decidir o que automatizar sabendo onde o tempo vai.
+      if(c.estagio === 'ativo'){
+        const ult = meus('horas').map(h => diasAte(h.data)).filter(x => x !== null).sort((a,b)=>b-a)[0];
+        if(ult === undefined) add('baixa', c, 'horas', 'Nenhuma hora lançada',
+          'Sem horas, não dá pra saber se o cliente dá lucro nem o que vale automatizar.');
+        else if(ult <= -14) add('baixa', c, 'horas', 'Sem horas lançadas ' + emDias(ult),
+          'O último lançamento foi ' + emDias(ult) + '. Registro que atrasa duas semanas vira chute.');
+      }
+    });
+
+    const peso = { alta:0, media:1, baixa:2 };
+    return p.sort((a,b)=> peso[a.urgencia] - peso[b.urgencia]
+      || String(a.cliente ? a.cliente.nome : '').localeCompare(String(b.cliente ? b.cliente.nome : '')));
+  }
+
+  function telaAgora(){
+    const m = el('main');
+    m.appendChild(el('p',{class:'eyebrow'},'O que está esperando por nós'));
+    m.appendChild(el('h1',{class:'page'},'Agora'));
+    m.appendChild(el('p',{class:'muted'},'Tudo o que o banco sabe que está em aberto, em uma lista só. Cada linha leva direto pro lugar de resolver.'));
+
+    const pend = pendencias();
+    if(!pend.length){
+      m.appendChild(el('div',{class:'vazio', style:'margin-top:22px'},'Nada em aberto. Ou está tudo em dia, ou falta registrar — as duas coisas parecem iguais daqui.'));
+      return m;
+    }
+
+    const conta = u => pend.filter(p => p.urgencia === u).length;
+    const placar = el('div',{class:'placar'});
+    [['alta','urgente'],['media','esta semana'],['baixa','quando der']].forEach(([u,rot])=>{
+      const n = conta(u);
+      if(!n) return;
+      const b = el('div',{class:'n '+u});
+      b.appendChild(el('b',{}, String(n)));
+      b.appendChild(el('span',{}, rot));
+      placar.appendChild(b);
+    });
+    m.appendChild(placar);
+
+    let atual = null;
+    pend.forEach(p=>{
+      if(p.urgencia !== atual){
+        atual = p.urgencia;
+        const rot = { alta:'Urgente', media:'Esta semana', baixa:'Quando der' }[atual];
+        m.appendChild(el('div',{class:'secname'}, rot));
+      }
+      const b = el('button',{class:'pend '+p.urgencia, onclick:()=>{
+        if(p.cliente) abrirCliente(p.cliente.id, p.aba);
+        else { state.vista = { tipo:'inbox' }; render(); }
+      }});
+      b.appendChild(el('div',{class:'quem'}, p.cliente ? esc(p.cliente.nome) : 'Caixa de entrada'));
+      b.appendChild(el('div',{class:'oq'}, esc(p.oq)));
+      if(p.porq) b.appendChild(el('div',{class:'porq'}, esc(p.porq)));
+      m.appendChild(b);
+    });
+
+    return m;
   }
 
   // ---------- caixa de entrada ----------
@@ -544,9 +751,9 @@
 
   // ---------- ficha do cliente ----------
 
-  async function abrirCliente(id){
+  async function abrirCliente(id, aba){
     state.vista = { tipo:'cliente', id };
-    state.aba = 'respostas';
+    state.aba = (aba && ABAS.some(a => a[0] === aba)) ? aba : 'respostas';
     state.editandoPV = false;
     render();
     await carregarDetalhe(id);
@@ -976,7 +1183,8 @@
   async function sair(){
     await sb.auth.signOut();
     state.user = null; state.membro = false; state.clientes = []; state.inbox = [];
-    state.vista = { tipo:'inbox' };
+    state.tudo = { acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] };
+    state.vista = { tipo:'agora' };
     state.linkEnviadoPara = null; state.modoLogin = 'link'; state.erro = null;
     render();
   }
