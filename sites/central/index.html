@@ -9,204 +9,343 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
+  /* ==================================================================
+     Central Bora — papel de revista
+     Papel morno com blocos que flutuam (profundidade em vez de contorno),
+     e dentro deles o contraste de escala de revista: número enorme,
+     rótulo minúsculo e espaçado. As cores de estado são separadas do
+     laranja e do roxo da marca de propósito: laranja quer dizer "olha
+     aqui", roxo quer dizer "isso é do cliente"; estado é outra coisa.
+     ================================================================== */
   :root{
-    --black:#0A0A0A; --white:#FFF; --orange:#FF5E00; --purple:#8800FF;
-    --gray:#6E6E6E; --line:#E2E2E2; --bg:#FAFAFA; --soft:#F2F2F2;
+    --papel:#F5F2EC;
+    --sup:#FFFFFF;
+    --sup2:#FBF9F5;
+    --tinta:#1A1815;
+    --fraco:#78716A;
+    --linha:#E8E2D8;
+    --linha2:#F0EBE2;
+    --laranja:#FF5E00;
+    --laranja-forte:#C24700;
+    --laranja-fraco:#FFF1E8;
+    --roxo:#8800FF;
+    --roxo-fraco:#F4EAFF;
+
+    --ok:#1C6B45;    --ok-f:#EAF3EE;   --ok-b:#CBE3D6;
+    --al:#A93226;    --al-f:#FBEAE7;   --al-b:#F1CFC9;
+    --es:#8A5A05;    --es-f:#FBF1DE;   --es-b:#EEDFBC;
+    --an:#1B4F8F;    --an-f:#E9F0F9;   --an-b:#CBDCF0;
+    --nt:#6D665F;    --nt-f:#F1EEE8;   --nt-b:#E2DDD4;
+
+    --s1:0 1px 2px rgba(26,24,21,.04), 0 6px 22px rgba(26,24,21,.06);
+    --s2:0 2px 4px rgba(26,24,21,.05), 0 14px 40px rgba(26,24,21,.09);
+    --r:14px;
+    --display:'Space Grotesk','Segoe UI',sans-serif;
+    --corpo:'Archivo','Helvetica Neue',Arial,sans-serif;
+    --dado:'Space Mono','SFMono-Regular',Consolas,monospace;
   }
+
   *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
   body{
-    margin:0; background:var(--bg); color:var(--black);
-    font-family:'Archivo',system-ui,sans-serif; -webkit-font-smoothing:antialiased;
+    margin:0; background:var(--papel); color:var(--tinta);
+    font-family:var(--corpo); font-size:15px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
   }
   button{ font-family:inherit; cursor:pointer; }
-  input,select,textarea{ font-family:'Archivo',sans-serif; font-size:0.9rem; }
-  .mono{ font-family:'Space Mono',monospace; }
-  .grotesk{ font-family:'Space Grotesk',sans-serif; }
+  input,select,textarea{ font-family:var(--corpo); font-size:0.9rem; }
+  *:focus-visible{ outline:2.5px solid var(--roxo); outline-offset:2px; border-radius:3px; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *,*::before,*::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+  }
 
+  /* ---------- vocabulário tipográfico ---------- */
+  .rot{
+    font-family:var(--dado); font-size:0.58rem; letter-spacing:0.16em;
+    text-transform:uppercase; color:var(--fraco); margin:0;
+  }
+  .rot.laranja{ color:var(--laranja); }
+  .cifra{
+    font-family:var(--display); font-weight:700; letter-spacing:-0.035em;
+    font-size:2.4rem; line-height:0.92; font-variant-numeric:tabular-nums;
+  }
+  .cifra em{ font-style:normal; font-size:0.46em; color:var(--fraco); letter-spacing:-0.01em; }
+  .cifra u{ text-decoration:none; color:var(--laranja); }
+
+  /* ---------- topo ---------- */
   .topbar{
-    background:var(--black); color:var(--white);
-    padding:0 20px; height:56px; display:flex; align-items:center; justify-content:space-between;
-    position:sticky; top:0; z-index:20;
+    background:var(--sup); box-shadow:var(--s1);
+    padding:0 22px; height:56px; display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:40;
   }
   .topbar .brand{
-    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.95rem;
-    letter-spacing:0.08em; text-transform:uppercase; display:flex; align-items:center; gap:9px;
+    font-family:var(--display); font-weight:700; font-size:0.85rem;
+    letter-spacing:0.16em; text-transform:uppercase; display:flex; align-items:center; gap:10px;
+    background:none; border:none; padding:0; color:inherit;
   }
-  .topbar .brand .dot{ width:9px; height:9px; background:var(--orange); display:inline-block; }
-  .topbar .who{ font-family:'Space Mono',monospace; font-size:0.72rem; color:#B5B5B5; display:flex; align-items:center; gap:14px; }
-  .linkbtn{ background:none; border:none; color:var(--orange); font-size:0.72rem; font-family:'Space Mono',monospace; padding:0; text-decoration:underline; }
+  .topbar .brand .dot{ width:8px; height:8px; border-radius:50%; background:var(--laranja); display:inline-block; flex:0 0 auto; }
+  .topbar .who{ font-family:var(--dado); font-size:0.68rem; color:var(--fraco); display:flex; align-items:center; gap:14px; }
+  .linkbtn{ background:none; border:none; color:var(--laranja-forte); font-size:0.72rem; font-family:var(--dado); padding:0; text-decoration:underline; }
 
-  .shell{ display:grid; grid-template-columns:288px 1fr; min-height:calc(100vh - 56px); }
-  @media (max-width:860px){ .shell{ grid-template-columns:1fr; } .side{ border-right:none !important; border-bottom:2px solid var(--black); } }
+  .menu-btn{
+    display:none; background:none; border:1px solid var(--linha); border-radius:8px;
+    padding:7px 12px; font-family:var(--display); font-weight:600; font-size:0.78rem; color:var(--tinta);
+  }
 
-  .side{ border-right:2px solid var(--black); background:var(--white); min-height:calc(100vh - 56px); padding:18px 0 40px; }
+  /* ---------- moldura ---------- */
+  .shell{ display:grid; grid-template-columns:262px minmax(0,1fr); gap:20px; padding:20px; align-items:start; max-width:1420px; margin:0 auto; }
+
+  /* ---------- lateral ---------- */
+  .side{
+    background:var(--sup); border-radius:var(--r); box-shadow:var(--s1); padding:14px 0 16px;
+    position:sticky; top:76px;
+  }
   .side h4{
-    font-family:'Space Mono',monospace; font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase;
-    color:var(--gray); margin:22px 18px 8px; display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--dado); font-size:0.56rem; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--fraco); margin:18px 18px 6px; display:flex; justify-content:space-between; align-items:center; font-weight:400;
   }
-  .side h4:first-child{ margin-top:0; }
-  .pill{ background:var(--orange); color:#fff; font-size:0.62rem; padding:2px 6px; letter-spacing:0.04em; }
+  .side h4:first-child{ margin-top:2px; }
+  .pill{ background:var(--laranja); color:#fff; font-size:0.6rem; padding:1px 7px; border-radius:100px; font-family:var(--dado); }
   .navitem{
-    display:block; width:100%; text-align:left; background:none; border:none;
-    padding:9px 18px; font-size:0.92rem; border-left:3px solid transparent; line-height:1.35;
+    display:block; width:calc(100% - 20px); margin:2px 10px; text-align:left; background:none; border:none;
+    padding:9px 12px; border-radius:9px; font-size:0.92rem; line-height:1.3; color:inherit;
+    transition:background .14s ease;
   }
-  .navitem:hover{ background:var(--soft); }
-  .navitem.active{ border-left-color:var(--orange); background:var(--soft); font-weight:600; }
-  .navitem .sub{ display:block; font-family:'Space Mono',monospace; font-size:0.64rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.06em; margin-top:2px; }
-  .side .act{ margin:12px 18px 0; }
+  .navitem:hover{ background:var(--sup2); }
+  .navitem.active{ background:var(--laranja-fraco); }
+  .navitem b{ display:block; font-weight:600; }
+  .navitem.active b{ color:var(--laranja-forte); }
+  .navitem .sub{ display:block; font-size:0.72rem; color:var(--fraco); margin-top:1px; }
+  .side .act{ margin:14px 10px 0; }
 
-  main{ padding:26px 30px 80px; max-width:1000px; }
-  h1.page{ font-family:'Space Grotesk',sans-serif; font-size:1.7rem; margin:0 0 4px; letter-spacing:-0.01em; }
-  .eyebrow{ font-family:'Space Mono',monospace; font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--orange); margin:0 0 10px; }
-  .muted{ color:var(--gray); font-size:0.9rem; }
+  /* ---------- área de conteúdo ---------- */
+  main{ min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:18px; align-content:start; }
+  .bloco{ background:var(--sup); border-radius:var(--r); box-shadow:var(--s1); padding:24px 26px; }
+  .bloco.alto{ box-shadow:var(--s2); }
+  .bloco.escuro{ background:linear-gradient(135deg,#211E1A,#0F0D0B); color:#F7F4EF; box-shadow:var(--s2); }
+  .bloco.escuro .rot{ color:#FF8A3C; }
+  .bloco.escuro .muted{ color:#B3ADA5; }
 
-  .tabs{ display:flex; gap:2px; flex-wrap:wrap; border-bottom:2px solid var(--black); margin:22px 0 0; }
+  h1.page{ font-family:var(--display); font-size:2rem; margin:6px 0 0; letter-spacing:-0.03em; line-height:1.05; text-wrap:balance; }
+  h1.page.capa{ text-transform:uppercase; font-size:clamp(1.8rem,4vw,2.7rem); letter-spacing:-0.04em; }
+  .muted{ color:var(--fraco); font-size:0.9rem; }
+  .intro{ color:var(--fraco); font-size:0.9rem; margin:6px 0 0; max-width:64ch; }
+
+  /* ---------- capa da ficha: contraste de escala ---------- */
+  .capa-fila{ display:flex; gap:34px; flex-wrap:wrap; margin-top:22px; padding-top:20px; border-top:1px solid var(--linha2); }
+  .capa-fila > div p{ margin:8px 0 0; }
+  .selo{
+    display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; font-weight:600;
+    padding:5px 12px; border-radius:100px; background:var(--nt-f); color:var(--nt); white-space:nowrap;
+  }
+  .selo.on{ background:var(--ok-f); color:var(--ok); }
+  .selo.aviso{ background:var(--es-f); color:var(--es); }
+  .selo select{ background:none; border:none; font-size:0.75rem; font-weight:600; color:inherit; padding:0; }
+
+  /* ---------- termômetro ---------- */
+  .termo-topo{ display:flex; justify-content:space-between; align-items:baseline; gap:14px; flex-wrap:wrap; }
+  .trilha{ height:8px; background:var(--linha2); border-radius:100px; margin:16px 0 20px; overflow:hidden; }
+  .trilha i{ display:block; height:100%; border-radius:100px; background:linear-gradient(90deg,#FF8A3C,var(--laranja)); transition:width .45s cubic-bezier(.2,.7,.3,1); }
+  .etapas{ display:grid; grid-template-columns:repeat(6,1fr); gap:10px; }
+  @media (max-width:1180px){ .etapas{ grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:520px){ .etapas{ grid-template-columns:repeat(2,1fr); } }
+  .etapa{
+    background:var(--sup2); border:1px solid var(--linha); border-radius:11px; padding:12px 13px 13px;
+    text-align:left; color:inherit; transition:transform .16s ease, box-shadow .16s ease, background .16s ease;
+  }
+  .etapa:hover{ background:var(--sup); box-shadow:var(--s1); transform:translateY(-2px); }
+  .etapa .cab{ display:flex; align-items:center; gap:6px; }
+  .etapa .bola{ width:11px; height:11px; border-radius:50%; border:2px solid var(--linha); flex:0 0 auto; }
+  .etapa.feito .bola{ background:#2E9E63; border-color:#2E9E63; }
+  .etapa.meio .bola{ background:linear-gradient(90deg,#D89A2A 50%,#fff 50%); border-color:#D89A2A; }
+  .etapa .cab em{ font-style:normal; font-family:var(--dado); font-size:0.55rem; letter-spacing:0.14em; color:var(--fraco); }
+  .etapa .n{ font-family:var(--display); font-weight:700; font-size:1.55rem; letter-spacing:-0.035em; line-height:1; margin:9px 0 2px; font-variant-numeric:tabular-nums; }
+  .etapa.falta .n{ color:#CFC8BE; }
+  .etapa .q{ display:block; font-family:var(--dado); font-size:0.55rem; letter-spacing:0.11em; text-transform:uppercase; color:var(--fraco); }
+
+  /* ---------- abas ---------- */
+  .abas-caixa{ position:sticky; top:56px; z-index:30; background:var(--papel); padding:8px 0 2px; margin:-8px 0 -2px; }
+  .abas{ display:flex; gap:5px; overflow-x:auto; scrollbar-width:none; padding:2px; }
+  .abas::-webkit-scrollbar{ display:none; }
   .tab{
-    background:none; border:2px solid transparent; border-bottom:none; padding:8px 14px;
-    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.84rem; color:var(--gray);
-    margin-bottom:-2px;
+    display:flex; align-items:center; gap:8px; white-space:nowrap; flex:0 0 auto;
+    background:var(--sup); border:1px solid var(--linha); border-radius:100px; padding:8px 15px;
+    font-family:var(--display); font-weight:600; font-size:0.83rem; color:var(--fraco);
+    transition:background .14s ease, color .14s ease, border-color .14s ease;
   }
-  .tab.active{ border-color:var(--black); background:var(--white); color:var(--black); }
+  .tab:hover{ background:var(--sup2); color:var(--tinta); }
+  .tab[aria-selected="true"]{ background:var(--tinta); border-color:var(--tinta); color:#fff; box-shadow:var(--s1); }
+  .tab .ponto{ width:7px; height:7px; border-radius:50%; background:var(--linha); flex:0 0 auto; }
+  .tab .ponto.cheio{ background:#2E9E63; }
+  .tab .ponto.meio{ background:#D89A2A; }
+  .tab .ponto.alerta{ background:#C0392B; }
+  .tab[aria-selected="true"] .ponto{ box-shadow:0 0 0 2px rgba(255,255,255,.25); }
 
-  .panel{ background:var(--white); border:2px solid var(--black); border-top:none; padding:22px; }
-
-  .card{ background:var(--white); border:2px solid var(--black); padding:18px; margin-bottom:16px; }
-  .card.flat{ border-width:1px; border-color:var(--line); }
-
-  table{ width:100%; border-collapse:collapse; font-size:0.88rem; }
-  th{ text-align:left; font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); padding:0 10px 7px 0; border-bottom:1px solid var(--line); font-weight:400; white-space:nowrap; }
-  td{ padding:9px 10px 9px 0; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.45; }
-  tr:last-child td{ border-bottom:none; }
-  .wrap{ overflow-x:auto; }
-
-  .btn{
-    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.82rem;
-    padding:9px 15px; border:2px solid var(--black); background:var(--black); color:#fff;
+  /* ---------- volta contextual ---------- */
+  .voltar{
+    display:inline-flex; align-items:center; gap:7px; background:var(--laranja-fraco); border:none;
+    border-radius:100px; padding:6px 14px 6px 11px; color:var(--laranja-forte);
+    font-family:var(--dado); font-size:0.66rem; letter-spacing:0.08em; text-transform:uppercase;
   }
-  .btn:hover{ background:var(--orange); border-color:var(--orange); }
-  .btn.ghost{ background:transparent; color:var(--black); }
-  .btn.ghost:hover{ background:var(--black); color:#fff; }
-  .btn.small{ font-size:0.72rem; padding:6px 10px; border-width:1.5px; }
-  .btn[disabled]{ opacity:.45; cursor:not-allowed; }
-  *:focus-visible{ outline:3px solid var(--purple); outline-offset:1px; }
+  .voltar:hover{ background:#FFE3D2; }
 
-  .field{ margin-bottom:12px; }
-  .field label{ display:block; font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.09em; text-transform:uppercase; color:var(--gray); margin-bottom:4px; }
-  .field input, .field select, .field textarea{
-    width:100%; padding:8px 9px; border:1.5px solid var(--black); background:#fff;
+  /* ---------- seções numeradas dentro da aba ---------- */
+  .sec{ display:grid; grid-template-columns:44px minmax(0,1fr); gap:0 18px; }
+  @media (max-width:640px){ .sec{ grid-template-columns:minmax(0,1fr); gap:10px; } .sec .num{ display:none; } }
+  .sec .num{ font-family:var(--display); font-weight:700; font-size:1.15rem; color:var(--laranja); letter-spacing:-0.02em; line-height:1.2; }
+  .sec h3{ font-family:var(--display); font-size:1.12rem; margin:0 0 4px; letter-spacing:-0.015em; }
+  .sec .quando{
+    display:block; margin-top:8px; font-family:var(--dado); font-size:0.58rem;
+    letter-spacing:0.1em; text-transform:uppercase; color:var(--tinta);
   }
-  .field textarea{ min-height:64px; resize:vertical; }
-  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
-  .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 14px; }
-  @media (max-width:640px){ .grid2,.grid3{ grid-template-columns:1fr; } }
 
-  .tag{ font-family:'Space Mono',monospace; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.07em; padding:3px 7px; border:1px solid var(--black); }
-  .tag.on{ background:var(--orange); color:#fff; border-color:var(--orange); }
-  .tag.off{ background:#fff; color:var(--gray); border-color:var(--line); }
-  .tag.roxo{ background:var(--purple); color:#fff; border-color:var(--purple); }
+  /* ---------- placares ---------- */
+  .placares{ display:flex; gap:10px; flex-wrap:wrap; margin:24px 0 22px; }
+  .placares .p{ background:var(--sup2); border:1px solid var(--linha); border-radius:11px; padding:13px 16px; min-width:112px; }
+  .placares .p b{ display:block; font-family:var(--display); font-size:1.7rem; font-weight:700; letter-spacing:-0.035em; line-height:1; font-variant-numeric:tabular-nums; }
+  .placares .p span{ font-family:var(--dado); font-size:0.55rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--fraco); }
+  .placares .p.destaca{ background:var(--sup); box-shadow:var(--s1); border-color:transparent; }
+  .minibarra{ height:4px; border-radius:100px; background:var(--linha2); margin-top:9px; }
+  .minibarra i{ display:block; height:100%; border-radius:100px; background:#2E9E63; }
 
-  /* Cores de estado. Separadas do laranja e do roxo da marca de propósito:
-     laranja é "olha aqui" e roxo é "isso é do cliente"; estado é outra coisa. */
+  /* ---------- estados ---------- */
   .chip{
-    display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
-    font-size:0.74rem; font-weight:600; padding:3px 9px 3px 7px; border-radius:2px;
+    display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+    font-size:0.76rem; font-weight:600; padding:4px 11px; border-radius:100px;
     border:1px solid transparent; line-height:1.3;
   }
-  .chip::before{ content:''; width:7px; height:7px; border-radius:50%; background:currentColor; flex:0 0 auto; }
-  .chip.ok{      background:#E7F4EC; color:#0E6B3D; border-color:#BFE0CD; }
-  .chip.alerta{  background:#FBEAE7; color:#A93226; border-color:#F0CCC6; }
-  .chip.espera{  background:#FCF2DF; color:#8A5A05; border-color:#EEDCB4; }
-  .chip.andamento{ background:#E7EEF8; color:#1B4F8F; border-color:#C6D8EE; }
-  .chip.neutro{  background:#F1F0EE; color:#5F5B57; border-color:#E0DEDA; }
-  .chip.roxo{    background:#F2E8FF; color:#6A00C7; border-color:#DFC9F7; }
+  .chip::before{ content:''; width:6px; height:6px; border-radius:50%; background:currentColor; flex:0 0 auto; }
+  .chip.ok{ background:var(--ok-f); color:var(--ok); border-color:var(--ok-b); }
+  .chip.alerta{ background:var(--al-f); color:var(--al); border-color:var(--al-b); }
+  .chip.espera{ background:var(--es-f); color:var(--es); border-color:var(--es-b); }
+  .chip.andamento{ background:var(--an-f); color:var(--an); border-color:var(--an-b); }
+  .chip.neutro{ background:var(--nt-f); color:var(--nt); border-color:var(--nt-b); }
+  .chip.roxo{ background:var(--roxo-fraco); color:#6A00C7; border-color:#E3D0F8; }
 
-  /* Termômetro de onboarding */
-  .termo{ border:2px solid var(--black); background:var(--white); margin-top:18px; }
-  .termo .topo{
-    display:flex; justify-content:space-between; align-items:baseline; gap:14px; flex-wrap:wrap;
-    padding:14px 16px 12px; border-bottom:1px solid var(--line);
+  /* ---------- tabelas ---------- */
+  table{ width:100%; border-collapse:separate; border-spacing:0; font-size:0.89rem; }
+  th{
+    text-align:left; font-family:var(--dado); font-size:0.55rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--fraco); padding:0 14px 10px 0; font-weight:400; white-space:nowrap;
   }
-  .termo .topo .quanto{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.05rem; }
-  .barra{ height:6px; background:var(--soft); display:flex; }
-  .barra i{ display:block; background:var(--orange); }
-  .etapas{ display:grid; grid-template-columns:repeat(6,1fr); }
-  @media (max-width:820px){ .etapas{ grid-template-columns:repeat(3,1fr); } }
-  @media (max-width:480px){ .etapas{ grid-template-columns:repeat(2,1fr); } }
-  .etapa{
-    background:none; border:none; border-right:1px solid var(--line); border-top:1px solid var(--line);
-    padding:12px 12px 14px; text-align:left; display:block; width:100%;
-  }
-  .etapa:hover{ background:var(--soft); }
-  .etapa .n{
-    font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.1em;
-    display:flex; align-items:center; gap:6px; color:var(--gray); margin-bottom:6px;
-  }
-  .etapa .bola{ width:12px; height:12px; border:2px solid var(--line); border-radius:50%; flex:0 0 auto; }
-  .etapa.feito .bola{ background:#0E6B3D; border-color:#0E6B3D; }
-  .etapa.meio .bola{ background:linear-gradient(90deg,#B8860B 50%, #fff 50%); border-color:#B8860B; }
-  .etapa.falta .bola{ background:#fff; border-color:#D6D2CD; }
-  .etapa .rot{ font-size:0.82rem; font-weight:600; line-height:1.25; }
-  .etapa.falta .rot{ color:var(--gray); font-weight:500; }
-  .etapa .sub{ font-family:'Space Mono',monospace; font-size:0.62rem; color:var(--gray); margin-top:3px; display:block; }
-
-  /* Cabeçalho explicativo de cada aba */
-  .expl{ display:flex; gap:12px; align-items:flex-start; margin:0 0 20px; padding-bottom:16px; border-bottom:1px solid var(--line); }
-  .expl .marca{ width:4px; align-self:stretch; background:var(--orange); flex:0 0 auto; }
-  .expl h3{ font-family:'Space Grotesk',sans-serif; font-size:1.02rem; margin:0 0 3px; }
-  .expl p{ margin:0; font-size:0.87rem; color:var(--gray); line-height:1.5; max-width:66ch; }
-  .expl .quando{ display:block; margin-top:6px; font-family:'Space Mono',monospace; font-size:0.64rem; letter-spacing:0.07em; text-transform:uppercase; color:var(--black); }
-
-  /* Resumos numéricos no topo das abas */
-  .placares{ display:flex; gap:10px; flex-wrap:wrap; margin:0 0 20px; }
-  .placares .p{ border:1px solid var(--line); padding:9px 13px; min-width:96px; }
-  .placares .p b{ font-family:'Space Grotesk',sans-serif; font-size:1.35rem; display:block; line-height:1.05; }
-  .placares .p span{ font-family:'Space Mono',monospace; font-size:0.6rem; letter-spacing:0.09em; text-transform:uppercase; color:var(--gray); }
-  .placares .p.destaca{ border-color:var(--black); border-width:2px; }
-
-  .minibarra{ height:5px; background:var(--soft); margin-top:7px; width:100%; }
-  .minibarra i{ display:block; height:100%; background:#0E6B3D; }
-
-  .dica{ display:block; font-size:0.76rem; color:var(--gray); line-height:1.4; margin-top:4px; }
+  td{ padding:14px 14px 14px 0; border-top:1px solid var(--linha2); vertical-align:top; line-height:1.45; }
   td .forte{ font-weight:600; }
-  .vazio strong{ display:block; font-family:'Space Grotesk',sans-serif; color:var(--black); font-size:0.98rem; margin-bottom:5px; }
+  .wrap{ overflow-x:auto; }
 
-  .qa{ margin-bottom:16px; padding-left:13px; border-left:2.5px solid var(--orange); }
-  .qa.vazia{ border-left-color:var(--line); }
-  .qa .q{ font-size:0.8rem; color:var(--gray); margin-bottom:3px; line-height:1.35; }
-  .qa .a{ font-size:0.98rem; white-space:pre-wrap; line-height:1.5; }
-  .qa.vazia .a{ color:#BFBFBF; font-style:italic; }
-  .secname{ font-family:'Space Mono',monospace; font-size:0.66rem; letter-spacing:0.11em; text-transform:uppercase; color:var(--orange); border-bottom:2px solid var(--black); padding-bottom:5px; margin:26px 0 14px; }
+  /* ---------- botões ---------- */
+  .btn{
+    font-family:var(--display); font-weight:700; font-size:0.82rem;
+    padding:10px 17px; border-radius:100px; border:1.5px solid var(--tinta);
+    background:var(--tinta); color:#fff; transition:transform .12s ease, box-shadow .14s ease, background .14s ease;
+  }
+  .btn:hover{ background:var(--laranja); border-color:var(--laranja); box-shadow:var(--s1); transform:translateY(-1px); }
+  .btn.ghost{ background:transparent; color:var(--tinta); border-color:var(--linha); }
+  .btn.ghost:hover{ background:var(--sup2); color:var(--tinta); border-color:var(--tinta); box-shadow:none; }
+  .btn.small{ font-size:0.74rem; padding:7px 13px; }
+  .btn[disabled]{ opacity:.45; cursor:not-allowed; transform:none; }
+
+  /* ---------- formulários ---------- */
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-family:var(--dado); font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--fraco); margin-bottom:5px; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:10px 12px; border:1px solid var(--linha); border-radius:9px; background:var(--sup2);
+    transition:border-color .14s ease, background .14s ease;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{ background:var(--sup); border-color:var(--tinta); }
+  .field textarea{ min-height:70px; resize:vertical; }
+  .grid2{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0 16px; }
+  .grid3{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0 16px; }
+  @media (max-width:640px){ .grid2,.grid3{ grid-template-columns:minmax(0,1fr); } }
+  .dica{ display:block; font-size:0.76rem; color:var(--fraco); line-height:1.4; margin-top:5px; }
+
+  details > summary{
+    list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+    font-family:var(--dado); font-size:0.64rem; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--fraco); background:var(--sup2); border:1px dashed var(--linha); border-radius:100px; padding:8px 15px;
+  }
+  details > summary::-webkit-details-marker{ display:none; }
+  details > summary:hover{ color:var(--tinta); border-color:var(--tinta); }
+  details[open] > summary{ background:var(--tinta); color:#fff; border-style:solid; border-color:var(--tinta); }
+  .card{ background:var(--sup); border-radius:var(--r); box-shadow:var(--s1); padding:20px 22px; margin-bottom:16px; }
+  .card.flat{ background:var(--sup2); box-shadow:none; border:1px solid var(--linha); }
+
+  /* ---------- respostas do formulário ---------- */
+  .qa{ margin-bottom:18px; padding-left:15px; border-left:2px solid var(--laranja); }
+  .qa.vazia{ border-left-color:var(--linha); }
+  .qa .q{ font-size:0.78rem; color:var(--fraco); margin-bottom:3px; line-height:1.35; }
+  .qa .a{ font-size:0.97rem; white-space:pre-wrap; line-height:1.5; }
+  .qa.vazia .a{ color:#BDB6AD; font-style:italic; }
+  .secname{
+    font-family:var(--dado); font-size:0.58rem; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--laranja); border-bottom:1px solid var(--linha); padding-bottom:7px; margin:30px 0 16px;
+  }
   .secname:first-child{ margin-top:0; }
 
-  .login{ max-width:380px; margin:9vh auto; background:#fff; border:2px solid var(--black); box-shadow:9px 9px 0 var(--orange); padding:32px; }
-  .erro{ background:#FFF1EA; border-left:3px solid var(--orange); padding:10px 12px; font-size:0.85rem; margin:12px 0; }
-  .vazio{ padding:26px; text-align:center; color:var(--gray); font-size:0.9rem; border:1px dashed var(--line); }
-
-  /* Agora: uma pendência por linha, clicável, a urgência na barra da esquerda */
+  /* ---------- agora ---------- */
   .pend{
-    display:block; width:100%; text-align:left; background:#fff; border:1.5px solid var(--line);
-    border-left-width:5px; padding:12px 14px; margin-bottom:8px; line-height:1.4;
+    display:block; width:100%; text-align:left; background:var(--sup); border:1px solid var(--linha);
+    border-left:4px solid var(--linha); border-radius:11px; padding:13px 16px; margin-bottom:9px; line-height:1.4;
+    color:inherit; transition:transform .14s ease, box-shadow .14s ease;
   }
-  .pend:hover{ background:var(--soft); border-color:var(--black); }
-  .pend.alta{ border-left-color:var(--orange); }
-  .pend.media{ border-left-color:var(--purple); }
-  .pend.baixa{ border-left-color:var(--line); }
-  .pend .quem{ font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); }
-  .pend .oq{ font-size:0.96rem; font-weight:600; margin-top:2px; }
-  .pend .porq{ font-size:0.84rem; color:var(--gray); margin-top:3px; }
-  .placar{ display:flex; gap:10px; flex-wrap:wrap; margin:18px 0 6px; }
-  .placar .n{ border:2px solid var(--black); padding:10px 14px; min-width:104px; }
-  .placar .n b{ font-family:'Space Grotesk',sans-serif; font-size:1.5rem; display:block; line-height:1; }
-  .placar .n span{ font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); }
-  .placar .n.alta{ border-color:var(--orange); }
-  .placar .n.media{ border-color:var(--purple); }
+  .pend:hover{ box-shadow:var(--s1); transform:translateX(3px); }
+  .pend.alta{ border-left-color:var(--laranja); }
+  .pend.media{ border-left-color:var(--roxo); }
+  .pend.baixa{ border-left-color:var(--linha); }
+  .pend .quem{ font-family:var(--dado); font-size:0.56rem; letter-spacing:0.13em; text-transform:uppercase; color:var(--fraco); }
+  .pend .oq{ font-size:0.97rem; font-weight:600; margin-top:3px; }
+  .pend .porq{ font-size:0.84rem; color:var(--fraco); margin-top:3px; }
+  .placar{ display:flex; gap:10px; flex-wrap:wrap; margin:20px 0 8px; }
+  .placar .n{ background:var(--sup2); border:1px solid var(--linha); border-radius:11px; padding:12px 16px; min-width:106px; }
+  .placar .n b{ font-family:var(--display); font-size:1.7rem; font-weight:700; display:block; line-height:1; letter-spacing:-0.035em; }
+  .placar .n span{ font-family:var(--dado); font-size:0.55rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--fraco); }
+  .placar .n.alta{ background:var(--laranja-fraco); border-color:#FFD9C2; }
+  .placar .n.media{ background:var(--roxo-fraco); border-color:#E3D0F8; }
+
+  /* ---------- explicação da aba ---------- */
+  .expl{ margin:0 0 4px; }
+  .expl p{ margin:0; font-size:0.87rem; color:var(--fraco); line-height:1.5; max-width:66ch; }
+
+  /* ---------- diversos ---------- */
+  .vazio{ padding:30px 24px; text-align:center; color:var(--fraco); font-size:0.9rem; border:1px dashed var(--linha); border-radius:11px; background:var(--sup2); }
+  .vazio strong{ display:block; font-family:var(--display); color:var(--tinta); font-size:1rem; margin-bottom:5px; }
+  .erro{ background:var(--al-f); border:1px solid var(--al-b); border-radius:10px; padding:12px 15px; font-size:0.86rem; color:var(--al); }
+  .login{ max-width:400px; margin:9vh auto; background:var(--sup); border-radius:18px; box-shadow:var(--s2); padding:34px; }
   .toast{
     position:fixed; left:50%; bottom:24px; transform:translate(-50%,16px);
-    background:var(--black); color:#fff; padding:11px 20px; border:2px solid var(--orange);
-    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem;
-    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:50;
+    background:var(--tinta); color:#fff; padding:12px 22px; border-radius:100px;
+    font-family:var(--display); font-weight:700; font-size:0.85rem; box-shadow:var(--s2);
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:60;
   }
   .toast.show{ opacity:1; transform:translate(-50%,0); }
+
+  /* ---------- transição de conteúdo ---------- */
+  @keyframes sobe{ from{ opacity:0; transform:translateY(7px); } to{ opacity:1; transform:none; } }
+  .entra{ animation:sobe .26s cubic-bezier(.2,.7,.3,1) both; }
+
+  /* ---------- celular: a lateral vira gaveta ---------- */
+  @media (max-width:900px){
+    .shell{ grid-template-columns:minmax(0,1fr); padding:14px; gap:14px; }
+    .menu-btn{ display:inline-block; }
+    .side{
+      position:fixed; inset:56px 0 auto 0; z-index:35; border-radius:0 0 var(--r) var(--r);
+      box-shadow:var(--s2); max-height:calc(100vh - 56px); overflow-y:auto;
+      transform:translateY(-8px); opacity:0; visibility:hidden; pointer-events:none;
+      transition:opacity .18s ease, transform .18s ease, visibility .18s;
+    }
+    /* visibility, e não só opacity: gaveta fechada não pode ser alcançada pelo
+       Tab nem lida por leitor de tela. */
+    .side.aberta{ transform:none; opacity:1; visibility:visible; pointer-events:auto; }
+    .abas-caixa{ top:56px; }
+    .bloco{ padding:20px 18px; }
+  }
+  @media (max-width:680px){
+    .topbar{ padding:0 14px; gap:10px; }
+    .topbar .brand{ white-space:nowrap; font-size:0.76rem; letter-spacing:0.1em; }
+    /* O e-mail não cabe e não é informação de que se precisa no celular;
+       o botão de sair, sim. */
+    .topbar .who span{ display:none; }
+  }
 </style>
 </head>
 <body>
@@ -283,7 +422,7 @@
       'Medido, não estimado. É o número que falta para o preço deixar de ser opinião — e para saber o que vale a pena automatizar.',
       'Lançar toda semana, senão vira chute'],
     ['pagina','Página do cliente', 'O plano de 90 dias que o cliente lê',
-      'Monta com os dados desta ficha a página que vira relatório no dia 90. Baixa um arquivo pronto para publicar.',
+      'Monta com os dados desta ficha a página que vira relatório no dia 90, e abre pra você escrever direto nela. O que você escrever volta pra cá e não se perde quando gerar de novo.',
       'Gerar depois do kickoff, e de novo nos dias 30, 60 e 90'],
   ];
 
@@ -363,12 +502,76 @@
   const state = {
     user:null, membro:false, carregando:true,
     clientes:[], inbox:[], vista:{ tipo:'agora' }, aba:'respostas',
-    detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[] },
+    detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[], pagina:null, correcoes:[] },
     erro:null, modoLogin:'link', linkEnviadoPara:null, editandoPV:false,
+    gaveta:false, voltarPara:null,
     tudo:{ acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] },
   };
 
   const app = document.getElementById('app');
+
+  // ---------- navegação ----------
+  // O endereço é a fonte da verdade da tela. Sem isso, atualizar a página
+  // devolvia todo mundo pro começo, o botão de voltar do navegador saía do
+  // painel inteiro, e não dava pra mandar "olha esse cliente" pra Bia.
+  function rotaAtual(){
+    const h = (location.hash || '').replace(/^#\/?/, '');
+    const [a, b, c] = h.split('/').filter(Boolean);
+    if(a === 'c' && b) return { tipo:'cliente', id:b, aba:c || null };
+    if(a === 'inbox') return { tipo:'inbox' };
+    if(a === 'novo') return { tipo:'novo' };
+    return { tipo:'agora' };
+  }
+
+  function enderecoDe(vista, aba){
+    if(vista.tipo === 'cliente') return '#/c/' + vista.id + '/' + (aba || state.aba || 'respostas');
+    if(vista.tipo === 'inbox') return '#/inbox';
+    if(vista.tipo === 'novo') return '#/novo';
+    return '#/agora';
+  }
+
+  // ir() troca a tela E o endereço. Nada muda de tela por outro caminho:
+  // é o que mantém o botão de voltar do navegador sempre certo.
+  let ignorarHash = false;
+  function ir(vista, opts){
+    opts = opts || {};
+    const alvo = enderecoDe(vista, opts.aba);
+    if(location.hash !== alvo){
+      ignorarHash = true;
+      if(opts.substituir) location.replace(alvo); else location.hash = alvo;
+      setTimeout(()=>{ ignorarHash = false; }, 0);
+    }
+    aplicarRota(vista, opts);
+  }
+
+  function aplicarRota(vista, opts){
+    opts = opts || {};
+    state.gaveta = false;
+    if(vista.tipo === 'cliente'){
+      const trocouCliente = !(state.vista.tipo === 'cliente' && state.vista.id === vista.id);
+      state.vista = { tipo:'cliente', id:vista.id };
+      state.aba = (opts.aba && ABAS.some(a => a[0] === opts.aba)) ? opts.aba : (state.aba || 'respostas');
+      if(trocouCliente){
+        state.editandoPV = false;
+        state.detalhe = { onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[], pagina:null, correcoes:[] };
+        render();
+        carregarDetalhe(vista.id).then(render);
+        return;
+      }
+    } else {
+      state.vista = { tipo:vista.tipo };
+      state.voltarPara = null;
+    }
+    render();
+  }
+
+  window.addEventListener('hashchange', ()=>{
+    if(ignorarHash) return;   // fomos nós que mexemos; aplicarRota já rodou
+    const r = rotaAtual();
+    state.voltarPara = null;  // veio do botão do navegador: a volta contextual não vale mais
+    aplicarRota(r, { aba:r.aba });
+  });
+
   const el = (t, a, h) => { const n=document.createElement(t); if(a) for(const k in a){ if(k==='class') n.className=a[k]; else if(k.startsWith('on')) n.addEventListener(k.slice(2), a[k]); else n.setAttribute(k, a[k]); } if(h!==undefined) n.innerHTML=h; return n; };
   const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
@@ -410,7 +613,7 @@
 
   async function carregarDetalhe(clienteId){
     const d = state.detalhe;
-    const [on, me, ba, ma, co, ho, ac] = await Promise.all([
+    const [on, me, ba, ma, co, ho, ac, pg, cr] = await Promise.all([
       sb.from('onboarding_respostas').select('*').eq('cliente_id', clienteId).order('recebido_em',{ascending:false}).limit(1),
       sb.from('metas').select('*').eq('cliente_id', clienteId).order('registrado_em'),
       sb.from('baselines').select('*').eq('cliente_id', clienteId).order('congelado_em'),
@@ -418,10 +621,14 @@
       sb.from('conformidade_itens').select('*').eq('cliente_id', clienteId).order('norma'),
       sb.from('horas').select('*').eq('cliente_id', clienteId).order('data',{ascending:false}),
       sb.from('acessos').select('*').eq('cliente_id', clienteId).order('ordem').order('recurso'),
+      sb.from('paginas').select('*').eq('cliente_id', clienteId).limit(1),
+      sb.from('correcoes').select('*').eq('cliente_id', clienteId).order('corrigido_em'),
     ]);
     d.onboarding = (on.data && on.data[0]) || null;
     d.metas = me.data || []; d.baselines = ba.data || []; d.marcos = ma.data || [];
     d.conformidade = co.data || []; d.horas = ho.data || []; d.acessos = ac.data || [];
+    d.pagina = (pg.data && pg.data[0]) || null;
+    d.correcoes = cr.data || [];
   }
 
   async function inserir(tabela, linha){
@@ -456,11 +663,19 @@
     shell.appendChild(lateral());
     shell.appendChild(conteudo());
     app.appendChild(shell);
+    if(state.gaveta) app.appendChild(el('div',{
+      style:'position:fixed;inset:56px 0 0 0;z-index:34;background:rgba(26,24,21,.28)',
+      onclick:()=>{ state.gaveta = false; render(); }}));
   }
 
   function topbar(){
     const bar = el('div',{class:'topbar'});
-    bar.appendChild(el('span',{class:'brand'},'<span class="dot"></span>Central Bora'));
+    const esq = el('div',{style:'display:flex;align-items:center;gap:14px'});
+    esq.appendChild(el('button',{class:'menu-btn', 'aria-expanded':String(state.gaveta),
+      onclick:()=>{ state.gaveta = !state.gaveta; render(); }}, state.gaveta ? 'Fechar' : 'Menu'));
+    esq.appendChild(el('button',{class:'brand', onclick:()=>ir({tipo:'agora'})},
+      '<span class="dot"></span>Central Bora'));
+    bar.appendChild(esq);
     const who = el('div',{class:'who'});
     who.appendChild(el('span',{},esc(state.user.email)));
     who.appendChild(el('button',{class:'linkbtn', onclick:sair},'sair'));
@@ -470,7 +685,7 @@
 
   function telaLogin(){
     const box = el('div',{class:'login'});
-    box.appendChild(el('p',{class:'eyebrow'},'Uso interno da Bora Postar'));
+    box.appendChild(el('p',{class:'rot laranja'},'Uso interno da Bora Postar'));
     box.appendChild(el('h1',{class:'page'},'Central Bora'));
 
     // Confirmação depois de enviar o link
@@ -555,7 +770,7 @@
 
   function telaSemAcesso(){
     const m = el('main');
-    m.appendChild(el('p',{class:'eyebrow'},'Acesso'));
+    m.appendChild(el('p',{class:'rot laranja'},'Acesso'));
     m.appendChild(el('h1',{class:'page'},'Esta conta não é da agência'));
     m.appendChild(el('p',{class:'muted'},'A Central é restrita a quem tem <code>is_agency</code> marcado no perfil. Se você deveria estar aqui, peça pra marcarem sua conta.'));
     m.appendChild(el('p',{},'')).appendChild(el('button',{class:'btn ghost', onclick:sair},'Sair'));
@@ -563,13 +778,13 @@
   }
 
   function lateral(){
-    const s = el('div',{class:'side'});
+    const s = el('div',{class:'side'+(state.gaveta?' aberta':'')});
 
     const pend = pendencias();
     const altas = pend.filter(p => p.urgencia === 'alta').length;
     s.appendChild(el('h4',{},'Painel'));
-    const ba = el('button',{class:'navitem'+(state.vista.tipo==='agora'?' active':''), onclick:()=>{ state.vista={tipo:'agora'}; render(); }});
-    ba.innerHTML = 'Agora<span class="sub">'+(pend.length
+    const ba = el('button',{class:'navitem'+(state.vista.tipo==='agora'?' active':''), onclick:()=>ir({tipo:'agora'})});
+    ba.innerHTML = '<b>Agora</b><span class="sub">'+(pend.length
       ? (altas ? altas+' urgente'+(altas===1?'':'s')+' de '+pend.length : pend.length+' em aberto')
       : 'nada em aberto')+'</span>';
     s.appendChild(ba);
@@ -577,10 +792,10 @@
     const h1 = el('h4',{},'Caixa de entrada');
     if(state.inbox.length) h1.appendChild(el('span',{class:'pill'}, String(state.inbox.length)));
     s.appendChild(h1);
-    const bi = el('button',{class:'navitem'+(state.vista.tipo==='inbox'?' active':''), onclick:()=>{ state.vista={tipo:'inbox'}; render(); }});
+    const bi = el('button',{class:'navitem'+(state.vista.tipo==='inbox'?' active':''), onclick:()=>ir({tipo:'inbox'})});
     bi.innerHTML = state.inbox.length
-      ? 'Respostas sem cliente<span class="sub">'+state.inbox.length+' aguardando</span>'
-      : 'Respostas sem cliente<span class="sub">nada pendente</span>';
+      ? '<b>Respostas sem cliente</b><span class="sub">'+state.inbox.length+' aguardando</span>'
+      : '<b>Respostas sem cliente</b><span class="sub">nada pendente</span>';
     s.appendChild(bi);
 
     s.appendChild(el('h4',{},'Clientes'));
@@ -589,12 +804,12 @@
     } else {
       state.clientes.forEach(c=>{
         const b = el('button',{class:'navitem'+(state.vista.tipo==='cliente'&&state.vista.id===c.id?' active':''), onclick:()=>abrirCliente(c.id)});
-        b.innerHTML = esc(c.nome)+'<span class="sub">'+esc(rotulo('estagio',c.estagio))+(c.vertical?' · '+esc(c.vertical):'')+'</span>';
+        b.innerHTML = '<b>'+esc(c.nome)+'</b><span class="sub">'+esc(rotulo('estagio',c.estagio))+'</span>';
         s.appendChild(b);
       });
     }
     const wrap = el('div',{class:'act'});
-    wrap.appendChild(el('button',{class:'btn ghost small', onclick:()=>{ state.vista={tipo:'novo'}; render(); }},'+ Novo cliente'));
+    wrap.appendChild(el('button',{class:'btn ghost small', onclick:()=>ir({tipo:'novo'})},'+ Novo cliente'));
     s.appendChild(wrap);
     return s;
   }
@@ -728,7 +943,7 @@
 
   function telaAgora(){
     const m = el('main');
-    m.appendChild(el('p',{class:'eyebrow'},'O que está esperando por nós'));
+    m.appendChild(el('p',{class:'rot laranja'},'O que está esperando por nós'));
     m.appendChild(el('h1',{class:'page'},'Agora'));
     m.appendChild(el('p',{class:'muted'},'Tudo o que o banco sabe que está em aberto, em uma lista só. Cada linha leva direto pro lugar de resolver.'));
 
@@ -758,8 +973,8 @@
         m.appendChild(el('div',{class:'secname'}, rot));
       }
       const b = el('button',{class:'pend '+p.urgencia, onclick:()=>{
-        if(p.cliente) abrirCliente(p.cliente.id, p.aba);
-        else { state.vista = { tipo:'inbox' }; render(); }
+        if(p.cliente){ state.voltarPara = 'agora'; abrirCliente(p.cliente.id, p.aba); }
+        else ir({tipo:'inbox'});
       }});
       b.appendChild(el('div',{class:'quem'}, p.cliente ? esc(p.cliente.nome) : 'Caixa de entrada'));
       b.appendChild(el('div',{class:'oq'}, esc(p.oq)));
@@ -774,7 +989,7 @@
 
   function telaInbox(){
     const m = el('main');
-    m.appendChild(el('p',{class:'eyebrow'},'Chegou pelo formulário'));
+    m.appendChild(el('p',{class:'rot laranja'},'Chegou pelo formulário'));
     m.appendChild(el('h1',{class:'page'},'Respostas sem cliente'));
     m.appendChild(el('p',{class:'muted'},'Cada envio do formulário cai aqui. Vincule a um cliente que já existe ou crie um a partir das respostas.'));
 
@@ -841,7 +1056,7 @@
 
   function telaNovoCliente(){
     const m = el('main');
-    m.appendChild(el('p',{class:'eyebrow'},'Cadastro'));
+    m.appendChild(el('p',{class:'rot laranja'},'Cadastro'));
     m.appendChild(el('h1',{class:'page'},'Novo cliente'));
     const form = el('form',{class:'card', style:'margin-top:18px'});
     const g = el('div',{class:'grid2'});
@@ -898,13 +1113,8 @@
 
   // ---------- ficha do cliente ----------
 
-  async function abrirCliente(id, aba){
-    state.vista = { tipo:'cliente', id };
-    state.aba = (aba && ABAS.some(a => a[0] === aba)) ? aba : 'respostas';
-    state.editandoPV = false;
-    render();
-    await carregarDetalhe(id);
-    render();
+  function abrirCliente(id, aba){
+    ir({ tipo:'cliente', id }, { aba: aba || 'respostas' });
   }
 
   function clienteAtual(){ return state.clientes.find(c=>c.id===state.vista.id); }
@@ -914,43 +1124,141 @@
     const m = el('main');
     if(!c){ m.appendChild(el('div',{class:'vazio'},'Cliente não encontrado.')); return m; }
 
-    m.appendChild(el('p',{class:'eyebrow'}, esc(c.vertical || 'sem vertical definida')));
-    m.appendChild(el('h1',{class:'page'}, esc(c.nome)));
+    // ---- capa: nome grande, e as três contas que respondem "como vai isso"
+    const capa = el('div',{class:'bloco alto'});
+    if(state.voltarPara === 'agora'){
+      const v = el('button',{class:'voltar', onclick:()=>ir({tipo:'agora'})},'&larr;&nbsp; voltar pro Agora');
+      capa.appendChild(v);
+    }
+    capa.appendChild(el('p',{class:'rot laranja', style:'margin-top:'+(state.voltarPara==='agora'?'14px':'0')},
+      esc(c.vertical || 'sem vertical definida')));
+    capa.appendChild(el('h1',{class:'page capa'}, esc(c.nome)));
 
-    const meta = el('div',{style:'display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:10px'});
-    const sel = el('select',{style:'padding:5px 8px;border:1.5px solid #0A0A0A;font-size:0.78rem'});
+    const selos = el('div',{style:'display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px'});
+    const caixaSel = el('span',{class:'selo on'});
+    const sel = el('select');
     ESTAGIOS.forEach(e2=>{ const o = el('option',{value:e2}, rotulo('estagio',e2)); if(e2===c.estagio) o.setAttribute('selected','selected'); sel.appendChild(o); });
     sel.addEventListener('change', async ()=>{
       if(await atualizar('clientes', c.id, { estagio: sel.value })){ toast('Estágio atualizado.'); await carregarTudo(); render(); }
     });
-    meta.appendChild(sel);
-    if(c.inicio_contrato) meta.appendChild(el('span',{class:'tag off'},'início '+soData(c.inicio_contrato)));
-    if(c.responsavel) meta.appendChild(el('span',{class:'tag off'},'resp. '+esc(c.responsavel)));
-    if(c.brand_profile_id) meta.appendChild(el('span',{class:'tag roxo'},'marca vinculada no app'));
-    m.appendChild(meta);
+    caixaSel.appendChild(sel);
+    selos.appendChild(caixaSel);
+    if(c.responsavel) selos.appendChild(el('span',{class:'selo'},'resp. ' + esc(c.responsavel)));
+    if(c.brand_profile_id) selos.appendChild(el('span',{class:'selo'},'marca vinculada no app'));
+    capa.appendChild(selos);
+
+    const etapas = etapasDoCliente(c);
+    const prontas = etapas.filter(e => e.feito >= e.total).length;
+    const dia = c.inicio_contrato ? Math.max(0, -diasAte(c.inicio_contrato)) : null;
+    const acessosUteis = state.detalhe.acessos.filter(a => a.status !== 'nao_aplicavel');
+    const acessosOk = acessosUteis.filter(a => a.status === 'recebido').length;
+
+    const fila = el('div',{class:'capa-fila'});
+    const cifra = (grande, pequeno, rotulo, destaque) => {
+      const d = el('div');
+      d.innerHTML = '<span class="cifra">' + (destaque ? '<u>' : '') + esc(grande) + (destaque ? '</u>' : '')
+        + (pequeno ? '<em>' + esc(pequeno) + '</em>' : '') + '</span>'
+        + '<p class="rot">' + esc(rotulo) + '</p>';
+      return d;
+    };
+    fila.appendChild(cifra(prontas, '/' + etapas.length, 'Etapas de pé', true));
+    if(dia !== null) fila.appendChild(cifra(dia, '/90', 'Dias de contrato'));
+    if(acessosUteis.length) fila.appendChild(cifra(acessosOk, '/' + acessosUteis.length, 'Acessos em mãos'));
+    capa.appendChild(fila);
+    m.appendChild(capa);
 
     m.appendChild(termometro(c));
     m.appendChild(blocoPrimeiroValor(c));
 
-    const tabs = el('div',{class:'tabs'});
+    // ---- abas: lista de verdade, com estado visível e navegação por teclado
+    const caixaAbas = el('div',{class:'abas-caixa'});
+    const tabs = el('div',{class:'abas', role:'tablist', 'aria-label':'Seções do cliente'});
     ABAS.forEach(([k,rot])=>{
-      const b = el('button',{class:'tab'+(state.aba===k?' active':''), onclick:()=>{ state.aba=k; render(); }}, rot);
+      const est = estadoDaAba(k, c);
+      const b = el('button',{
+        class:'tab', role:'tab', id:'tab-'+k,
+        'aria-selected': String(state.aba===k),
+        tabindex: state.aba===k ? '0' : '-1',
+        onclick:()=>irAba(k),
+      });
+      b.innerHTML = '<span class="ponto ' + est + '"></span>' + esc(rot);
       tabs.appendChild(b);
     });
-    m.appendChild(tabs);
+    // Setas andam entre as abas, Home e End vão pras pontas. É o que a lista
+    // de abas deve fazer, e é de graça pra quem navega sem mouse.
+    tabs.addEventListener('keydown', (e)=>{
+      const i = ABAS.findIndex(a => a[0] === state.aba);
+      let j = null;
+      if(e.key === 'ArrowRight') j = (i + 1) % ABAS.length;
+      else if(e.key === 'ArrowLeft') j = (i - 1 + ABAS.length) % ABAS.length;
+      else if(e.key === 'Home') j = 0;
+      else if(e.key === 'End') j = ABAS.length - 1;
+      if(j === null) return;
+      e.preventDefault();
+      irAba(ABAS[j][0]);
+      const alvo = document.getElementById('tab-' + ABAS[j][0]);
+      if(alvo){ alvo.focus(); alvo.scrollIntoView({ block:'nearest', inline:'center' }); }
+    });
+    caixaAbas.appendChild(tabs);
+    m.appendChild(caixaAbas);
 
-    const p = el('div',{class:'panel'});
-    p.appendChild(explicacaoAba(state.aba));
-    if(state.aba==='respostas') p.appendChild(abaRespostas());
-    if(state.aba==='pagina') p.appendChild(abaPagina(c));
-    if(state.aba==='acessos') p.appendChild(abaAcessos(c));
-    if(state.aba==='metas') p.appendChild(abaMetas(c));
-    if(state.aba==='baseline') p.appendChild(abaBaseline(c));
-    if(state.aba==='marcos') p.appendChild(abaMarcos(c));
-    if(state.aba==='conformidade') p.appendChild(abaConformidade(c));
-    if(state.aba==='horas') p.appendChild(abaHoras(c));
+    const p = el('div',{class:'bloco entra', role:'tabpanel', 'aria-labelledby':'tab-'+state.aba});
+    const sec = el('div',{class:'sec'});
+    sec.appendChild(el('span',{class:'num'}, String(ABAS.findIndex(a=>a[0]===state.aba) + 1).padStart(2,'0')));
+    const dentro = el('div');
+    dentro.appendChild(explicacaoAba(state.aba));
+    if(state.aba==='respostas') dentro.appendChild(abaRespostas());
+    if(state.aba==='pagina') dentro.appendChild(abaPagina(c));
+    if(state.aba==='acessos') dentro.appendChild(abaAcessos(c));
+    if(state.aba==='metas') dentro.appendChild(abaMetas(c));
+    if(state.aba==='baseline') dentro.appendChild(abaBaseline(c));
+    if(state.aba==='marcos') dentro.appendChild(abaMarcos(c));
+    if(state.aba==='conformidade') dentro.appendChild(abaConformidade(c));
+    if(state.aba==='horas') dentro.appendChild(abaHoras(c));
+    sec.appendChild(dentro);
+    p.appendChild(sec);
     m.appendChild(p);
     return m;
+  }
+
+  function irAba(k){
+    if(state.aba === k) return;
+    state.aba = k;
+    ir(state.vista, { aba:k, substituir:true });   // trocar de aba não enche o histórico
+  }
+
+  // O pontinho na aba diz se aquilo está resolvido, pela metade ou vazio —
+  // então dá pra ver onde estão os buracos sem clicar em nada.
+  function estadoDaAba(k, c){
+    const d = state.detalhe;
+    if(k === 'respostas') return d.onboarding ? 'cheio' : '';
+    if(k === 'acessos'){
+      if(!d.acessos.length) return '';
+      if(d.acessos.some(a => a.status === 'bloqueado')) return 'alerta';
+      const uteis = d.acessos.filter(a => a.status !== 'nao_aplicavel');
+      const ok = uteis.filter(a => a.status === 'recebido').length;
+      return ok >= uteis.length ? 'cheio' : (ok ? 'meio' : '');
+    }
+    if(k === 'metas'){
+      if(!d.metas.length) return '';
+      const completas = d.metas.filter(x => (x.fracasso||'').trim()).length;
+      return completas >= d.metas.length ? 'cheio' : 'meio';
+    }
+    if(k === 'baseline') return d.baselines.length ? 'cheio' : '';
+    if(k === 'marcos'){
+      if(!d.marcos.length) return '';
+      const atrasado = d.marcos.some(x => !x.data_cumprida && x.data_prevista && diasAte(x.data_prevista) < 0);
+      if(atrasado) return 'alerta';
+      return d.marcos.every(x => x.data_cumprida) ? 'cheio' : 'meio';
+    }
+    if(k === 'conformidade'){
+      if(!d.conformidade.length) return '';
+      if(d.conformidade.some(x => x.status === 'nao_conforme')) return 'alerta';
+      return d.conformidade.some(x => x.status === 'pendente') ? 'meio' : 'cheio';
+    }
+    if(k === 'horas') return d.horas.length ? 'cheio' : '';
+    if(k === 'pagina') return (d.pagina && d.pagina.gerada_em) ? 'cheio' : '';
+    return '';
   }
 
   // Diz, em uma linha, o que a aba é e quando se preenche. Sem isso são sete
@@ -959,11 +1267,8 @@
     const a = ABAS.find(x => x[0] === chave);
     const box = el('div',{class:'expl'});
     if(!a) return box;
-    box.appendChild(el('div',{class:'marca'}));
-    const txt = el('div');
-    txt.appendChild(el('h3',{}, esc(a[2])));
-    txt.appendChild(el('p',{}, esc(a[3]) + '<span class="quando">' + esc(a[4]) + '</span>'));
-    box.appendChild(txt);
+    box.appendChild(el('h3',{}, esc(a[2])));
+    box.appendChild(el('p',{}, esc(a[3]) + '<span class="quando">' + esc(a[4]) + '</span>'));
     return box;
   }
 
@@ -976,27 +1281,29 @@
     const metasComFracasso = d.metas.filter(m => (m.fracasso || '').trim()).length;
     const confSemVeredito = d.conformidade.filter(i => i.status === 'pendente').length;
     const temPV = !!(c.primeiro_valor_prometido || '').trim() && !!c.primeiro_valor_data;
+    const respondidas = d.onboarding ? contarRespondidas(d.onboarding.respostas) : 0;
+    const diasPV = c.primeiro_valor_data ? diasAte(c.primeiro_valor_data) : null;
 
     return [
-      { rot:'Respostas', aba:'respostas',
-        feito: d.onboarding ? 1 : 0, total:1,
-        sub: d.onboarding ? contarRespondidas(d.onboarding.respostas) + ' de 24' : 'nada vinculado' },
-      { rot:'Acessos', aba:'acessos',
-        feito: acessosOk, total: acessosUteis.length || 1,
-        sub: acessosUteis.length ? acessosOk + ' de ' + acessosUteis.length : 'lista não criada' },
-      { rot:'Baseline', aba:'baseline',
-        feito: d.baselines.length ? 1 : 0, total:1,
-        sub: d.baselines.length ? d.baselines.length + ' congelados' : 'nada congelado' },
-      { rot:'Metas', aba:'metas',
-        feito: metasComFracasso, total: d.metas.length || 1,
-        sub: d.metas.length ? metasComFracasso + ' de ' + d.metas.length + ' completas' : 'nenhuma meta' },
-      { rot:'Primeiro valor', aba:'respostas',
-        feito: temPV ? 1 : 0, total:1,
-        sub: temPV ? 'até ' + soData(c.primeiro_valor_data) : 'sem promessa com data' },
+      { rot:'Respostas', aba:'respostas', feito: d.onboarding ? 1 : 0, total:1,
+        cifra: d.onboarding ? respondidas + '/24' : '—', qual: d.onboarding ? 'respondidas' : 'nada vinculado' },
+      { rot:'Acessos', aba:'acessos', feito: acessosOk, total: acessosUteis.length || 1,
+        cifra: acessosUteis.length ? acessosOk + '/' + acessosUteis.length : '—',
+        qual: acessosUteis.length ? 'em mãos' : 'lista não criada' },
+      { rot:'Baseline', aba:'baseline', feito: d.baselines.length ? 1 : 0, total:1,
+        cifra: d.baselines.length ? String(d.baselines.length) : '—',
+        qual: d.baselines.length ? 'congelados' : 'nada congelado' },
+      { rot:'Metas', aba:'metas', feito: metasComFracasso, total: d.metas.length || 1,
+        cifra: d.metas.length ? metasComFracasso + '/' + d.metas.length : '—',
+        qual: d.metas.length ? 'com fracasso' : 'nenhuma meta' },
+      { rot:'Primeiro valor', aba:'respostas', feito: temPV ? 1 : 0, total:1,
+        cifra: diasPV === null ? '—' : (diasPV < 0 ? Math.abs(diasPV) + 'd' : diasPV + 'd'),
+        qual: diasPV === null ? 'sem data' : (diasPV < 0 ? 'de atraso' : 'pra vencer') },
       { rot:'Conformidade', aba:'conformidade',
         feito: d.conformidade.length ? d.conformidade.length - confSemVeredito : 0,
         total: d.conformidade.length || 1,
-        sub: d.conformidade.length ? (confSemVeredito ? confSemVeredito + ' sem veredito' : 'tudo avaliado') : 'nada avaliado' },
+        cifra: d.conformidade.length ? (d.conformidade.length - confSemVeredito) + '/' + d.conformidade.length : '—',
+        qual: d.conformidade.length ? 'com veredito' : 'nada avaliado' },
     ];
   }
 
@@ -1005,23 +1312,24 @@
     const prontas = etapas.filter(e => e.feito >= e.total).length;
     const pct = Math.round((prontas / etapas.length) * 100);
 
-    const box = el('div',{class:'termo'});
-    const topo = el('div',{class:'topo'});
-    topo.appendChild(el('p',{class:'eyebrow', style:'margin:0'},'Como está o onboarding'));
-    topo.appendChild(el('span',{class:'quanto'}, prontas + ' de ' + etapas.length + ' etapas de pé'));
+    const box = el('div',{class:'bloco'});
+    const topo = el('div',{class:'termo-topo'});
+    topo.appendChild(el('p',{class:'rot'},'Como está o onboarding'));
+    topo.appendChild(el('span',{style:'font-family:var(--display);font-weight:700;font-size:1.05rem'},
+      prontas + ' de ' + etapas.length + ' etapas de pé'));
     box.appendChild(topo);
 
-    const barra = el('div',{class:'barra'});
+    const barra = el('div',{class:'trilha'});
     barra.appendChild(el('i',{style:'width:'+pct+'%'}));
     box.appendChild(barra);
 
     const grade = el('div',{class:'etapas'});
     etapas.forEach((e2, i)=>{
       const estado = e2.feito >= e2.total ? 'feito' : (e2.feito > 0 ? 'meio' : 'falta');
-      const b = el('button',{class:'etapa '+estado, onclick:()=>{ state.aba = e2.aba; render(); }});
-      b.innerHTML = '<span class="n"><span class="bola"></span>' + String(i+1).padStart(2,'0') + '</span>'
-        + '<span class="rot">' + esc(e2.rot) + '</span>'
-        + '<span class="sub">' + esc(e2.sub) + '</span>';
+      const b = el('button',{class:'etapa '+estado, onclick:()=>irAba(e2.aba)});
+      b.innerHTML = '<span class="cab"><span class="bola"></span><em>' + String(i+1).padStart(2,'0') + ' ' + esc(e2.rot.toUpperCase()) + '</em></span>'
+        + '<span class="n">' + esc(e2.cifra) + '</span>'
+        + '<span class="q">' + esc(e2.qual) + '</span>';
       grade.appendChild(b);
     });
     box.appendChild(grade);
@@ -1035,7 +1343,7 @@
     const tem = !!(c.primeiro_valor_prometido || '').trim();
 
     const topo = el('div',{style:'display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:baseline'});
-    topo.appendChild(el('p',{class:'eyebrow', style:'margin:0'},'Primeiro valor prometido'));
+    topo.appendChild(el('p',{class:'rot laranja', style:'margin:0'},'Primeiro valor prometido'));
     topo.appendChild(el('button',{class:'linkbtn', style:'color:#6E6E6E',
       onclick:()=>{ state.editandoPV = !state.editandoPV; render(); }}, state.editandoPV ? 'cancelar' : (tem ? 'editar' : 'definir')));
     box.appendChild(topo);
@@ -1048,12 +1356,12 @@
           const hoje = new Date(); hoje.setHours(0,0,0,0);
           const alvo = new Date(c.primeiro_valor_data + 'T00:00:00');
           const dias = Math.round((alvo - hoje) / 86400000);
-          linha.appendChild(el('span',{class:'tag off'},'até ' + soData(c.primeiro_valor_data)));
-          if(dias > 0) linha.appendChild(el('span',{class:'tag off'}, 'faltam ' + dias + (dias === 1 ? ' dia' : ' dias')));
-          else if(dias === 0) linha.appendChild(el('span',{class:'tag on'},'é hoje'));
-          else linha.appendChild(el('span',{class:'tag on'}, 'atrasado há ' + Math.abs(dias) + (dias === -1 ? ' dia' : ' dias')));
+          linha.appendChild(el('span',{class:'selo'},'até ' + soData(c.primeiro_valor_data)));
+          if(dias > 0) linha.appendChild(el('span',{class:'selo'}, 'faltam ' + dias + (dias === 1 ? ' dia' : ' dias')));
+          else if(dias === 0) linha.appendChild(el('span',{class:'selo aviso'},'é hoje'));
+          else linha.appendChild(el('span',{class:'selo aviso'}, 'atrasado há ' + Math.abs(dias) + (dias === -1 ? ' dia' : ' dias')));
         } else {
-          linha.appendChild(el('span',{class:'tag on'},'sem data — promessa sem data não conta'));
+          linha.appendChild(el('span',{class:'selo aviso'},'sem data — promessa sem data não conta'));
         }
         box.appendChild(linha);
       } else {
@@ -1387,6 +1695,275 @@
   @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .passo .quando .feito{ color:#4CC98A; } }
   :root[data-theme="dark"] .passo .quando .feito{ color:#4CC98A; }
   .voces .obs{ color:var(--cinza); font-size:0.9rem; margin:0; }
+
+  /* ---- correção registrada ---- */
+  .correcao{
+    font-family:var(--dado); font-size:0.64rem; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--laranja); margin:8px 0 0; line-height:1.5;
+  }
+
+  /* ---- itens da lista: agora com corpo e botão de remover ---- */
+  .item .corpo{ flex:1 1 auto; min-width:0; }
+  .item .tirar{
+    flex:0 0 auto; background:none; border:1px solid var(--linha); color:var(--cinza);
+    width:24px; height:24px; line-height:1; cursor:pointer; font-size:1rem; align-self:flex-start;
+  }
+  .item .tirar:hover{ border-color:var(--deles); color:var(--deles); }
+  .mais-item{
+    margin-top:16px; background:none; border:1px dashed var(--deles); color:var(--deles);
+    font-family:var(--dado); font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase;
+    padding:8px 14px; cursor:pointer;
+  }
+  .mais-item:hover{ background:var(--deles); color:#fff; }
+  .tirar-secao{
+    margin-top:14px; background:none; border:1px dashed var(--linha); color:var(--cinza);
+    font-family:var(--dado); font-size:0.64rem; letter-spacing:0.08em; text-transform:uppercase;
+    padding:6px 12px; cursor:pointer;
+  }
+
+  /* ---- modo de edição ---- */
+  body.editando [data-ed]{
+    outline:1px dashed rgba(136,0,255,0.4); outline-offset:3px; border-radius:2px; cursor:text;
+  }
+  body.editando [data-ed]:hover{ outline-color:var(--deles); background:rgba(136,0,255,0.05); }
+  body.editando [data-ed]:focus{ outline:2px solid var(--deles); outline-offset:3px; background:transparent; }
+  body.editando{ padding-bottom:86px; }
+
+  #barra[hidden], .tirar[hidden], .tirar-secao[hidden], .mais-item[hidden]{ display:none !important; }
+  #barra{
+    position:fixed; left:0; right:0; bottom:0; z-index:60;
+    background:var(--tinta); color:var(--papel);
+    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    padding:10px 16px; border-top:3px solid var(--deles);
+  }
+  #barra .dica-barra{
+    font-family:var(--dado); font-size:0.64rem; letter-spacing:0.08em; text-transform:uppercase;
+    color:#A9A49E; margin-right:auto;
+  }
+  #barra button{
+    font-family:var(--display); font-weight:700; font-size:0.76rem;
+    padding:8px 13px; border:1.5px solid var(--papel); background:transparent; color:var(--papel); cursor:pointer;
+  }
+  #barra button:hover{ background:var(--papel); color:var(--tinta); }
+  #barra button.principal{ background:var(--deles); border-color:var(--deles); color:#fff; }
+  #barra button.principal:hover{ background:#fff; color:var(--deles); }
+  @media (max-width:560px){ #barra .dica-barra{ display:none; } #barra button{ flex:1 1 auto; } }
+
+  #caixa-copia{
+    position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:70;
+    background:var(--superficie); border:2px solid var(--tinta); padding:20px;
+    width:min(560px, calc(100vw - 40px)); box-shadow:0 18px 50px rgba(0,0,0,0.28);
+  }
+  #caixa-copia p{ margin:0 0 10px; font-size:0.9rem; }
+  #caixa-copia textarea{
+    width:100%; height:130px; font-family:var(--dado); font-size:0.7rem; padding:9px;
+    border:1.5px solid var(--linha); background:var(--papel); color:var(--tinta); resize:vertical;
+  }
+  #caixa-copia button{
+    margin-top:12px; font-family:var(--display); font-weight:700; font-size:0.76rem;
+    padding:8px 14px; border:1.5px solid var(--tinta); background:var(--tinta); color:var(--papel); cursor:pointer;
+  }
+
+  #aviso-edicao{
+    position:fixed; left:50%; bottom:84px; transform:translate(-50%,14px); z-index:80;
+    background:var(--deles); color:#fff; padding:10px 18px;
+    font-family:var(--display); font-weight:700; font-size:0.82rem;
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+  }
+  #aviso-edicao.vendo{ opacity:1; transform:translate(-50%,0); }
+
+  @media print{ #barra, #caixa-copia, #aviso-edicao, .tirar, .tirar-secao, .mais-item{ display:none !important; } }
+`;
+
+  // Editor que viaja dentro da página gerada. Fica inerte até alguém abrir o
+  // arquivo com #editar no fim do endereço — o cliente recebe o mesmo arquivo
+  // e nunca vê barra nenhuma.
+  const JS_PAGINA_CLIENTE = `
+(function(){
+  'use strict';
+  // A barra de edição só existe com #editar no fim do endereço. O arquivo que o
+  // cliente recebe é exatamente este, e ele nunca vê nada disso.
+  var ligado = location.hash === '#editar';
+  var barra = document.getElementById('barra');
+  var editando = false;
+  var contador = 0;
+  var botaoEditar = null;
+  var novoId = function(p){ contador++; return p + '-' + Date.now().toString(36) + '-' + contador; };
+  var limpa = function(s){ return String(s == null ? '' : s).replace(/ /g, ' ').trim(); };
+
+  function editaveis(){ return Array.prototype.slice.call(document.querySelectorAll('[data-ed]')); }
+
+  function marcar(lig){
+    editando = lig;
+    editaveis().forEach(function(n){
+      if(lig) n.setAttribute('contenteditable','true'); else n.removeAttribute('contenteditable');
+    });
+    document.body.classList.toggle('editando', lig);
+    document.querySelectorAll('.tirar,.tirar-secao,.mais-item').forEach(function(b){ b.hidden = !lig; });
+    if(botaoEditar) botaoEditar.textContent = lig ? 'Parar de editar' : 'Editar textos';
+  }
+
+  // Junta o que mudou. Compara sempre com data-orig, que veio da Central e não é
+  // reescrito ao salvar — por isso editar, salvar, reabrir e editar de novo
+  // continua produzindo a lista certa.
+  function coletar(){
+    var blocos = {}, mudancas = [], extras = {}, itens = {};
+    editaveis().forEach(function(n){
+      var txt = limpa(n.innerText);
+      var orig = limpa(n.getAttribute('data-orig'));
+      var fonte = n.getAttribute('data-fonte');
+      if(fonte === 'bloco'){
+        if(txt !== orig) blocos[n.getAttribute('data-slot')] = txt;
+      } else if(fonte === 'extra-secao'){
+        var id = n.getAttribute('data-id');
+        extras[id] = extras[id] || { id: id };
+        extras[id][n.getAttribute('data-campo')] = txt;
+      } else if(fonte === 'extra-item'){
+        var idi = n.getAttribute('data-id');
+        itens[idi] = itens[idi] || { id: idi };
+        itens[idi][n.getAttribute('data-campo')] = txt;
+      } else if(fonte){
+        if(txt !== orig){
+          mudancas.push({ t: fonte, id: n.getAttribute('data-id'), c: n.getAttribute('data-campo'), de: orig, para: txt });
+        }
+      }
+    });
+    var listaExtras = Object.keys(extras).map(function(k){ return extras[k]; })
+      .filter(function(s){ return limpa(s.titulo) || limpa(s.texto); });
+    var listaItens = Object.keys(itens).map(function(k){ return itens[k]; })
+      .filter(function(s){ return limpa(s.oq); });
+    // Manda a lista mesmo vazia quando havia extras na página: é assim que
+    // remover uma seção chega até a Central.
+    if(listaExtras.length || document.querySelector('[data-extra-secao]')) blocos.extras = listaExtras;
+    if(listaItens.length || document.querySelector('[data-extra-item]')) blocos.itens_extra = listaItens;
+    return { v: 1, cliente: document.body.getAttribute('data-cliente'), em: new Date().toISOString(),
+             blocos: blocos, mudancas: mudancas };
+  }
+
+  function baixar(){
+    var estava = editando;
+    marcar(false);
+    var clone = document.documentElement.cloneNode(true);
+    // Só o que é transitório sai. A barra fica, vazia e escondida, e os botões
+    // de acrescentar ficam escondidos: é o que permite reabrir o arquivo salvo
+    // com #editar e continuar de onde parou. Quem abre sem #editar não vê nada
+    // disso, porque o script apaga esses botões no carregamento.
+    ['#caixa-copia','#aviso-edicao'].forEach(function(sel){
+      var n = clone.querySelector(sel); if(n) n.remove();
+    });
+    var b = clone.querySelector('#barra');
+    if(b){ b.innerHTML = ''; b.setAttribute('hidden',''); }
+    clone.querySelectorAll('.tirar,.tirar-secao,.mais-item').forEach(function(x){ x.setAttribute('hidden',''); });
+    clone.querySelectorAll('[contenteditable]').forEach(function(x){ x.removeAttribute('contenteditable'); });
+    var html = '<!doctype html>\\n' + clone.outerHTML;
+    var url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+    var a = document.createElement('a');
+    var nome = (document.body.getAttribute('data-nome') || 'cliente').toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').slice(0,40).replace(/^-|-$/g,'');
+    a.href = url; a.download = '90-dias-' + (nome || 'cliente') + '.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    if(estava) marcar(true);
+    aviso('Arquivo salvo. É esse que você manda pro cliente.');
+  }
+
+  function copiar(){
+    var texto = JSON.stringify(coletar());
+    var caixa = document.getElementById('caixa-copia');
+    if(!caixa){
+      caixa = document.createElement('div');
+      caixa.id = 'caixa-copia';
+      var p = document.createElement('p');
+      p.textContent = 'Cole isto na Central, em "Trazer alterações da página":';
+      caixa.appendChild(p);
+      var t = document.createElement('textarea');
+      t.id = 'copia-texto'; t.readOnly = true;
+      caixa.appendChild(t);
+      var f = document.createElement('button');
+      f.type = 'button'; f.textContent = 'fechar';
+      f.onclick = function(){ caixa.remove(); };
+      caixa.appendChild(f);
+      document.body.appendChild(caixa);
+    }
+    var alvo = document.getElementById('copia-texto');
+    alvo.value = texto;
+    alvo.focus(); alvo.select();
+    var ok = false;
+    try{ ok = document.execCommand('copy'); }catch(e){}
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(texto).then(function(){}, function(){});
+    }
+    aviso(ok ? 'Copiado. Agora cole na Central.' : 'Selecione o texto da caixa e copie à mão.');
+  }
+
+  var timer;
+  function aviso(msg){
+    var n = document.getElementById('aviso-edicao');
+    if(!n){ n = document.createElement('div'); n.id = 'aviso-edicao'; document.body.appendChild(n); }
+    n.textContent = msg; n.classList.add('vendo');
+    clearTimeout(timer); timer = setTimeout(function(){ n.classList.remove('vendo'); }, 3400);
+  }
+
+  function novaSecao(){
+    var id = novoId('sec');
+    var s = document.createElement('section');
+    s.setAttribute('data-extra-secao','1'); s.setAttribute('data-id', id);
+    s.innerHTML = '<p class="rotulo">Seção</p>'
+      + '<h2 data-ed="1" data-fonte="extra-secao" data-id="' + id + '" data-campo="titulo" data-orig="">Título da seção</h2>'
+      + '<p class="intro" data-ed="1" data-fonte="extra-secao" data-id="' + id + '" data-campo="texto" data-orig="">Escreva aqui.</p>'
+      + '<button class="tirar-secao" type="button">remover esta seção</button>';
+    var caixaVoces = document.querySelector('.voces');
+    var ancora = caixaVoces ? caixaVoces.parentNode : null;
+    if(ancora && ancora.parentNode) ancora.parentNode.insertBefore(s, ancora);
+    else document.querySelector('.folha').appendChild(s);
+    ligarBotoes(); marcar(true);
+    s.querySelector('h2').focus();
+  }
+
+  function novoItem(){
+    var id = novoId('item');
+    var div = document.createElement('div');
+    div.className = 'item'; div.setAttribute('data-extra-item','1');
+    div.innerHTML = '<div class="caixa"></div><div class="corpo">'
+      + '<div class="oq" data-ed="1" data-fonte="extra-item" data-id="' + id + '" data-campo="oq" data-orig="">O que vocês precisam fazer</div>'
+      + '<div class="obs" data-ed="1" data-fonte="extra-item" data-id="' + id + '" data-campo="obs" data-orig="">Detalhe, se precisar.</div>'
+      + '</div><button class="tirar" type="button" title="remover">&times;</button>';
+    document.querySelector('.voces .lista').appendChild(div);
+    ligarBotoes(); marcar(true);
+    div.querySelector('.oq').focus();
+  }
+
+  function ligarBotoes(){
+    document.querySelectorAll('.tirar').forEach(function(b){
+      b.onclick = function(){ var i = b.parentNode; if(i) i.remove(); };
+    });
+    document.querySelectorAll('.tirar-secao').forEach(function(b){
+      b.onclick = function(){ var s = b.parentNode; if(s) s.remove(); };
+    });
+    document.querySelectorAll('.mais-item').forEach(function(b){ b.onclick = novoItem; });
+  }
+
+  if(ligado){
+    barra.hidden = false;
+    var faz = function(rot, fn, cls){
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = rot; if(cls) b.className = cls;
+      b.onclick = fn; barra.appendChild(b); return b;
+    };
+    var dica = document.createElement('span');
+    dica.className = 'dica-barra';
+    dica.textContent = 'Clique em qualquer texto e escreva';
+    barra.appendChild(dica);
+    botaoEditar = faz('Parar de editar', function(){ marcar(!editando); }, 'principal');
+    faz('+ seção', novaSecao);
+    faz('Baixar versão editada', baixar);
+    faz('Copiar alterações', copiar);
+    ligarBotoes();
+    marcar(true);
+  } else {
+    document.querySelectorAll('.tirar,.tirar-secao,.mais-item').forEach(function(b){ b.remove(); });
+  }
+})();
 `;
 
 
@@ -1395,6 +1972,7 @@
   // ninguém redigitar nada — e sem inventar: o que não está no banco não aparece.
   function montarPaginaCliente(c){
     const d = state.detalhe;
+    const blocos = (d.pagina && d.pagina.blocos) || {};
     const nome = c.nome_preferido || c.nome;
     const base = c.inicio_contrato ? new Date(c.inicio_contrato + 'T00:00:00') : HOJE();
     const dia = Math.max(0, Math.round((HOJE() - base) / 86400000));
@@ -1402,31 +1980,61 @@
       const x = new Date(base); x.setDate(x.getDate() + n);
       return x.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' }).replace('.','');
     };
-    const E = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const E = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const porExtenso = iso => {
       if(!iso) return '';
       const x = new Date(String(iso).slice(0,10) + 'T00:00:00');
       return x.toLocaleDateString('pt-BR', { day:'numeric', month:'long', year:'numeric' });
     };
 
+    // Todo trecho editável carrega de onde veio e qual era o valor original.
+    // data-orig é gravado aqui, e não pelo editor ao abrir: assim o arquivo pode
+    // ser salvo e reaberto várias vezes sem perder a referência do que a Central
+    // tem — a lista de mudanças continua correta na terceira edição.
+    const edBloco = (slot, texto) =>
+      ' data-ed="1" data-fonte="bloco" data-slot="' + slot + '" data-orig="' + E(texto) + '"';
+    const edFato = (tabela, id, campo, texto) =>
+      ' data-ed="1" data-fonte="' + tabela + '" data-id="' + id + '" data-campo="' + campo + '" data-orig="' + E(texto) + '"';
+    const B = (slot, padrao) => {
+      const v = blocos[slot];
+      return (v != null && String(v).trim()) ? String(v) : padrao;
+    };
+    // Bloco de prosa: o texto que sai é o override, se houver; o data-orig é
+    // sempre o padrão, para o editor saber o que de fato mudou.
+    const prosa = (slot, padrao) => ({ txt: B(slot, padrao), attr: edBloco(slot, padrao) });
+
+    // Correções já registradas, por registro, para a página assumir o que mudou
+    // depois que o cliente leu — em vez de trocar em silêncio.
+    const notaCorrecao = id => {
+      const cs = (d.correcoes || []).filter(x => x.registro_id === id);
+      if(!cs.length) return '';
+      const ultima = cs[cs.length - 1];
+      return '<p class="correcao">Corrigido em ' + E(soData(ultima.corrigido_em || new Date().toISOString()))
+        + (ultima.motivo ? ' — ' + E(ultima.motivo) : '') + '</p>';
+    };
+
+    const AVISO = prosa('aviso', 'Esta página é o plano hoje e o relatório no dia 90 — mesmo link, atualizado por nós. Enquanto os números não se movem ela mostra o que combinamos e o que falta. Quando começarem a se mover, mostra o que aconteceu, incluindo o que não deu certo.');
+
     // --- ponto de partida
     const linhasBase = d.baselines.map(b => '<tr>'
-      + '<td class="metrica">' + E(b.metrica) + '</td>'
+      + '<td class="metrica"><span' + edFato('baselines', b.id, 'metrica', b.metrica) + '>' + E(b.metrica) + '</span></td>'
       + '<td class="num">' + E(b.valor != null ? b.valor + (b.unidade ? ' ' + b.unidade : '') : (b.valor_texto || '?')) + '</td>'
       + '<td>' + E(rotulo('baselines_fonte', b.fonte)) + '</td>'
-      + '<td class="ressalva">' + E(b.limitacao || '—') + '</td>'
+      + '<td class="ressalva"><span' + edFato('baselines', b.id, 'limitacao', b.limitacao || '') + '>' + E(b.limitacao || '—') + '</span>' + notaCorrecao(b.id) + '</td>'
       + '</tr>').join('\n          ');
 
     // --- pré-registro
     const blocosMeta = d.metas.map(m => {
       const frac = (m.fracasso || '').trim();
       return '<div class="meta">'
-        + '<h3>' + E(m.metrica) + '<span class="tipo">' + E(rotulo('metas_tipo', m.tipo)) + '</span></h3>'
+        + '<h3><span' + edFato('metas', m.id, 'metrica', m.metrica) + '>' + E(m.metrica) + '</span>'
+        +   '<span class="tipo">' + E(rotulo('metas_tipo', m.tipo)) + '</span></h3>'
         + '<div class="marcos-meta">'
-        +   '<div><p class="rotulo">Dia 30</p><p>' + E(m.sucesso_30 || 'Sem meta') + '</p></div>'
-        +   '<div><p class="rotulo">Dia 90</p><p>' + E(m.sucesso_90 || 'Sem meta') + '</p></div>'
+        +   '<div><p class="rotulo">Dia 30</p><p' + edFato('metas', m.id, 'sucesso_30', m.sucesso_30 || '') + '>' + E(m.sucesso_30 || 'Sem meta') + '</p></div>'
+        +   '<div><p class="rotulo">Dia 90</p><p' + edFato('metas', m.id, 'sucesso_90', m.sucesso_90 || '') + '>' + E(m.sucesso_90 || 'Sem meta') + '</p></div>'
         + '</div>'
-        + (frac ? '<div class="fracasso"><b>Deu errado se</b>' + E(frac) + '</div>' : '')
+        + (frac ? '<div class="fracasso"><b>Deu errado se</b><span' + edFato('metas', m.id, 'fracasso', frac) + '>' + E(frac) + '</span></div>' : '')
+        + notaCorrecao(m.id)
         + '</div>';
     }).join('\n      ');
 
@@ -1441,129 +2049,321 @@
       return '<div class="passo' + (deles ? ' deles' : '') + '">'
         + '<div class="quando">' + E(quando) + (m.data_cumprida ? '<br><span class="feito">feito</span>' : '') + '</div>'
         + '<div class="conteudo">'
-        +   '<h3>' + E(m.titulo) + '<span class="dono ' + (deles ? 'cliente' : 'nos') + '">' + (deles ? 'vocês' : 'nós') + '</span></h3>'
-        +   (m.descricao ? '<p>' + E(m.descricao) + '</p>' : '')
+        +   '<h3><span' + edFato('marcos', m.id, 'titulo', m.titulo) + '>' + E(m.titulo) + '</span>'
+        +     '<span class="dono ' + (deles ? 'cliente' : 'nos') + '">' + (deles ? 'vocês' : 'nós') + '</span></h3>'
+        +   '<p' + edFato('marcos', m.id, 'descricao', m.descricao || '') + '>' + E(m.descricao || '') + '</p>'
         + '</div></div>';
     }).join('\n      ');
 
-    // --- a coluna deles: acessos que faltam + marcos do cliente em aberto
+    // --- a coluna deles
     const faltando = d.acessos.filter(a => a.status === 'pendente' || a.status === 'solicitado' || a.status === 'bloqueado');
     const marcosDeles = d.marcos.filter(m => m.responsavel === 'cliente' && !m.data_cumprida);
-    const itensDeles = faltando.map(a => ({
-      oq: 'Acesso ao ' + a.recurso,
-      obs: [a.quem_detem ? 'Está com ' + a.quem_detem + '.' : '', a.nota || ''].filter(Boolean).join(' '),
-    })).concat(marcosDeles.map(m => ({ oq: m.titulo, obs: m.descricao || '' })));
+    const extras = Array.isArray(blocos.itens_extra) ? blocos.itens_extra : [];
 
-    const listaDeles = itensDeles.length
-      ? itensDeles.map(i => '<div class="item"><div class="caixa"></div><div>'
-          + '<div class="oq">' + E(i.oq) + '</div>'
-          + (i.obs ? '<div class="obs">' + E(i.obs) + '</div>' : '')
-          + '</div></div>').join('\n        ')
-      : '<p class="obs">Nada pendente do lado de vocês no momento.</p>';
+    const itemHtml = (oq, obs, attrOq, attrObs, removivel) =>
+      '<div class="item"' + (removivel ? ' data-extra-item="1"' : '') + '><div class="caixa"></div><div class="corpo">'
+      + '<div class="oq"' + (attrOq||'') + '>' + E(oq) + '</div>'
+      + '<div class="obs"' + (attrObs||'') + '>' + E(obs || '') + '</div>'
+      + '</div>' + (removivel ? '<button class="tirar" type="button" title="remover">×</button>' : '') + '</div>';
+
+    // O texto do item de acesso é montado a partir de dois campos (quem detém e
+    // nota), então não tem como voltar pra um campo só. Fica não editável aqui:
+    // acesso se mexe na Central, onde a tela Agora também enxerga.
+    const listaDeles = [].concat(
+      faltando.map(a => itemHtml('Acesso ao ' + a.recurso,
+        [a.quem_detem ? 'Está com ' + a.quem_detem + '.' : '', a.nota || ''].filter(Boolean).join(' '),
+        '', '', false)),
+      marcosDeles.map(m => itemHtml(m.titulo, m.descricao || '',
+        edFato('marcos', m.id, 'titulo', m.titulo), edFato('marcos', m.id, 'descricao', m.descricao || ''), false)),
+      extras.map(x => itemHtml(x.oq || '', x.obs || '',
+        ' data-ed="1" data-fonte="extra-item" data-id="' + E(x.id) + '" data-campo="oq" data-orig=""',
+        ' data-ed="1" data-fonte="extra-item" data-id="' + E(x.id) + '" data-campo="obs" data-orig=""', true))
+    );
+    const totalDeles = faltando.length + marcosDeles.length + extras.length;
+
+    const VOCES_INTRO = prosa('voces_intro', totalDeles
+      ? totalDeles + (totalDeles === 1 ? ' coisa, e o plano espera por ela.' : ' coisas, e o plano inteiro espera por elas.')
+      : 'Nada travado do lado de vocês.');
+
+    // --- seções livres, escritas por nós na própria página
+    const secoesExtra = (Array.isArray(blocos.extras) ? blocos.extras : []).map(s =>
+      '<section data-extra-secao="1" data-id="' + E(s.id) + '">'
+      + '<p class="rotulo">Seção</p>'
+      + '<h2 data-ed="1" data-fonte="extra-secao" data-id="' + E(s.id) + '" data-campo="titulo" data-orig="">' + E(s.titulo || '') + '</h2>'
+      + '<p class="intro" data-ed="1" data-fonte="extra-secao" data-id="' + E(s.id) + '" data-campo="texto" data-orig="">' + E(s.texto || '') + '</p>'
+      + '<button class="tirar-secao" type="button">remover esta seção</button>'
+      + '</section>').join('\n');
 
     const pv = (c.primeiro_valor_prometido || '').trim();
+    const INTRO_PARTIDA = prosa('intro_partida', 'Congelado antes de mexermos em qualquer coisa. A última coluna é o que há de frágil em cada número — dizemos agora para ninguém tratar estimativa como medida daqui a três meses.');
+    const INTRO_PRE = prosa('intro_preregistro', 'Escrito antes de começar, de propósito. Se só combinássemos o sucesso, qualquer número do dia 90 se explicaria — e sempre a favor de quem fez o trabalho. O critério de fracasso está aí para vocês poderem cobrar.');
+    const INTRO_PASSOS = prosa('intro_passos', 'A barra preta é nossa, a roxa é de vocês.');
+    const RES_TITULO = prosa('resultados_titulo', dia < 30 ? 'Ainda não há o que mostrar' : 'O que aconteceu até aqui');
+    const RES_TEXTO = prosa('resultados_texto', dia < 30
+      ? 'E é assim que deve estar no começo. Esta seção fica vazia até existir número comparável com o ponto de partida — colocar gráfico bonito aqui antes disso seria enfeite.'
+      : 'Escreva aqui o que subiu, o que não subiu e o que a gente errou — nessa ordem, porque a terceira é a que faz as outras duas valerem alguma coisa. Compare com o ponto de partida e com o critério de fracasso, sem editar nenhum dos dois.');
 
     return '<!doctype html>\n<html lang="pt-BR">\n<head>\n<meta charset="utf-8">\n'
 + '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
 + '<title>' + E(nome) + ' — 90 dias com a Bora Postar</title>\n'
 + '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Archivo:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">\n'
-+ '<style>\n' + CSS_PAGINA_CLIENTE + '</style>\n</head>\n<body>\n<div class="folha">\n'
++ '<style>\n' + CSS_PAGINA_CLIENTE + '</style>\n</head>\n'
++ '<body data-cliente="' + E(c.id) + '" data-nome="' + E(nome) + '">\n<div class="folha">\n'
 + '  <header>\n'
 + '    <p class="rotulo laranja">Bora Postar · plano de trabalho</p>\n'
 + '    <h1>Noventa dias com <em>' + E(nome) + '</em></h1>\n'
 + '    <div class="subcab">'
 +       (c.vertical ? '<span>' + E(c.vertical) + '</span>' : '')
 +       '<span>Dia <b>' + dia + '</b> de 90</span></div>\n'
-+ '    <p class="aviso">Esta página é o plano hoje e o relatório no dia 90 — mesmo link, atualizado por nós. Enquanto os números não se movem ela mostra o que combinamos e o que falta. Quando começarem a se mover, mostra o que aconteceu, incluindo o que não deu certo.</p>\n'
++ '    <p class="aviso"' + AVISO.attr + '>' + E(AVISO.txt) + '</p>\n'
 + '  </header>\n'
 + (pv ? ('  <section>\n    <p class="rotulo">A primeira coisa que vocês vão perceber</p>\n'
 + '    <div class="promessa">\n      <p class="rotulo">Primeiro valor prometido</p>\n'
-+ '      <p>' + E(pv) + '</p>\n'
++ '      <p' + edFato('clientes', c.id, 'primeiro_valor_prometido', pv) + '>' + E(pv) + '</p>\n'
 + '      <div class="data">' + (c.primeiro_valor_data
         ? 'Até <b>' + E(porExtenso(c.primeiro_valor_data)) + '</b> · se não acontecer até lá, cobrem da gente'
         : 'Sem data marcada') + '</div>\n    </div>\n  </section>\n') : '')
 + (d.baselines.length ? ('  <section>\n    <p class="rotulo">Ponto de partida</p>\n'
-+ '    <h2>De onde estamos saindo</h2>\n'
-+ '    <p class="intro">Congelado antes de mexermos em qualquer coisa. A última coluna é o que há de frágil em cada número — dizemos agora para ninguém tratar estimativa como medida daqui a três meses.</p>\n'
++ '    <h2' + prosa('h2_partida','De onde estamos saindo').attr + '>' + E(B('h2_partida','De onde estamos saindo')) + '</h2>\n'
++ '    <p class="intro"' + INTRO_PARTIDA.attr + '>' + E(INTRO_PARTIDA.txt) + '</p>\n'
 + '    <div class="rolagem"><table>\n      <thead><tr><th>O que</th><th>Hoje</th><th>Onde medimos</th><th>O que essa medida não garante</th></tr></thead>\n'
 + '      <tbody>\n          ' + linhasBase + '\n      </tbody>\n    </table></div>\n  </section>\n') : '')
 + (d.metas.length ? ('  <section>\n    <p class="rotulo">Pré-registro</p>\n'
-+ '    <h2>O que vamos perseguir, e o que conta como ter dado errado</h2>\n'
-+ '    <p class="intro">Escrito antes de começar, de propósito. Se só combinássemos o sucesso, qualquer número do dia 90 se explicaria — e sempre a favor de quem fez o trabalho. O critério de fracasso está aí para vocês poderem cobrar.</p>\n'
++ '    <h2' + prosa('h2_preregistro','O que vamos perseguir, e o que conta como ter dado errado').attr + '>' + E(B('h2_preregistro','O que vamos perseguir, e o que conta como ter dado errado')) + '</h2>\n'
++ '    <p class="intro"' + INTRO_PRE.attr + '>' + E(INTRO_PRE.txt) + '</p>\n'
 + '      ' + blocosMeta + '\n  </section>\n') : '')
 + (d.marcos.length ? ('  <section>\n    <p class="rotulo">Ordem das coisas</p>\n'
-+ '    <h2>Os primeiros passos</h2>\n'
-+ '    <p class="intro">A barra preta é nossa, a roxa é de vocês.</p>\n'
++ '    <h2' + prosa('h2_passos','Os primeiros passos').attr + '>' + E(B('h2_passos','Os primeiros passos')) + '</h2>\n'
++ '    <p class="intro"' + INTRO_PASSOS.attr + '>' + E(INTRO_PASSOS.txt) + '</p>\n'
 + '    <div class="trilhos">\n      ' + passos + '\n    </div>\n  </section>\n') : '')
++ secoesExtra + '\n'
 + '  <section>\n    <div class="voces">\n      <p class="rotulo">Sua parte</p>\n'
-+ '      <h2>O que depende de vocês agora</h2>\n'
-+ '      <p>' + (itensDeles.length
-      ? itensDeles.length + (itensDeles.length === 1 ? ' coisa, e o plano espera por ela.' : ' coisas, e o plano inteiro espera por elas.')
-      : 'Nada travado do lado de vocês.') + '</p>\n'
-+ '      <div class="lista">\n        ' + listaDeles + '\n      </div>\n    </div>\n  </section>\n'
++ '      <h2' + prosa('h2_voces','O que depende de vocês agora').attr + '>' + E(B('h2_voces','O que depende de vocês agora')) + '</h2>\n'
++ '      <p' + VOCES_INTRO.attr + '>' + E(VOCES_INTRO.txt) + '</p>\n'
++ '      <div class="lista">\n        ' + (listaDeles.join('\n        ') || '<p class="obs">Nada pendente do lado de vocês no momento.</p>') + '\n      </div>\n'
++ '      <button class="mais-item" type="button">+ item</button>\n'
++ '    </div>\n  </section>\n'
 + '  <section>\n    <p class="rotulo">Resultados</p>\n'
-+ (dia < 30
-    ? ('    <h2>Ainda não há o que mostrar</h2>\n'
-+ '    <p class="intro">E é assim que deve estar no começo. Esta seção fica vazia até existir número comparável com o ponto de partida — colocar gráfico bonito aqui antes disso seria enfeite.</p>\n'
-+ '    <div class="vazio">\n      <p class="rotulo">Primeira leitura</p>\n'
-+ '      <p>A primeira medição real sai no dia 30. Ela vem com o que subiu, o que não subiu e o que a gente errou — nessa ordem, porque a terceira é a parte que faz as outras duas valerem alguma coisa.</p>\n'
-+ '      <div class="datas"><span>Dia 30 · ' + maisDias(30) + '</span><span>Dia 60 · ' + maisDias(60) + '</span><span>Dia 90 · ' + maisDias(90) + '</span></div>\n    </div>\n')
-    : ('    <h2>O que aconteceu até aqui</h2>\n'
-+ '    <div class="vazio">\n      <p class="rotulo">A preencher</p>\n'
-+ '      <p>Estamos no dia ' + dia + '. Escreva aqui, à mão, o que subiu, o que não subiu e o que erramos — nessa ordem. Compare com o ponto de partida e com o critério de fracasso que está logo acima, sem editar nenhum dos dois.</p>\n    </div>\n'))
-+ '  </section>\n'
++ '    <h2' + RES_TITULO.attr + '>' + E(RES_TITULO.txt) + '</h2>\n'
++ '    <div class="vazio">\n      <p class="rotulo">' + (dia < 30 ? 'Primeira leitura' : 'Dia ' + dia) + '</p>\n'
++ '      <p' + RES_TEXTO.attr + '>' + E(RES_TEXTO.txt) + '</p>\n'
++ (dia < 30 ? '      <div class="datas"><span>Dia 30 · ' + maisDias(30) + '</span><span>Dia 60 · ' + maisDias(60) + '</span><span>Dia 90 · ' + maisDias(90) + '</span></div>\n' : '')
++ '    </div>\n  </section>\n'
 + '  <footer>\n    <span>Bora Postar · Fortaleza</span>\n'
 + '    <span>Atualizado em <b>' + E(new Date().toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'})) + '</b></span>\n'
-+ '  </footer>\n</div>\n</body>\n</html>\n';
++ '  </footer>\n</div>\n'
++ '<div id="barra" hidden></div>\n'
++ '<' + 'script>\n' + JS_PAGINA_CLIENTE + '\n<' + '/script>\n'
++ '</body>\n</html>\n';
   }
 
   function abaPagina(c){
     const box = el('div');
     const d = state.detalhe;
     const faltas = [];
-    if(!(c.primeiro_valor_prometido||'').trim()) faltas.push(['O primeiro valor prometido','respostas']);
-    if(!d.baselines.length) faltas.push(['O ponto de partida (baseline)','baseline']);
-    if(!d.metas.length) faltas.push(['As metas com critério de fracasso','metas']);
-    if(!d.marcos.length) faltas.push(['Os marcos com data','marcos']);
+    if(!(c.primeiro_valor_prometido||'').trim()) faltas.push('o primeiro valor prometido');
+    if(!d.baselines.length) faltas.push('o ponto de partida');
+    if(!d.metas.length) faltas.push('as metas');
+    if(!d.marcos.length) faltas.push('os passos');
 
+    const gerada = d.pagina && d.pagina.gerada_em;
     box.appendChild(placar([
       { rotulo:'Números de partida', valor:d.baselines.length },
       { rotulo:'Metas', valor:d.metas.length },
       { rotulo:'Passos', valor:d.marcos.length },
-      { rotulo:'Pendências do cliente', valor:
-        d.acessos.filter(a=>['pendente','solicitado','bloqueado'].includes(a.status)).length
-        + d.marcos.filter(m=>m.responsavel==='cliente' && !m.data_cumprida).length, destaca:true },
+      { rotulo:'Textos seus na página', valor:Object.keys((d.pagina && d.pagina.blocos) || {}).length },
+      { rotulo:'Correções', valor:(d.correcoes||[]).length, esconderSeZero:true },
     ]));
 
     if(faltas.length){
       const av = el('div',{class:'erro', style:'margin:0 0 18px'});
-      av.innerHTML = 'A página sai mesmo assim, mas sem estas partes: <strong>'
-        + faltas.map(f=>esc(f[0])).join('</strong>, <strong>') + '</strong>. Seção sem dado simplesmente não aparece — nada é inventado.';
+      av.innerHTML = 'A página sai mesmo assim, mas sem <strong>' + faltas.map(esc).join('</strong>, <strong>')
+        + '</strong>. Seção sem dado simplesmente não aparece — nada é inventado.';
       box.appendChild(av);
+    }
+    if(gerada){
+      box.appendChild(el('p',{class:'muted', style:'margin:0 0 18px;font-size:0.86rem'},
+        'Já gerada em ' + dataBR(gerada) + '. A partir daqui, mudar meta ou baseline é correção do que o cliente já leu — a página passa a mostrar a data da correção.'));
     }
 
     const acoes = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;align-items:center'});
-    acoes.appendChild(el('button',{class:'btn', onclick:()=>{
+    const gerar = async (comEditor)=>{
       const html = montarPaginaCliente(c);
-      const nome = (c.nome_preferido || c.nome || 'cliente').toLowerCase()
+      if(!gerada) await marcarGerada(c);
+      return html;
+    };
+    acoes.appendChild(el('button',{class:'btn', onclick:async()=>{
+      const html = await gerar();
+      const slug = (c.nome_preferido || c.nome || 'cliente').toLowerCase()
         .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').slice(0,40).replace(/^-|-$/g,'');
       const url = URL.createObjectURL(new Blob([html], { type:'text/html;charset=utf-8' }));
       const a = document.createElement('a');
-      a.href = url; a.download = '90-dias-' + (nome || 'cliente') + '.html';
+      a.href = url; a.download = '90-dias-' + (slug || 'cliente') + '.html';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(url), 4000);
       toast('Página baixada.');
     }},'Baixar a página'));
-    acoes.appendChild(el('button',{class:'btn ghost', onclick:()=>{
-      const w = window.open('', '_blank');
-      if(!w){ toast('O navegador bloqueou a janela. Libere pop-up para este site.'); return; }
-      w.document.write(montarPaginaCliente(c)); w.document.close();
-    }},'Ver antes de baixar'));
+    acoes.appendChild(el('button',{class:'btn ghost', onclick:async()=>{
+      const html = await gerar();
+      const url = URL.createObjectURL(new Blob([html], { type:'text/html;charset=utf-8' }));
+      const w = window.open(url + '#editar', '_blank');
+      if(!w) toast('O navegador bloqueou a janela. Libere pop-up para este site.');
+      setTimeout(()=>URL.revokeObjectURL(url), 60000);
+    }},'Abrir para editar'));
     box.appendChild(acoes);
 
-    box.appendChild(el('p',{class:'dica', style:'margin-top:12px;max-width:66ch'},
-      'O arquivo é um HTML só, sem nada de fora. Dá pra mandar por WhatsApp, subir na Vercel ou anexar no e-mail. '
-      + 'Gere de novo nos dias 30, 60 e 90 — o pré-registro continua igual, e é isso que permite conferir o que foi prometido.'));
+    box.appendChild(el('p',{class:'dica', style:'margin-top:12px;max-width:68ch'},
+      '"Abrir para editar" abre a página com o modo de edição ligado: clique em qualquer texto e escreva. '
+      + 'Lá dentro dá pra acrescentar seções e itens, baixar a versão editada e copiar as alterações pra colar aqui embaixo. '
+      + 'O que o cliente recebe é o arquivo baixado, sem barra de edição — ela só aparece com #editar no fim do endereço.'));
+
+    box.appendChild(caixaColar(c));
+    if((d.correcoes||[]).length) box.appendChild(listaCorrecoes());
+    return box;
+  }
+
+  // Insert ou update explícito. Upsert resolveria, mas depende de o servidor
+  // preservar coluna ausente do payload — e perder gerada_em em silêncio
+  // apagaria justamente o que marca que o cliente já leu a página.
+  async function salvarPagina(c, campos){
+    const existente = state.detalhe.pagina;
+    const { error } = existente
+      ? await sb.from('paginas').update(campos).eq('cliente_id', c.id)
+      : await sb.from('paginas').insert(Object.assign({ cliente_id:c.id }, campos));
+    if(error){ toast('Não deu pra salvar a página: ' + error.message); return false; }
+    return true;
+  }
+
+  async function marcarGerada(c){
+    if(await salvarPagina(c, { gerada_em:new Date().toISOString() })) await carregarDetalhe(c.id);
+  }
+
+  // Cola das alterações feitas na página. Nunca aplica direto: mostra o que vai
+  // mudar e espera confirmação, porque isto é texto colado de fora.
+  function caixaColar(c){
+    const box = el('div',{class:'card flat', style:'margin-top:26px'});
+    box.appendChild(el('p',{class:'rot laranja', style:'margin:0 0 4px'},'Trazer alterações da página'));
+    box.appendChild(el('p',{class:'muted', style:'margin:0 0 12px;font-size:0.87rem'},
+      'Cole aqui o que o botão "Copiar alterações" da página gerou. Nada é salvo antes de você conferir a lista.'));
+
+    const ta = el('textarea',{style:'width:100%;min-height:80px;padding:9px;border:1.5px solid #0A0A0A;font-family:monospace;font-size:0.78rem'});
+    box.appendChild(ta);
+    const saida = el('div');
+    const btn = el('button',{class:'btn small', style:'margin-top:10px'},'Conferir alterações');
+    btn.addEventListener('click', ()=>{
+      saida.innerHTML = '';
+      let pacote;
+      try{ pacote = JSON.parse(ta.value.trim()); }
+      catch(err){ toast('Isso não parece o texto copiado da página.'); return; }
+      if(!pacote || pacote.v !== 1){ toast('Formato não reconhecido.'); return; }
+      if(pacote.cliente !== c.id){ toast('Esse texto é da página de outro cliente.'); return; }
+      saida.appendChild(revisao(c, pacote));
+    });
+    box.appendChild(btn);
+    box.appendChild(saida);
+    return box;
+  }
+
+  function revisao(c, pacote){
+    const box = el('div',{style:'margin-top:18px'});
+    const mudancas = Array.isArray(pacote.mudancas) ? pacote.mudancas : [];
+    const blocos = pacote.blocos || {};
+    const nBlocos = Object.keys(blocos).length;
+
+    if(!mudancas.length && !nBlocos){
+      box.appendChild(el('div',{class:'vazio'},'Nada mudou em relação ao que já está aqui.'));
+      return box;
+    }
+
+    if(nBlocos){
+      box.appendChild(el('p',{class:'rot laranja', style:'margin:0 0 8px'}, nBlocos + (nBlocos===1?' texto da página':' textos da página')));
+      box.appendChild(el('p',{class:'muted', style:'margin:0 0 16px;font-size:0.86rem'},
+        'Títulos, aberturas, seções e itens escritos por você. Ficam guardados e voltam toda vez que a página for gerada de novo.'));
+    }
+
+    const delicadas = mudancas.filter(m => m.t === 'metas' || m.t === 'baselines');
+    const campoMotivo = {};
+    if(mudancas.length){
+      box.appendChild(el('p',{class:'rot laranja', style:'margin:18px 0 8px'}, mudancas.length + (mudancas.length===1?' mudança nos dados':' mudanças nos dados')));
+      mudancas.forEach((m, i)=>{
+        const linha = el('div',{class:'card flat', style:'margin-bottom:10px;padding:12px 14px'});
+        const delicada = m.t === 'metas' || m.t === 'baselines';
+        const cab = el('div',{style:'display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px'});
+        cab.innerHTML = '<span class="chip ' + (delicada ? 'espera' : 'neutro') + '">'
+          + esc({metas:'Meta', baselines:'Ponto de partida', marcos:'Passo', acessos:'Acesso', clientes:'Primeiro valor'}[m.t] || m.t)
+          + '</span><span class="mono muted" style="font-size:0.66rem">' + esc(m.c) + '</span>';
+        linha.appendChild(cab);
+        linha.appendChild(el('p',{style:'margin:0;font-size:0.86rem;color:#6E6E6E;text-decoration:line-through'}, esc(m.de || '(vazio)')));
+        linha.appendChild(el('p',{style:'margin:4px 0 0;font-size:0.93rem'}, esc(m.para || '(vazio)')));
+        if(delicada && state.detalhe.pagina && state.detalhe.pagina.gerada_em){
+          const f = el('div',{class:'field', style:'margin:12px 0 0'});
+          f.appendChild(el('label',{},'Por que está mudando'));
+          const inp = el('input',{type:'text', placeholder:'Aparece na página, ao lado do que foi corrigido'});
+          f.appendChild(inp);
+          f.appendChild(el('span',{class:'dica'},'O cliente já leu a versão anterior. Sem motivo, a correção não é registrada.'));
+          linha.appendChild(f);
+          campoMotivo[i] = inp;
+        }
+        box.appendChild(linha);
+      });
+    }
+
+    if(delicadas.length && state.detalhe.pagina && state.detalhe.pagina.gerada_em){
+      box.appendChild(el('div',{class:'erro', style:'margin:14px 0'},
+        'Meta e ponto de partida são o pré-registro: foram escritos antes de começar, e o cliente já leu. '
+        + 'Mudar não é proibido, mas fica registrado com data e motivo na própria página.'));
+    }
+
+    const aplicar = el('button',{class:'btn', style:'margin-top:8px'},'Aplicar tudo');
+    aplicar.addEventListener('click', async ()=>{
+      aplicar.disabled = true;
+      const exigeMotivo = Object.keys(campoMotivo).some(i => !campoMotivo[i].value.trim());
+      if(exigeMotivo){ toast('Escreva o motivo de cada correção antes de aplicar.'); aplicar.disabled = false; return; }
+
+      if(nBlocos){
+        const juntos = Object.assign({}, (state.detalhe.pagina && state.detalhe.pagina.blocos) || {}, blocos);
+        if(!await salvarPagina(c, { blocos:juntos })){ aplicar.disabled = false; return; }
+      }
+
+      for(let i = 0; i < mudancas.length; i++){
+        const m = mudancas[i];
+        if(!['metas','baselines','marcos','acessos','clientes'].includes(m.t)) continue;
+        const campos = {}; campos[m.c] = m.para === '' ? null : m.para;
+        const { error } = await sb.from(m.t).update(campos).eq('id', m.id);
+        if(error){ toast('Não deu em ' + m.t + ': ' + error.message); aplicar.disabled = false; return; }
+        if(campoMotivo[i]){
+          await sb.from('correcoes').insert({
+            cliente_id:c.id, tabela:m.t, registro_id:m.id, campo:m.c,
+            valor_antigo:m.de || null, valor_novo:m.para || null,
+            motivo:campoMotivo[i].value.trim(),
+            corrigido_por:(state.user && state.user.email) || null,
+          });
+        }
+      }
+
+      toast('Alterações aplicadas.');
+      await carregarTudo();
+      await carregarDetalhe(c.id);
+      render();
+    });
+    box.appendChild(aplicar);
+    return box;
+  }
+
+  function listaCorrecoes(){
+    const box = el('div',{style:'margin-top:26px'});
+    box.appendChild(el('p',{class:'rot laranja', style:'margin:0 0 10px'},'Correções depois de o cliente ler'));
+    const w = el('div',{class:'wrap'});
+    const t = el('table');
+    t.innerHTML = '<thead><tr><th>Quando</th><th>O que</th><th>Antes</th><th>Depois</th><th>Motivo</th><th>Quem</th></tr></thead>';
+    const tb = el('tbody');
+    state.detalhe.correcoes.slice().reverse().forEach(x=>{
+      const tr = el('tr');
+      [ soData(x.corrigido_em), x.campo, x.valor_antigo || '—', x.valor_novo || '—', x.motivo || '—', x.corrigido_por || '—' ]
+        .forEach(v => tr.appendChild(el('td',{}, esc(v))));
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); w.appendChild(t); box.appendChild(w);
     return box;
   }
 
@@ -1878,7 +2678,21 @@
     if(state.user){
       const { data, error } = await sb.rpc('is_bora_member');
       state.membro = !error && data === true;
-      if(state.membro) await carregarTudo();
+      if(state.membro){
+        await carregarTudo();
+        // Respeita o endereço com que a pessoa chegou: link mandado pela Bia,
+        // aba recarregada, favorito. Cliente que não existe mais cai no Agora.
+        const r = rotaAtual();
+        if(r.tipo === 'cliente' && state.clientes.some(c => c.id === r.id)){
+          state.vista = { tipo:'cliente', id:r.id };
+          state.aba = (r.aba && ABAS.some(a => a[0] === r.aba)) ? r.aba : 'respostas';
+          carregarDetalhe(r.id).then(render);
+        } else if(r.tipo === 'inbox' || r.tipo === 'novo'){
+          state.vista = { tipo:r.tipo };
+        } else {
+          state.vista = { tipo:'agora' };
+        }
+      }
     }
     state.carregando = false;
     render();
@@ -1892,6 +2706,10 @@
     state.linkEnviadoPara = null; state.modoLogin = 'link'; state.erro = null;
     render();
   }
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && state.gaveta){ state.gaveta = false; render(); }
+  });
 
   iniciarSessao();
 })();
