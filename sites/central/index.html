@@ -22,11 +22,11 @@
     --sup:#FFFFFF;
     --sup2:#FBF9F5;
     --tinta:#1A1815;
-    --fraco:#78716A;
+    --fraco:#6E675F;
     --linha:#E8E2D8;
     --linha2:#F0EBE2;
     --laranja:#FF5E00;
-    --laranja-forte:#C24700;
+    --laranja-forte:#B84300;
     --laranja-fraco:#FFF1E8;
     --roxo:#8800FF;
     --roxo-fraco:#F4EAFF;
@@ -65,7 +65,10 @@
     font-family:var(--dado); font-size:0.58rem; letter-spacing:0.16em;
     text-transform:uppercase; color:var(--fraco); margin:0;
   }
-  .rot.laranja{ color:var(--laranja); }
+  /* A laranja da marca sobre branco dá 3,06:1 — abaixo do mínimo pra texto.
+     Estes rótulos são pequenos, maiúsculos e espaçados: usam a versão forte,
+     como a página do cliente já fazia. */
+  .rot.laranja{ color:var(--laranja-forte); }
   .cifra{
     font-family:var(--display); font-weight:700; letter-spacing:-0.035em;
     font-size:2.4rem; line-height:0.92; font-variant-numeric:tabular-nums;
@@ -94,7 +97,7 @@
     color:var(--fraco); margin:18px 18px 6px; display:flex; justify-content:space-between; align-items:center; font-weight:400;
   }
   .side h4:first-child{ margin-top:2px; }
-  .pill{ background:var(--laranja); color:#fff; font-size:0.6rem; padding:1px 7px; border-radius:100px; font-family:var(--dado); }
+  .pill{ background:var(--laranja-forte); color:#fff; font-size:0.6rem; padding:1px 7px; border-radius:100px; font-family:var(--dado); }
   .navitem{
     display:block; width:calc(100% - 20px); margin:2px 10px; text-align:left; background:none; border:none;
     padding:9px 12px; border-radius:9px; font-size:0.92rem; line-height:1.3; color:inherit;
@@ -149,7 +152,7 @@
   .etapa.meio .bola{ background:linear-gradient(90deg,#D89A2A 50%,#fff 50%); border-color:#D89A2A; }
   .etapa .cab em{ font-style:normal; font-family:var(--dado); font-size:0.55rem; letter-spacing:0.14em; color:var(--fraco); }
   .etapa .n{ font-family:var(--display); font-weight:700; font-size:1.55rem; letter-spacing:-0.035em; line-height:1; margin:9px 0 2px; font-variant-numeric:tabular-nums; }
-  .etapa.falta .n{ color:#CFC8BE; }
+  .etapa.falta .n{ color:#8F877E; }
   .etapa .q{ display:block; font-family:var(--dado); font-size:0.55rem; letter-spacing:0.11em; text-transform:uppercase; color:var(--fraco); }
 
   /* ---------- abas ---------- */
@@ -181,7 +184,7 @@
   /* ---------- seções numeradas dentro da aba ---------- */
   .sec{ display:grid; grid-template-columns:44px minmax(0,1fr); gap:0 18px; }
   @media (max-width:640px){ .sec{ grid-template-columns:minmax(0,1fr); gap:10px; } .sec .num{ display:none; } }
-  .sec .num{ font-family:var(--display); font-weight:700; font-size:1.15rem; color:var(--laranja); letter-spacing:-0.02em; line-height:1.2; }
+  .sec .num{ font-family:var(--display); font-weight:700; font-size:1.15rem; color:var(--laranja-forte); letter-spacing:-0.02em; line-height:1.2; }
   .sec h3{ font-family:var(--display); font-size:1.12rem; margin:0 0 4px; letter-spacing:-0.015em; }
   .sec .quando{
     display:block; margin-top:8px; font-family:var(--dado); font-size:0.58rem;
@@ -227,7 +230,7 @@
     padding:10px 17px; border-radius:100px; border:1.5px solid var(--tinta);
     background:var(--tinta); color:#fff; transition:transform .12s ease, box-shadow .14s ease, background .14s ease;
   }
-  .btn:hover{ background:var(--laranja); border-color:var(--laranja); box-shadow:var(--s1); transform:translateY(-1px); }
+  .btn:hover{ background:var(--laranja-forte); border-color:var(--laranja-forte); box-shadow:var(--s1); transform:translateY(-1px); }
   .btn.ghost{ background:transparent; color:var(--tinta); border-color:var(--linha); }
   .btn.ghost:hover{ background:var(--sup2); color:var(--tinta); border-color:var(--tinta); box-shadow:none; }
   .btn.small{ font-size:0.74rem; padding:7px 13px; }
@@ -263,10 +266,10 @@
   .qa.vazia{ border-left-color:var(--linha); }
   .qa .q{ font-size:0.78rem; color:var(--fraco); margin-bottom:3px; line-height:1.35; }
   .qa .a{ font-size:0.97rem; white-space:pre-wrap; line-height:1.5; }
-  .qa.vazia .a{ color:#BDB6AD; font-style:italic; }
+  .qa.vazia .a{ color:var(--fraco); font-style:italic; }
   .secname{
     font-family:var(--dado); font-size:0.58rem; letter-spacing:0.15em; text-transform:uppercase;
-    color:var(--laranja); border-bottom:1px solid var(--linha); padding-bottom:7px; margin:30px 0 16px;
+    color:var(--laranja-forte); border-bottom:1px solid var(--linha); padding-bottom:7px; margin:30px 0 16px;
   }
   .secname:first-child{ margin-top:0; }
 
@@ -427,7 +430,7 @@
     min-height:96px; display:flex; flex-direction:column; gap:5px; text-align:left; color:inherit;
     transition:border-color .14s ease, background .14s ease;
   }
-  .dia.fora{ opacity:.42; }
+  .dia.fora{ opacity:.62; }
   .dia.hoje{ border-color:var(--laranja); border-width:2px; background:var(--laranja-fraco); }
   .dia.alvo{ border-color:var(--laranja); background:var(--laranja-fraco); }
   .dia .n{
@@ -571,7 +574,7 @@
     font-family:var(--display); font-weight:600; font-size:0.76rem; color:var(--fraco);
   }
   .chip-p:hover{ border-color:var(--tinta); color:var(--tinta); }
-  .chip-p[aria-pressed="true"]{ background:var(--laranja); border-color:var(--laranja); color:#fff; }
+  .chip-p[aria-pressed="true"]{ background:var(--laranja-forte); border-color:var(--laranja-forte); color:#fff; }
   .passos{ margin-top:8px; }
   .passo{ display:flex; gap:9px; align-items:center; padding:3px 0; }
   .passo .marca{
@@ -628,6 +631,77 @@
     .pontos{ display:flex; }
   }
 
+  /* ---------- economia ---------- */
+  /* Barras horizontais de magnitude. Todas da mesma cor de propósito: a barra
+     já diz o tamanho no comprimento, e pintar cada uma de um jeito gastaria o
+     único canal livre repetindo o que o olho enxerga. Laranja forte, e não a
+     laranja da marca, porque essa dá 2,9:1 no papel claro — abaixo do mínimo
+     de 3:1 pra uma forma. */
+  .barras{ display:grid; gap:9px; }
+  .barra-l{ display:grid; grid-template-columns:minmax(120px,26%) minmax(0,1fr) auto; gap:12px; align-items:center; }
+  .barra-l .rot-b{ font-size:0.84rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .barra-l .trilho{ height:9px; border-radius:100px; background:var(--linha2); overflow:hidden; }
+  .barra-l .trilho i{ display:block; height:100%; border-radius:100px; background:var(--laranja-forte); }
+  .barra-l .val-b{ font-family:var(--dado); font-size:0.72rem; color:var(--fraco); white-space:nowrap; }
+  @media (max-width:560px){
+    .barra-l{ grid-template-columns:minmax(0,1fr) auto; }
+    .barra-l .trilho{ grid-column:1 / -1; }
+  }
+
+  /* Uma razão contra um limite. A marca do alvo é um traço no trilho; o estado
+     vem escrito ao lado, porque cor sozinha não conta nada pra quem não a vê. */
+  .medidor{ display:flex; gap:10px; align-items:center; min-width:180px; }
+  .medidor .trilho{ position:relative; flex:1 1 auto; height:9px; border-radius:100px; background:var(--linha2); }
+  .medidor .trilho i{ display:block; height:100%; border-radius:100px; background:var(--nt); }
+  .medidor .trilho.ok i{ background:var(--ok); }
+  .medidor .trilho.es i{ background:var(--es); }
+  .medidor .trilho.al i{ background:var(--al); }
+  .medidor .trilho u{
+    position:absolute; top:-3px; width:2px; height:15px; background:var(--tinta);
+    border-radius:2px; margin-left:-1px; opacity:.55;
+  }
+  .medidor .lab{ font-family:var(--dado); font-size:0.66rem; white-space:nowrap; }
+  .medidor .lab.ok{ color:var(--ok); }
+  .medidor .lab.es{ color:var(--es); }
+  .medidor .lab.al{ color:var(--al); }
+
+  .rolagem{ overflow-x:auto; }
+  td.num-col{ font-family:var(--dado); font-size:0.86rem; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .titulo-bloco{ font-family:var(--display); font-size:1.2rem; margin:6px 0 0; letter-spacing:-0.015em; }
+  .bloco.aviso-dado{ border-left:3px solid var(--es); background:var(--es-f); }
+  .bloco.aviso-dado .intro{ color:var(--tinta); }
+  .bloco.falta{ border-left:3px solid var(--laranja); }
+  .corpo-expl{ padding:12px 0 2px; display:grid; gap:9px; }
+  .corpo-expl p{ margin:0; font-size:0.87rem; color:var(--fraco); line-height:1.55; max-width:66ch; }
+  .corpo-expl b{ color:var(--tinta); }
+  /* Os campos de economia levam uma explicação junto — cabem em coluna larga,
+     não na grade estreita das propriedades do cliente. */
+  .props.economia{ grid-template-columns:repeat(auto-fill, minmax(min(400px,100%),1fr)); gap:4px 34px; }
+  .prop.alto{ align-items:start; padding:14px 0; }
+  .prop.alto > div:first-child{ flex:1 1 auto; min-width:0; }
+  .prop.alto > div:first-child > span:first-child{
+    font-family:var(--display); font-weight:600; font-size:0.9rem; letter-spacing:0;
+    text-transform:none; color:var(--tinta);
+  }
+  .prop.alto .v{ flex:0 0 auto; width:150px; }
+  .prop.alto input{ border-color:var(--linha); background:var(--sup2); text-align:right; }
+  .tempo-lin{ margin-top:4px; }
+  /* Campo de texto longo dentro do painel: o rótulo em cima, e não ao lado,
+     porque um roteiro precisa da largura toda. */
+  .campo-longo{ display:grid; gap:5px; margin-top:12px; }
+  .campo-longo > span{
+    font-family:var(--dado); font-size:0.58rem; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--fraco);
+  }
+  .campo-longo textarea{
+    width:100%; background:var(--sup2); border:1px solid var(--linha); border-radius:9px;
+    padding:10px 11px; font-family:var(--corpo); font-size:0.9rem; color:var(--tinta);
+    line-height:1.55; resize:vertical;
+  }
+  .campo-longo textarea:focus{ border-color:var(--laranja); background:var(--sup); }
+  .campo-dica{ margin:5px 0 0; }
+  .campo-dica.grave{ color:var(--al); font-weight:600; }
+
   /* ---------- listas ---------- */
   .abas-lista{ display:flex; gap:5px; flex-wrap:wrap; margin-bottom:18px; }
   .item-l{
@@ -677,10 +751,10 @@
   .navtopo button:hover{ background:var(--sup2); color:var(--tinta); }
   .navtopo button[aria-current="page"]{ background:var(--laranja-fraco); color:var(--laranja-forte); }
   .navtopo .conta{
-    font-family:var(--dado); font-size:0.58rem; background:var(--laranja); color:#fff;
+    font-family:var(--dado); font-size:0.58rem; background:var(--laranja-forte); color:#fff;
     border-radius:100px; padding:1px 6px; letter-spacing:0;
   }
-  .navtopo button[aria-current="page"] .conta{ background:var(--laranja-forte); }
+  .navtopo button[aria-current="page"] .conta{ background:var(--tinta); }
 
   .topbar .fim{ display:flex; align-items:center; gap:12px; flex:0 0 auto; }
   .topbar .who{ font-family:var(--dado); font-size:0.66rem; color:var(--fraco); }
@@ -749,7 +823,7 @@
   .cli-cartao .alertas{ display:flex; gap:6px; flex-wrap:wrap; }
 
   /* ---------- propriedades do perfil ---------- */
-  .props{ display:grid; grid-template-columns:repeat(auto-fill, minmax(310px,1fr)); gap:2px 26px; }
+  .props{ display:grid; grid-template-columns:repeat(auto-fill, minmax(min(310px,100%),1fr)); gap:2px 26px; }
   .prop{ display:flex; gap:10px; align-items:baseline; padding:7px 0; border-bottom:1px solid var(--linha2); }
   .prop > span{
     flex:0 0 96px; font-family:var(--dado); font-size:0.56rem; letter-spacing:0.11em;
@@ -880,6 +954,10 @@
   :root[data-tema="sistema"].escuro .linha-tar .marca.concluido,
   :root[data-tema="escuro"] .passo .marca.concluido,
   :root[data-tema="sistema"].escuro .passo .marca.concluido{ background:var(--ok); border-color:var(--ok); color:#12100E; }
+  :root[data-tema="escuro"] .barra-l .trilho i,
+  :root[data-tema="sistema"].escuro .barra-l .trilho i{ background:var(--laranja); }
+  :root[data-tema="escuro"] .bloco.aviso-dado .intro,
+  :root[data-tema="sistema"].escuro .bloco.aviso-dado .intro{ color:var(--es); }
   :root[data-tema="escuro"] .painel-fundo,
   :root[data-tema="sistema"].escuro .painel-fundo{ background:rgba(0,0,0,.62); }
   :root[data-tema="escuro"] .ini.a,
@@ -1157,10 +1235,11 @@
     tarefas:[], listas:[], listaItens:[], listaAberta:null,
     busca:'', verTudo:false, perfil:null, escondidos:[],
     visaoAgenda:'calendario', visaoLista:'lista', filtroQuem:'todos', filtroTipo:'todos',
-    verDerivados:true, diaFoco:null,
+    verDerivados:true, diaFoco:null, visaoTempo:'tipo',
     mesAgenda:new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),
     buscaCliente:'',
     tudo:{ acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] },
+    economia:null, funilEventos:[], mesEconomia:null,
   };
 
   const app = document.getElementById('app');
@@ -1176,6 +1255,7 @@
     if(a === 'perfil') return { tipo:'perfil' };
     if(a === 'clientes') return { tipo:'clientes' };
     if(a === 'agenda') return { tipo:'agenda' };
+    if(a === 'economia') return { tipo:'economia' };
     if(a === 'listas') return { tipo:'listas' };
     if(a === 'funil') return { tipo:'funil' };
     if(a === 'lista') return { tipo:'lista' };
@@ -1189,6 +1269,7 @@
     if(vista.tipo === 'perfil') return '#/perfil';
     if(vista.tipo === 'clientes') return '#/clientes';
     if(vista.tipo === 'agenda') return '#/agenda';
+    if(vista.tipo === 'economia') return '#/economia';
     if(vista.tipo === 'listas') return '#/listas';
     if(vista.tipo === 'funil') return '#/funil';
     if(vista.tipo === 'lista') return '#/lista';
@@ -1265,7 +1346,7 @@
     // As seis tabelas vêm inteiras, sem filtro de cliente: é o que a tela Agora
     // precisa pra cruzar tudo. São dezenas de linhas no total, não milhares —
     // no dia em que forem, isso vira uma view no banco, não mais selects aqui.
-    const [cli, inbox, ac, me, ba, ma, co, ho, op, ta, li, it, pf] = await Promise.all([
+    const [cli, inbox, ac, me, ba, ma, co, ho, op, ta, li, it, pf, ec, fe] = await Promise.all([
       sb.from('clientes').select('*').order('nome'),
       sb.from('onboarding_respostas').select('*').is('cliente_id', null).order('recebido_em', { ascending:false }),
       sb.from('acessos').select('*'),
@@ -1279,6 +1360,8 @@
       sb.from('listas').select('*').order('ordem'),
       sb.from('lista_itens').select('*').order('ordem'),
       sb.from('perfil_bora').select('*').limit(1),
+      sb.from('economia_bora').select('*').limit(1),
+      sb.from('funil_eventos').select('*').order('em'),
     ]);
     if(cli.error) state.erro = cli.error.message;
     state.clientes = cli.data || [];
@@ -1294,6 +1377,8 @@
     if(!state.listaAberta && state.listas.length) state.listaAberta = state.listas[0].id;
     // A política do banco já entrega só o perfil de quem está logado.
     state.perfil = (pf.data && pf.data[0]) || state.perfil;
+    state.economia = (ec.data && ec.data[0]) || state.economia || ECONOMIA_PADRAO;
+    state.funilEventos = fe.data || [];
     aplicarTema();
   }
 
@@ -1427,7 +1512,7 @@
     box.appendChild(form);
 
     const alt = el('p',{style:'margin:18px 0 0'});
-    alt.appendChild(el('button',{class:'linkbtn', type:'button', style:'color:#6E6E6E',
+    alt.appendChild(el('button',{class:'linkbtn', type:'button', style:'color:var(--fraco)',
       onclick:()=>{ state.modoLogin = porSenha ? 'link' : 'senha'; state.erro=null; render(); }},
       porSenha ? 'voltar pro link por e-mail' : 'entrar com senha'));
     box.appendChild(alt);
@@ -1747,6 +1832,7 @@
     ['agenda',   'Agenda'],
     ['funil',    'Captação'],
     ['clientes', 'Clientes'],
+    ['economia', 'Economia'],
     ['listas',   'Arquivo'],
   ];
 
@@ -2061,6 +2147,7 @@
     if(state.vista.tipo==='perfil') return telaPerfil();
     if(state.vista.tipo==='clientes') return telaClientes();
     if(state.vista.tipo==='agenda') return telaAgenda();
+    if(state.vista.tipo==='economia') return telaEconomia();
     if(state.vista.tipo==='listas') return telaListas();
     if(state.vista.tipo==='funil') return telaFunil();
     if(state.vista.tipo==='lista') return telaLista();
@@ -2137,6 +2224,21 @@
     if(deHoje.length) add('media', null, null,
       deHoje.length + (deHoje.length === 1 ? ' tarefa marcada pra hoje' : ' tarefas marcadas pra hoje'),
       deHoje.slice(0,4).map(t => t.titulo).join(' · ') + (deHoje.length > 4 ? ' e mais ' + (deHoje.length-4) : ''), 'agenda');
+
+    // Gravação sem roteiro. Não é opinião sobre o roteiro: é o campo vazio.
+    // Chegar no estúdio sem ele custa uma segunda ida, que é o erro mais caro
+    // que uma agência de dois faz na semana.
+    const gravar = state.tarefas.filter(t=>{
+      if((t.tipo || '') !== 'gravacao') return false;
+      if(t.estado === 'concluido' || t.estado === 'cancelado') return false;
+      const d = diasAte(t.data);
+      if(d === null || d < 0 || d > 3) return false;
+      return !((t.campos || {}).roteiro || '').trim();
+    });
+    if(gravar.length) add('media', null, null,
+      gravar.length + (gravar.length === 1 ? ' gravação sem roteiro' : ' gravações sem roteiro'),
+      gravar.map(t => t.titulo + ' (' + emDias(diasAte(t.data)) + ')').join(' · ')
+      + '. Ir gravar sem roteiro é gravar de novo depois.', 'agenda');
 
     // Listas: o que tem data de fim chegando. Contrato que vence sem ninguém
     // olhar vira renovação automática ruim ou cliente perdido em silêncio.
@@ -2230,7 +2332,8 @@
       if(c.estagio === 'ativo'){
         const ult = meus('horas').map(h => diasAte(h.data)).filter(x => x !== null).sort((a,b)=>b-a)[0];
         if(ult === undefined) add('baixa', c, 'horas', 'Nenhuma hora lançada',
-          'Sem horas, não dá pra saber se o cliente dá lucro nem o que vale automatizar.');
+          'Sem horas, não dá pra saber se o cliente dá lucro nem o que vale automatizar. '
+          + 'O caminho curto: marque hora de começo e fim nas tarefas dele — ao concluir, o tempo se aponta sozinho.');
         else if(ult <= -14) add('baixa', c, 'horas', 'Sem horas lançadas ' + emDias(ult),
           'O último lançamento foi ' + emDias(ult) + '. Registro que atrasa duas semanas vira chute.');
       }
@@ -2328,6 +2431,101 @@
     ['alta','Alta','Sai na frente do resto do dia'],
   ];
 
+  // O formulário de cada tipo. Uma gravação e uma cobrança não têm as mesmas
+  // perguntas, e mostrar as trinta de uma vez seria pior do que não ter
+  // nenhuma. Cada campo aqui existe porque a falta dele custa uma volta: ir
+  // gravar sem roteiro é gravar três vezes; editar sem saber onde estão os
+  // brutos é mandar mensagem e esperar.
+  //
+  // Nada disto é somado nem filtrado entre tarefas — por isso mora num jsonb,
+  // e não em coluna. O que precisa ser cruzado (tipo, hora, cliente, quem)
+  // continua sendo coluna de verdade.
+  const CAMPOS_POR_TIPO = {
+    gravacao: [
+      { c:'formato', r:'Formato', t:'escolha', op:['Reels','Stories','Carrossel','Vídeo longo','Foto'] },
+      { c:'quantidade', r:'Quantas peças', t:'numero',
+        d:'É o que permite saber quanto custa cada peça, lá na Economia.' },
+      { c:'quem_aparece', r:'Quem aparece', t:'texto', p:'Rafa, Letícia, os dois…' },
+      { c:'roteiro', r:'Roteiro', t:'longo',
+        p:'Gancho, o que falar, chamada final…',
+        d:'O que vai ser dito, na ordem. É o que evita gravar a mesma coisa três vezes.' },
+      { c:'equipamento', r:'Levar', t:'texto', p:'Tripé, lapela, luz, cartão…' },
+    ],
+    edicao: [
+      { c:'brutos', r:'Onde estão os brutos', t:'texto', p:'Pasta, cartão, celular de quem…' },
+      { c:'formato', r:'Formato', t:'escolha', op:['Reels','Stories','Carrossel','Vídeo longo','Foto'] },
+      { c:'quantidade', r:'Quantas peças', t:'numero' },
+      { c:'acabamento', r:'Acabamento', t:'escolha', op:['Legenda queimada','Só corte','Com trilha','Completo'] },
+      { c:'referencia', r:'Referência', t:'texto', p:'Link ou "igual ao do mês passado"' },
+    ],
+    reuniao: [
+      { c:'quem_participa', r:'Quem participa', t:'texto', p:'Nome de quem estará na sala' },
+      { c:'pauta', r:'Pauta', t:'longo', p:'Os pontos, na ordem…',
+        d:'Reunião sem pauta escrita é reunião que vira conversa e volta sem decisão.' },
+      { c:'decisoes', r:'O que foi decidido', t:'longo',
+        d:'Preencher depois. É daqui que sai o resumo que se manda pro cliente.' },
+    ],
+    publicacao: [
+      { c:'canal', r:'Onde vai ao ar', t:'escolha',
+        op:['Instagram feed','Reels','Stories','TikTok','YouTube','Perfil da Empresa'] },
+      { c:'legenda', r:'Legenda', t:'longo', p:'O texto que vai junto…' },
+      { c:'chamada', r:'Chamada final', t:'texto', p:'"Chama no WhatsApp", "link na bio"…',
+        d:'O que a pessoa deve fazer depois de ver. Peça sem chamada não gera nada mensurável.' },
+      { c:'aprovado_por', r:'Aprovado por', t:'texto', p:'Nome de quem liberou',
+        d:'Em profissão regulada, quem aprovou e quando é o que protege os dois lados.' },
+    ],
+    entrega: [
+      { c:'o_que', r:'O que está sendo entregue', t:'longo' },
+      { c:'como', r:'Por onde', t:'escolha', op:['WhatsApp','E-mail','Drive','Na reunião','Impresso'] },
+      { c:'confirmado_por', r:'Quem confirmou o recebimento', t:'texto' },
+    ],
+    cobranca: [
+      { c:'valor', r:'Valor', t:'numero', p:'0' },
+      { c:'vencimento', r:'Vence em', t:'data' },
+      { c:'forma', r:'Forma', t:'escolha', op:['Pix','Boleto','Transferência','Cartão'] },
+      { c:'nota', r:'Nota fiscal', t:'escolha', op:['Precisa emitir','Emitida','Não se aplica'] },
+    ],
+    prazo: [
+      { c:'de_quem', r:'De quem depende', t:'escolha', op:['Nosso','Do cliente','De terceiro'] },
+      { c:'consequencia', r:'O que acontece se estourar', t:'texto',
+        d:'Prazo sem consequência escrita é prazo que ninguém respeita.' },
+    ],
+    tarefa: [],
+  };
+
+  // Listas prontas, uma por tipo. Não é automação: é um modelo que alguém
+  // aperta quando quer, e que dá pra apagar linha por linha. O Bloco G da
+  // pesquisa é sobre não automatizar processo pouco rodado — isto não decide
+  // nada sozinho, só evita redigitar a mesma checklist toda semana.
+  const PASSOS_PADRAO = {
+    gravacao: ['Bateria e cartão','Tripé e luz','Microfone testado','Roteiro na mão',
+               'Autorização de imagem','Backup dos brutos no fim'],
+    edicao: ['Escolher os melhores takes','Cortar','Legendar','Revisar o áudio',
+             'Exportar','Mandar pra aprovação'],
+    reuniao: ['Confirmar na véspera','Mandar a pauta antes','Anotar as decisões',
+              'Mandar o resumo depois'],
+    publicacao: ['Legenda revisada','Conformidade conferida','Aprovado pelo cliente',
+                 'Agendado','Conferir no ar'],
+    entrega: ['Conferir contra o que foi combinado','Enviar','Confirmar que recebeu'],
+    cobranca: ['Emitir a nota','Mandar a cobrança','Conferir se caiu'],
+  };
+
+  const camposDoTipo = tipo => CAMPOS_POR_TIPO[tipo || 'tarefa'] || [];
+
+  // O que dá pra dizer da tarefa em uma linha, com o que o tipo dela guarda.
+  function resumoTipo(t){
+    const cs = t.campos || {};
+    const p = [];
+    if(cs.quantidade) p.push(cs.quantidade + (Number(cs.quantidade) === 1 ? ' peça' : ' peças'));
+    if(cs.formato) p.push(cs.formato);
+    if(cs.canal) p.push(cs.canal);
+    if(cs.quem_aparece) p.push('com ' + cs.quem_aparece);
+    if(cs.de_quem) p.push(String(cs.de_quem).toLowerCase());
+    if(cs.valor) p.push(dinheiro(cs.valor));
+    if(cs.vencimento) p.push('vence ' + soData(cs.vencimento));
+    return p.join(' · ');
+  }
+
   const iso = d => {
     const x = new Date(d);
     return x.getFullYear() + '-' + String(x.getMonth()+1).padStart(2,'0') + '-' + String(x.getDate()).padStart(2,'0');
@@ -2350,6 +2548,13 @@
     const novo = ordem[(i + 1) % ordem.length];
     t.estado = novo; render(); pintarPainel();
     if(!await salvarTarefa(t.id, { estado:novo })){ await carregarTudo(); render(); return; }
+    // Concluiu e tinha horário marcado? O tempo se aponta sozinho. É aqui que a
+    // conta de custo da tela Economia deixa de depender de alguém lembrar de
+    // preencher um formulário — que é a razão de ela estar vazia até hoje.
+    if(novo === 'concluido' && !horaDaTarefa(t)){
+      const m = minutosMarcados(t);
+      if(m && await apontarTempo(t, m)) toast('Feito. Apontei ' + emHoras(m) + ' — dá pra mudar no painel.');
+    }
     await carregarTudo(); render();
   }
 
@@ -2368,7 +2573,7 @@
       nova:true, titulo:'', tipo:'tarefa', estado:'pendente', prioridade:'normal',
       data: dia || hojeIso(),
       responsavel: state.filtroQuem === 'todos' ? 'os_dois' : state.filtroQuem,
-      cliente_id: clienteId || null, passos:[],
+      cliente_id: clienteId || null, passos:[], campos:{},
     });
   }
 
@@ -2565,7 +2770,105 @@
       class:'titulo-p' });
     tit.addEventListener('change', ()=>grava({ titulo: tit.value.trim() }));
     linha(sOq, 'Nome', tit);
-    chips(sOq, 'Tipo', TIPOS_TAREFA, ()=>t.tipo || 'tarefa', k=>grava({ tipo:k }));
+    chips(sOq, 'Tipo', TIPOS_TAREFA, ()=>t.tipo || 'tarefa', async k=>{
+      if(!await grava({ tipo:k })) return false;
+      desenharCamposDoTipo();
+      desenharPassos();
+      return true;
+    });
+
+    // --- o que só este tipo pede
+    // A seção troca junto com o tipo. O que foi escrito num tipo anterior não
+    // é apagado: fica guardado e volta se o tipo voltar — trocar de tipo por
+    // engano não pode custar o roteiro que alguém acabou de escrever.
+    const sTipo = secao('');
+    corpo.insertBefore(sTipo, sOq.nextSibling);
+
+    function gravaCampo(chave, valor){
+      const cs = Object.assign({}, t.campos || {});
+      if(valor === null || valor === '') delete cs[chave]; else cs[chave] = valor;
+      return grava({ campos:cs });
+    }
+
+    function desenharCamposDoTipo(){
+      const tipo = t.tipo || 'tarefa';
+      const lista = camposDoTipo(tipo);
+      sTipo.innerHTML = '';
+      sTipo.hidden = !lista.length;
+      if(!lista.length){
+        // Nada a pedir pra este tipo — mas se sobrou coisa escrita de outro,
+        // é melhor dizer do que deixar a pessoa achar que perdeu.
+        const sobrou = Object.keys(t.campos || {}).length;
+        if(sobrou){
+          sTipo.hidden = false;
+          sTipo.appendChild(el('p',{class:'rot'},'Guardado'));
+          sTipo.appendChild(el('p',{class:'dica', style:'margin:6px 0 0'},
+            sobrou + (sobrou === 1 ? ' campo preenchido' : ' campos preenchidos')
+            + ' de outro tipo continuam guardados. Volte o tipo pra vê-los.'));
+        }
+        return;
+      }
+      sTipo.appendChild(el('p',{class:'rot'}, esc(rotuloTipo(tipo))));
+      const cs = t.campos || {};
+      lista.forEach(f=>{
+        const v = cs[f.c];
+        if(f.t === 'escolha'){
+          const cx = el('div',{class:'campo-p'});
+          cx.appendChild(el('span',{}, esc(f.r)));
+          const g = el('div',{class:'chips'});
+          f.op.forEach(op=>{
+            const b = el('button',{class:'chip-p', 'aria-pressed':String(v === op),
+              onclick:async()=>{
+                // Clicar no que já está escolhido limpa: sem isso não há como
+                // desfazer uma escolha feita por engano.
+                if(await gravaCampo(f.c, v === op ? null : op)) desenharCamposDoTipo();
+              }}, esc(op));
+            g.appendChild(b);
+          });
+          cx.appendChild(g);
+          sTipo.appendChild(cx);
+        } else if(f.t === 'longo'){
+          const cx = el('div',{class:'campo-longo'});
+          cx.appendChild(el('span',{}, esc(f.r)));
+          const ta = el('textarea',{rows: f.c === 'roteiro' ? '6' : '4', placeholder: f.p || ''});
+          ta.value = v == null ? '' : v;
+          ta.addEventListener('change', ()=>gravaCampo(f.c, ta.value.trim() || null));
+          cx.appendChild(ta);
+          sTipo.appendChild(cx);
+        } else {
+          const i = el('input',{
+            type: f.t === 'numero' ? 'number' : (f.t === 'data' ? 'date' : 'text'),
+            value: v == null ? '' : v, placeholder: f.p || '' });
+          if(f.t === 'numero') i.min = '0';
+          i.addEventListener('change', async ()=>{
+            const txt = i.value.trim();
+            await gravaCampo(f.c, txt === '' ? null : (f.t === 'numero' ? Number(txt) : txt));
+          });
+          const l = el('label',{class:'campo-p'});
+          l.appendChild(el('span',{}, esc(f.r)));
+          l.appendChild(i);
+          sTipo.appendChild(l);
+        }
+        if(f.d) sTipo.appendChild(el('p',{class:'dica campo-dica'}, esc(f.d)));
+      });
+
+      // Publicação de cliente em profissão regulada: o veredito de
+      // conformidade já está guardado na ficha dele, e é aqui que ele
+      // precisa ser lembrado — antes de a peça ir ao ar, não depois.
+      if(tipo === 'publicacao' && t.cliente_id){
+        const itens = (state.tudo.conformidade || []).filter(x => x.cliente_id === t.cliente_id);
+        const barrados = itens.filter(x => x.status === 'nao_conforme').length;
+        const abertos = itens.filter(x => x.status === 'pendente').length;
+        if(itens.length){
+          const av = el('p',{class:'dica campo-dica' + (barrados ? ' grave' : '')},
+            barrados ? barrados + (barrados === 1 ? ' item marcado como "não pode publicar" na ficha deste cliente.' : ' itens marcados como "não pode publicar" na ficha deste cliente.')
+            : (abertos ? abertos + (abertos === 1 ? ' item de conformidade ainda sem veredito.' : ' itens de conformidade ainda sem veredito.')
+              : 'Conformidade deste cliente está toda com veredito.'));
+          sTipo.appendChild(av);
+        }
+      }
+    }
+    desenharCamposDoTipo();
 
     // --- quando
     const sQuando = secao('Quando');
@@ -2603,6 +2906,75 @@
     chips(sEstado, 'Situação', ESTADOS_TAREFA, ()=>t.estado, k=>grava({ estado:k }));
     chips(sEstado, 'Prioridade', PRIORIDADES, ()=>t.prioridade || 'normal', k=>grava({ prioridade:k }));
 
+    // --- tempo gasto
+    // Não é controle de ponto: é o único jeito de o preço parar de ser palpite.
+    // Um clique, na hora em que a tarefa acaba e você ainda lembra quanto durou.
+    const sTempo = secao('Tempo gasto',
+      'O que faz a tela Economia existir. Sem isto não dá pra saber se o cliente dá lucro.');
+    const linhaTempo = el('div',{class:'tempo-lin'});
+    sTempo.appendChild(linhaTempo);
+
+    function desenharTempo(){
+      linhaTempo.innerHTML = '';
+      if(t.nova){
+        linhaTempo.appendChild(el('p',{class:'dica', style:'margin:0'},
+          'Depois de criar a tarefa dá pra apontar o tempo aqui.'));
+        return;
+      }
+      const reg = horaDaTarefa(t);
+      const marcado = minutosMarcados(t);
+      const atalhos = [15, 30, 60, 90, 120];
+      const grade = el('div',{class:'chips'});
+      if(marcado && (!reg || reg.minutos !== marcado)){
+        grade.appendChild(el('button',{class:'chip-p', onclick:async()=>{
+          if(await apontarTempo(t, marcado)){ desenharTempo(); render(); }
+        }}, 'o horário marcado (' + emHoras(marcado) + ')'));
+      }
+      atalhos.forEach(a=>{
+        grade.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(!!reg && reg.minutos === a),
+          onclick:async()=>{ if(await apontarTempo(t, a)){ desenharTempo(); render(); } }}, emHoras(a)));
+      });
+      linhaTempo.appendChild(grade);
+
+      const exato = el('div',{class:'campo-p', style:'margin-top:12px'});
+      exato.appendChild(el('span',{},'Minutos'));
+      const cx = el('div',{style:'display:flex;gap:8px;align-items:center'});
+      const im = el('input',{type:'number', min:'1', step:'5', placeholder:'—',
+        value: reg ? String(reg.minutos) : ''});
+      im.addEventListener('change', async ()=>{
+        const v = im.value.trim();
+        if(v === ''){ if(await apontarTempo(t, null)){ desenharTempo(); render(); } return; }
+        const n = Number(v);
+        if(!(n > 0)){ toast('Precisa ser maior que zero.'); im.value = reg ? reg.minutos : ''; return; }
+        if(await apontarTempo(t, n)){ desenharTempo(); render(); }
+      });
+      cx.appendChild(im);
+      if(reg) cx.appendChild(el('button',{class:'linkbtn', onclick:async()=>{
+        if(await apontarTempo(t, null)){ desenharTempo(); render(); }
+      }},'apagar o apontamento'));
+      exato.appendChild(cx);
+      linhaTempo.appendChild(exato);
+
+      const fat = el('div',{class:'campo-p'});
+      fat.appendChild(el('span',{},'Cobra?'));
+      const gf = el('div',{class:'chips'});
+      [[true,'Cobra do cliente'],[false,'Não cobra']].forEach(([v,rot])=>{
+        gf.appendChild(el('button',{class:'chip-p',
+          'aria-pressed':String(!!reg && reg.faturavel === v),
+          onclick:async()=>{
+            if(!reg){ toast('Aponte o tempo primeiro.'); return; }
+            if(await apontarTempo(t, reg.minutos, v)){ desenharTempo(); render(); }
+          }}, rot));
+      });
+      fat.appendChild(gf);
+      linhaTempo.appendChild(fat);
+      linhaTempo.appendChild(el('p',{class:'dica', style:'margin:10px 0 0'},
+        reg
+          ? 'Apontado: ' + emHoras(reg.minutos) + (reg.faturavel ? ', cobrado do cliente.' : ', por nossa conta.')
+          : 'Nada apontado ainda. Retrabalho e reunião interna também contam — se ficarem de fora, a conta do custo mente.'));
+    }
+    desenharTempo();
+
     // --- passos
     // O checklist é o que transforma "gravar reels" em uma coisa que dá pra
     // parar no meio e retomar sem perder onde estava.
@@ -2624,6 +2996,17 @@
       listaPassos.innerHTML = '';
       if(!ps.length){
         listaPassos.appendChild(el('p',{class:'dica', style:'margin:0 0 10px'},'Nenhum passo ainda.'));
+        const modelo = PASSOS_PADRAO[t.tipo || 'tarefa'];
+        if(modelo && modelo.length){
+          listaPassos.appendChild(el('button',{class:'btn ghost small', style:'margin-bottom:12px',
+            onclick:async()=>{
+              const novos = modelo.map(x => ({ t:x, ok:false }));
+              if(await grava({ passos:novos })) desenharPassos();
+            }}, 'usar a lista de ' + rotuloTipo(t.tipo).toLowerCase()));
+          listaPassos.appendChild(el('p',{class:'dica', style:'margin:0 0 10px'},
+            'São ' + modelo.length + ' passos que se repetem nesse tipo de trabalho. '
+            + 'Depois de colocar dá pra apagar e trocar o que não servir.'));
+        }
       }
       ps.forEach((p, i)=>{
         const l = el('div',{class:'passo'+(p.ok?' ok':'')});
@@ -2685,7 +3068,7 @@
           const linha = { titulo:nome, tipo:t.tipo, data:t.data, hora:t.hora || null,
             hora_fim:t.hora_fim || null, responsavel:t.responsavel, cliente_id:t.cliente_id || null,
             estado:t.estado, prioridade:t.prioridade, local:t.local || null, link:t.link || null,
-            detalhe:t.detalhe || null, passos:t.passos || [] };
+            detalhe:t.detalhe || null, passos:t.passos || [], campos:t.campos || {} };
           const { data, error } = await sb.from('tarefas').insert(linha).select().single();
           if(error){ toast('Não deu: ' + error.message); criar.disabled = false; return; }
           t.nova = false; t.id = data.id;
@@ -2896,7 +3279,8 @@
     const c = el('div',{class:'tar '+t.estado+(t.prioridade === 'alta' ? ' urgente' : ''),
       draggable:'true', tabindex:'0',
       title: t.titulo + (t.hora ? ' · ' + soHora(t.hora) : '') + ' · ' + rotuloTipo(t.tipo)
-        + ((t.passos || []).length ? ' · ' + (t.passos.filter(x=>x.ok).length) + '/' + t.passos.length + ' passos' : '')});
+        + ((t.passos || []).length ? ' · ' + (t.passos.filter(x=>x.ok).length) + '/' + t.passos.length + ' passos' : '')
+        + (resumoTipo(t) ? ' · ' + resumoTipo(t) : '')});
     c.addEventListener('dragstart', e=>{
       e.dataTransfer.setData('text/plain', t.id); e.dataTransfer.effectAllowed='move';
       c.classList.add('arrastando');
@@ -2970,6 +3354,8 @@
         sub.appendChild(el('span',{class:'ini '+classePessoa(t.responsavel)}, inicial(t.responsavel)));
         sub.appendChild(el('span',{}, esc(pessoa(t.responsavel))));
         if((t.tipo || 'tarefa') !== 'tarefa') sub.appendChild(el('span',{}, '· ' + esc(rotuloTipo(t.tipo))));
+        const res = resumoTipo(t);
+        if(res) sub.appendChild(el('span',{}, '· ' + esc(res)));
         const cli = t.cliente_id && state.clientes.find(c => c.id === t.cliente_id);
         if(cli) sub.appendChild(el('span',{}, '· ' + esc(cli.nome)));
         else if(clienteId === undefined) sub.appendChild(el('span',{},'· interno'));
@@ -3020,6 +3406,519 @@
     }
     box.appendChild(barraAgenda(c.id));
     box.appendChild(state.visaoAgenda === 'calendario' ? calendario(c.id) : listaDias(c.id));
+    return box;
+  }
+
+  // ---------- economia ----------
+
+  // Por que esta tela existe: a pesquisa da Fase 0 diz, em três lugares
+  // diferentes, que a maioria das agências cobra 20 a 40% abaixo do que
+  // deveria — e que a causa não é falta de coragem, é não saber o custo real
+  // de entrega. Bloco F2: "você não pode precificar sem saber quantas horas
+  // custa entregar". A tabela de horas existe desde o primeiro dia e tinha
+  // duas linhas, porque lançar hora num formulário à parte é trabalho que não
+  // aparece pra ninguém. A partir daqui o número nasce da tarefa que já
+  // estava na agenda.
+  const ECONOMIA_PADRAO = {
+    custo_mensal:null, pessoas:2, horas_semana_pessoa:40,
+    meta_utilizacao:0.72, margem_alvo:0.70,
+  };
+  const SEMANAS_MES = 4.345;   // 52 ÷ 12
+
+  const CATEGORIA_DE_TIPO = {
+    gravacao:'conteudo', edicao:'conteudo', publicacao:'conteudo', reuniao:'reuniao',
+    entrega:'relatorio', cobranca:'admin', prazo:'outro', tarefa:'outro',
+  };
+
+  const horaDaTarefa = t => (state.tudo.horas || []).find(h => h.tarefa_id === t.id) || null;
+
+  // Quanto tempo o horário marcado promete. Serve de sugestão, nunca de
+  // verdade: o que conta é o que foi apontado.
+  function minutosMarcados(t){
+    if(!t.hora || !t.hora_fim) return null;
+    const m = s => { const p = String(s).split(':'); return Number(p[0])*60 + Number(p[1]); };
+    const d = m(t.hora_fim) - m(t.hora);
+    return d > 0 ? d : null;
+  }
+
+  const emHoras = min => {
+    if(min == null) return '—';
+    if(min < 60) return min + ' min';
+    const h = Math.floor(min/60), r = min % 60;
+    return r ? h + 'h' + String(r).padStart(2,'0') : h + ' h';
+  };
+  const reais = v => v == null ? '—' :
+    'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits:0, maximumFractionDigits:0 });
+  const porcento = v => v == null ? '—' : Math.round(v*100) + '%';
+
+  // Um lançamento por tarefa, garantido por índice único no banco: apertar
+  // duas vezes não conta o trabalho duas vezes.
+  async function apontarTempo(t, minutos, faturavel){
+    const linha = horaDaTarefa(t);
+    if(minutos == null){
+      if(!linha) return true;
+      const { error } = await sb.from('horas').delete().eq('id', linha.id);
+      if(error){ toast('Não deu: ' + error.message); return false; }
+      state.tudo.horas = (state.tudo.horas || []).filter(h => h.id !== linha.id);
+      return true;
+    }
+    const campos = {
+      cliente_id: t.cliente_id || null,
+      data: t.data,
+      minutos: Math.max(1, Math.round(minutos)),
+      atividade: (t.titulo || '').trim() || 'Tarefa sem nome',
+      categoria: CATEGORIA_DE_TIPO[t.tipo || 'tarefa'] || 'outro',
+      quem: pessoa(t.responsavel),
+      faturavel: faturavel !== undefined ? faturavel
+        : (linha ? linha.faturavel : !!t.cliente_id),
+      tarefa_id: t.id,
+    };
+    if(linha){
+      const { error } = await sb.from('horas').update(campos).eq('id', linha.id);
+      if(error){ toast('Não deu: ' + error.message); return false; }
+      Object.assign(linha, campos);
+    } else {
+      const { data, error } = await sb.from('horas').insert(campos).select().single();
+      if(error){ toast('Não deu: ' + error.message); return false; }
+      (state.tudo.horas = state.tudo.horas || []).push(Object.assign({}, campos, { id:data.id }));
+    }
+    return true;
+  }
+
+  // ---------- as contas ----------
+
+  function contasDoMes(mes){
+    const e = state.economia || ECONOMIA_PADRAO;
+    const pessoas = Number(e.pessoas) || 0;
+    const horaSem = Number(e.horas_semana_pessoa) || 0;
+    const utilAlvo = Number(e.meta_utilizacao) || 0.72;
+    const margemAlvo = Number(e.margem_alvo) || 0.70;
+    const custoMensal = e.custo_mensal == null || e.custo_mensal === '' ? null : Number(e.custo_mensal);
+
+    const horasDisponiveis = pessoas * horaSem * SEMANAS_MES;
+    const horasFaturaveis = horasDisponiveis * utilAlvo;
+    const custoHora = (custoMensal != null && horasFaturaveis > 0) ? custoMensal / horasFaturaveis : null;
+
+    const noMes = (state.tudo.horas || []).filter(h => String(h.data || '').slice(0,7) === mes);
+    const soma = ls => ls.reduce((s,l)=> s + (Number(l.minutos) || 0), 0);
+    const minTotal = soma(noMes);
+    const minCliente = soma(noMes.filter(h => h.cliente_id));
+    const minFaturavel = soma(noMes.filter(h => h.faturavel));
+
+    const ativos = state.clientes.filter(c => ['onboarding','ativo','pausado'].includes(c.estagio));
+    const porCliente = ativos.map(c=>{
+      const meus = noMes.filter(h => h.cliente_id === c.id);
+      const min = soma(meus);
+      const horas = min/60;
+      const receita = Number(c.valor_mensal) || 0;
+      const custo = custoHora == null ? null : horas * custoHora;
+      const margem = (custo == null || !receita) ? null : (receita - custo) / receita;
+      return { c, min, horas, receita, custo, margem,
+        reaisHora: horas > 0 && receita ? receita / horas : null,
+        lancamentos: meus.length };
+    }).sort((a,b)=>{
+      if(a.margem == null && b.margem == null) return b.min - a.min;
+      if(a.margem == null) return 1;
+      if(b.margem == null) return -1;
+      return a.margem - b.margem;    // pior margem no topo: é onde se olha primeiro
+    });
+
+    const receitaMes = porCliente.reduce((s,l)=> s + l.receita, 0);
+    const comHoras = porCliente.filter(l => l.min > 0);
+    const mediaMinCliente = comHoras.length ? soma(noMes.filter(h=>h.cliente_id)) / comHoras.length : null;
+
+    // Quanto dado existe. Sem isso a tela viraria uma máquina de conclusões
+    // sobre três lançamentos — que é exatamente o erro que a pesquisa aponta
+    // nas fontes fracas que ela mesma cataloga.
+    const dias = new Set(noMes.map(h => h.data)).size;
+    const confianca = noMes.length === 0 ? 'nada'
+      : (noMes.length < 8 || dias < 5) ? 'pouco'
+      : (noMes.length < 25) ? 'indicio' : 'ok';
+
+    // Quanto custa uma peça. Conta só o que foi ao ar (tarefa de publicação
+    // concluída), contra as horas de conteúdo do mês — que incluem gravar e
+    // editar. Contar peça na gravação E na edição contaria a mesma peça duas
+    // vezes, e o número serve justamente pra decidir preço.
+    const publicadas = state.tarefas.filter(x =>
+      (x.tipo === 'publicacao') && x.estado === 'concluido' && String(x.data || '').slice(0,7) === mes);
+    const pecas = publicadas.reduce((n,x)=> n + (Number((x.campos || {}).quantidade) || 1), 0);
+    const minConteudo = soma(noMes.filter(h => h.categoria === 'conteudo'));
+
+    return {
+      e, mes, pessoas, horaSem, utilAlvo, margemAlvo, custoMensal,
+      horasDisponiveis, horasFaturaveis, custoHora,
+      noMes, minTotal, minCliente, minFaturavel, dias, confianca,
+      porCliente, receitaMes, pecas, minConteudo, publicadas,
+      utilizacaoMedida: minTotal ? minCliente / minTotal : null,
+      cabem: (mediaMinCliente && horasFaturaveis) ? (horasFaturaveis * 60) / mediaMinCliente : null,
+      mediaMinCliente,
+    };
+  }
+
+  // Uma barra por linha, todas da mesma cor. A cor aqui não identifica nada —
+  // o que a barra diz é tamanho, e tamanho já está no comprimento. Pintar cada
+  // uma de um jeito gastaria o único canal livre repetindo o que o olho já vê.
+  function barras(itens, formata){
+    const maior = itens.reduce((m,i)=> Math.max(m, i.valor), 0) || 1;
+    const box = el('div',{class:'barras'});
+    itens.forEach(i=>{
+      const l = el('div',{class:'barra-l', title: i.rotulo + ' · ' + formata(i.valor)});
+      l.appendChild(el('span',{class:'rot-b'}, esc(i.rotulo)));
+      const trilho = el('div',{class:'trilho'});
+      trilho.appendChild(el('i',{style:'width:' + Math.max(2, Math.round((i.valor/maior)*100)) + '%'}));
+      l.appendChild(trilho);
+      l.appendChild(el('span',{class:'val-b'}, formata(i.valor)));
+      box.appendChild(l);
+    });
+    return box;
+  }
+
+  // Uma razão contra um limite: medidor, não gráfico. O número e a palavra vão
+  // junto sempre — cor sozinha não conta nada a quem não a enxerga.
+  function medidor(valor, alvo){
+    const box = el('div',{class:'medidor'});
+    const cheio = Math.max(0, Math.min(1, valor));
+    const como = valor >= alvo ? 'ok' : (valor >= alvo - 0.15 ? 'es' : 'al');
+    const t = el('div',{class:'trilho ' + como});
+    t.appendChild(el('i',{style:'width:' + Math.round(cheio*100) + '%'}));
+    t.appendChild(el('u',{style:'left:' + Math.round(Math.min(1,alvo)*100) + '%', title:'alvo: ' + porcento(alvo)}));
+    box.appendChild(t);
+    box.appendChild(el('span',{class:'lab ' + como},
+      porcento(valor) + ' · ' + (valor >= alvo ? 'no alvo' : 'abaixo do alvo')));
+    return box;
+  }
+
+  function telaEconomia(){
+    const m = el('main');
+    if(!state.mesEconomia) state.mesEconomia = hojeIso().slice(0,7);
+    const x = contasDoMes(state.mesEconomia);
+
+    const cabeca = el('div',{class:'bloco'});
+    cabeca.appendChild(el('p',{class:'rot laranja'},'Entrega'));
+    cabeca.appendChild(el('h1',{class:'page'},'Economia'));
+    cabeca.appendChild(el('p',{class:'intro'},
+      'Quanto custa entregar um mês, cliente por cliente. Sai das horas apontadas na Agenda — '
+      + 'não de estimativa. É o número que falta pro preço deixar de ser opinião.'));
+
+    // O mês
+    const mesRef = new Date(state.mesEconomia + '-01T00:00:00');
+    const nomeMes = mesRef.toLocaleDateString('pt-BR',{ month:'long', year:'numeric' });
+    const topo = el('div',{class:'mes', style:'margin-top:20px'});
+    topo.appendChild(el('span',{class:'nome'}, nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1)));
+    const setas = el('div',{class:'setas'});
+    const anda = n => { const d = new Date(mesRef); d.setMonth(d.getMonth()+n);
+      state.mesEconomia = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); render(); };
+    setas.appendChild(el('button',{title:'mês anterior', onclick:()=>anda(-1)},'←'));
+    setas.appendChild(el('button',{class:'hoje', onclick:()=>{ state.mesEconomia = hojeIso().slice(0,7); render(); }},'este mês'));
+    setas.appendChild(el('button',{title:'próximo mês', onclick:()=>anda(1)},'→'));
+    topo.appendChild(setas);
+    cabeca.appendChild(topo);
+    m.appendChild(cabeca);
+
+    // --- o aviso que vem antes de qualquer número
+    if(x.confianca !== 'ok'){
+      const av = el('div',{class:'bloco aviso-dado'});
+      av.appendChild(el('p',{class:'rot'},'Antes de acreditar nestes números'));
+      if(x.confianca === 'nada'){
+        av.appendChild(el('p',{class:'intro'},
+          'Nenhuma hora apontada neste mês. Tudo aqui embaixo vai aparecer vazio — e é honesto que apareça. '
+          + 'O jeito de encher: marque hora de começo e fim nas tarefas da Agenda. Ao concluir uma tarefa com '
+          + 'horário marcado, o tempo é apontado sozinho; sem horário, o painel da tarefa tem o botão de apontar.'));
+      } else {
+        av.appendChild(el('p',{class:'intro'},
+          x.noMes.length + (x.noMes.length === 1 ? ' lançamento' : ' lançamentos') + ' em ' + x.dias
+          + (x.dias === 1 ? ' dia' : ' dias') + ' deste mês. '
+          + (x.confianca === 'pouco'
+            ? 'Isso é pouco demais pra concluir qualquer coisa: uma gravação longa a mais muda a margem inteira. Olhe como rascunho.'
+            : 'Já dá pra ver tendência, mas ainda não pra mexer em preço. A conta fica firme com o mês fechado.')));
+      }
+      m.appendChild(av);
+    }
+
+    // --- falta o custo mensal
+    if(x.custoHora == null){
+      const f = el('div',{class:'bloco falta'});
+      f.appendChild(el('p',{class:'rot laranja'},'Falta um número'));
+      f.appendChild(el('h2',{class:'titulo-bloco'},'Quanto a Bora custa por mês'));
+      f.appendChild(el('p',{class:'intro'},
+        'Sem isso não existe custo por hora, e sem custo por hora não existe margem. '
+        + 'Some o que sai todo mês independentemente de quantos clientes existem: ferramentas, impostos, '
+        + 'contador, internet, e o pró-labore que vocês dois querem tirar. É um alvo, não um extrato — '
+        + 'melhor um número aproximado hoje que nenhum número.'));
+      f.appendChild(el('button',{class:'btn', style:'margin-top:16px',
+        onclick:()=>{ const i = document.querySelector('#custo-mensal'); if(i){ i.focus(); i.scrollIntoView({block:'center'}); } }},
+        'Preencher agora'));
+      m.appendChild(f);
+    }
+
+    // --- os números do mês
+    const nums = el('div',{class:'bloco'});
+    nums.appendChild(el('p',{class:'rot'},'O mês em quatro números'));
+    nums.appendChild(placar([
+      { rotulo:'Custo por hora', valor: x.custoHora == null ? '—' : reais(x.custoHora), destaca:true },
+      { rotulo:'Receita contratada', valor: reais(x.receitaMes) },
+      { rotulo:'Horas apontadas', valor: emHoras(x.minTotal) },
+      { rotulo:'Delas, em cliente', valor: emHoras(x.minCliente),
+        parte:x.minCliente, de:Math.max(x.minTotal,1) },
+    ]));
+
+    // A conta à mostra. Número que ninguém consegue refazer não é usado —
+    // é obedecido ou ignorado, e as duas coisas são ruins.
+    const conta = el('details',{class:'expl'});
+    conta.appendChild(el('summary',{},'Como o custo por hora é calculado'));
+    const p = el('div',{class:'corpo-expl'});
+    p.appendChild(el('p',{},
+      x.pessoas + (x.pessoas === 1 ? ' pessoa' : ' pessoas') + ' × ' + x.horaSem + ' h por semana × 4,345 semanas = <b>'
+      + x.horasDisponiveis.toFixed(0) + ' h por mês</b> de tempo existente.'));
+    p.appendChild(el('p',{},
+      'Nem todo esse tempo é entregável: proposta, reunião interna, erro e conserto não viram fatura. '
+      + 'A pesquisa põe a utilização sustentável entre 70% e 75% — acima disso queima gente. '
+      + 'A ' + porcento(x.utilAlvo) + ' sobram <b>' + x.horasFaturaveis.toFixed(0) + ' h faturáveis por mês</b>.'));
+    p.appendChild(el('p',{}, x.custoMensal == null
+      ? 'Falta o custo mensal da agência pra fechar a conta.'
+      : reais(x.custoMensal) + ' de custo mensal ÷ ' + x.horasFaturaveis.toFixed(0)
+        + ' h = <b>' + reais(x.custoHora) + ' por hora</b>. É esse o número que cada hora de trabalho precisa cobrir antes de sobrar lucro.'));
+    conta.appendChild(p);
+    nums.appendChild(conta);
+    m.appendChild(nums);
+
+    // --- margem por cliente
+    const mc = el('div',{class:'bloco'});
+    mc.appendChild(el('p',{class:'rot'},'Margem de entrega, cliente por cliente'));
+    mc.appendChild(el('p',{class:'intro', style:'margin-bottom:16px'},
+      'Receita menos o custo das horas que ele consumiu, sobre a receita. O alvo de ' + porcento(x.margemAlvo)
+      + ' por conta vem da pesquisa (Parakeeto, via Bloco A). Quem está no topo da lista é quem está pior.'));
+    if(!x.porCliente.length){
+      mc.appendChild(el('p',{class:'dica'},'Nenhum cliente ativo, em onboarding ou pausado.'));
+    } else {
+      const tab = el('div',{class:'rolagem'});
+      const t = el('table');
+      t.innerHTML = '<thead><tr><th>Cliente</th><th>Recebe</th><th>Horas</th>'
+        + '<th>R$ por hora</th><th>Custo da entrega</th><th>Margem</th></tr></thead>';
+      const tb = el('tbody');
+      x.porCliente.forEach(l=>{
+        const tr = el('tr');
+        const td1 = el('td');
+        td1.appendChild(el('button',{class:'linkbtn', onclick:()=>abrirCliente(l.c.id,'horas')}, esc(l.c.nome)));
+        if(!l.min) td1.appendChild(el('span',{class:'dica', style:'display:block;margin:2px 0 0'},'sem horas apontadas'));
+        tr.appendChild(td1);
+        tr.appendChild(el('td',{class:'num-col'}, l.receita ? reais(l.receita) : '<span class="dica">sem valor na ficha</span>'));
+        tr.appendChild(el('td',{class:'num-col'}, emHoras(l.min)));
+        tr.appendChild(el('td',{class:'num-col'}, l.reaisHora == null ? '—' : reais(l.reaisHora)));
+        tr.appendChild(el('td',{class:'num-col'}, l.custo == null ? '—' : reais(l.custo)));
+        const tdm = el('td');
+        if(l.margem == null) tdm.appendChild(el('span',{class:'dica'},
+          !l.receita ? 'falta o valor mensal' : (x.custoHora == null ? 'falta o custo mensal' : '—')));
+        else tdm.appendChild(medidor(l.margem, x.margemAlvo));
+        tr.appendChild(tdm);
+        tb.appendChild(tr);
+      });
+      t.appendChild(tb);
+      tab.appendChild(t);
+      mc.appendChild(tab);
+      const pior = x.porCliente.find(l => l.margem != null && l.margem < x.margemAlvo);
+      if(pior && x.confianca === 'ok'){
+        mc.appendChild(el('p',{class:'intro', style:'margin-top:16px'},
+          '<b>' + esc(pior.c.nome) + '</b> está abaixo do alvo. As saídas são três, nesta ordem: '
+          + 'cortar escopo (o que está sendo entregue e não foi combinado?), '
+          + 'reduzir o tempo por entrega, ou reajustar o preço no fim do contrato. '
+          + 'A pesquisa avisa que retainer sem escopo definido vira contrato ilimitado, '
+          + 'e que os maiores clientes acabam sendo os menos lucrativos justamente por isso.'));
+      }
+    }
+    m.appendChild(mc);
+
+    // --- onde vai o tempo
+    const ot = el('div',{class:'bloco'});
+    ot.appendChild(el('p',{class:'rot'},'Onde vai o tempo'));
+    const visao = el('div',{class:'visao', style:'margin:14px 0 18px'});
+    [['tipo','Tipo de trabalho'],['cliente','Cliente'],['quem','Quem fez']].forEach(([k,rot])=>{
+      visao.appendChild(el('button',{'aria-selected':String(state.visaoTempo === k),
+        onclick:()=>{ state.visaoTempo = k; render(); }}, rot));
+    });
+    ot.appendChild(visao);
+    if(!x.noMes.length){
+      ot.appendChild(el('p',{class:'dica'},'Nada apontado neste mês.'));
+    } else {
+      const chave = h => {
+        if(state.visaoTempo === 'cliente'){
+          const c = h.cliente_id && state.clientes.find(y => y.id === h.cliente_id);
+          return c ? c.nome : 'Interno (sem cliente)';
+        }
+        if(state.visaoTempo === 'quem') return h.quem || 'Sem dono';
+        return rotulo('horas_categoria', h.categoria) || 'Outro';
+      };
+      const mapa = {};
+      x.noMes.forEach(h=>{ const k = chave(h); mapa[k] = (mapa[k] || 0) + (Number(h.minutos) || 0); });
+      const itens = Object.keys(mapa).map(k=>({ rotulo:k, valor:mapa[k] }))
+        .sort((a,b)=> b.valor - a.valor);
+      ot.appendChild(barras(itens, v => emHoras(v) + ' · ' + Math.round((v/x.minTotal)*100) + '%'));
+      ot.appendChild(el('p',{class:'dica', style:'margin-top:14px'},
+        'Serve pra achar o que vale a pena encurtar. O Bloco G da pesquisa é claro: '
+        + 'não automatize um processo que você ainda não executou dez vezes à mão.'));
+    }
+    m.appendChild(ot);
+
+    // --- quanto custa uma peça
+    if(x.pecas && x.minConteudo){
+      const porPeca = x.minConteudo / x.pecas;
+      const pp = el('div',{class:'bloco'});
+      pp.appendChild(el('p',{class:'rot'},'Quanto custa uma peça'));
+      pp.appendChild(el('p',{class:'intro'},
+        '<b>' + x.pecas + (x.pecas === 1 ? ' peça foi ao ar' : ' peças foram ao ar') + '</b> neste mês, '
+        + 'e o trabalho de conteúdo (gravar, editar, publicar) somou <b>' + emHoras(x.minConteudo) + '</b>. '
+        + 'Dá <b>' + emHoras(Math.round(porPeca)) + ' por peça</b>'
+        + (x.custoHora == null ? '.' : ', ou <b>' + reais((porPeca/60) * x.custoHora) + ' de custo cada uma</b>.')));
+      pp.appendChild(el('p',{class:'dica', style:'margin-top:12px'},
+        'Conta as peças das tarefas de publicação concluídas — o que foi ao ar de verdade. '
+        + 'Contar de novo na gravação e na edição contaria a mesma peça três vezes, e é esse número '
+        + 'que decide se o pacote de dez peças cabe no preço.'));
+      m.appendChild(pp);
+    }
+
+    // --- capacidade
+    const cap = el('div',{class:'bloco'});
+    cap.appendChild(el('p',{class:'rot'},'Quanto ainda cabe'));
+    if(x.cabem == null){
+      cap.appendChild(el('p',{class:'intro'},
+        'Depende de saber quantas horas um cliente consome por mês, e isso só aparece depois de um mês apontado.'));
+    } else {
+      cap.appendChild(el('p',{class:'intro'},
+        'Um cliente consumiu, em média, <b>' + emHoras(Math.round(x.mediaMinCliente)) + '</b> neste mês. '
+        + 'Com ' + x.horasFaturaveis.toFixed(0) + ' h faturáveis, cabem <b>'
+        + Math.floor(x.cabem) + (Math.floor(x.cabem) === 1 ? ' cliente' : ' clientes') + '</b> como esse — '
+        + 'contando que o resto da operação continue igual.'));
+      const jaTem = x.porCliente.length;
+      cap.appendChild(el('p',{class:'intro', style:'margin-top:10px'},
+        'Hoje são ' + jaTem + (jaTem === 1 ? ' cliente' : ' clientes') + '. '
+        + (jaTem >= Math.floor(x.cabem)
+          ? 'A conta diz que a agenda está no limite: cliente novo daqui exige tirar trabalho de outro lugar ou subir o preço.'
+          : 'Sobram ' + (Math.floor(x.cabem) - jaTem) + ' vagas pela conta das horas — o gargalo real pode ser outro.')));
+    }
+    m.appendChild(cap);
+
+    // --- configuração
+    m.appendChild(blocoConfigEconomia(x));
+    return m;
+  }
+
+  function blocoConfigEconomia(x){
+    const box = el('div',{class:'bloco'});
+    box.appendChild(el('p',{class:'rot'},'Os números que vocês definem'));
+    box.appendChild(el('p',{class:'intro', style:'margin-bottom:6px'},
+      'Mudar aqui muda todas as contas desta tela. Ficam guardados; não precisa repetir todo mês.'));
+
+    const grava = async (campo, valor)=>{
+      const campos = {}; campos[campo] = valor;
+      campos.atualizado_em = new Date().toISOString();
+      const { error } = await sb.from('economia_bora').update(campos).eq('id', true);
+      if(error){ toast('Não deu: ' + error.message); return false; }
+      state.economia = Object.assign({}, state.economia || ECONOMIA_PADRAO, campos);
+      toast('Salvo.'); render();
+      return true;
+    };
+
+    const campos = [
+      { c:'custo_mensal', r:'Custo da Bora por mês', id:'custo-mensal', passo:'50',
+        d:'Ferramentas, impostos, contador, internet e o pró-labore que vocês querem tirar. Alvo, não extrato.' },
+      { c:'pessoas', r:'Quantas pessoas', passo:'1',
+        d:'Quem entrega. Hoje, dois.' },
+      { c:'horas_semana_pessoa', r:'Horas por semana, por pessoa', passo:'1',
+        d:'O que cada um consegue trabalhar de verdade numa semana.' },
+      { c:'meta_utilizacao', r:'Quanto do tempo é faturável', pct:true, passo:'1',
+        d:'A pesquisa põe o sustentável entre 70% e 75%. Acima disso, queima gente — e ~30% do tempo nunca vira fatura, então precisa estar no preço.' },
+      { c:'margem_alvo', r:'Margem de entrega desejada', pct:true, passo:'1',
+        d:'Quanto da mensalidade deve sobrar depois de pagar as horas. O alvo de mercado por conta é 70%.' },
+    ];
+    const grade = el('div',{class:'props economia'});
+    campos.forEach(f=>{
+      const e = state.economia || ECONOMIA_PADRAO;
+      const linha = el('div',{class:'prop alto'});
+      const rot = el('div');
+      rot.appendChild(el('span',{}, esc(f.r)));
+      rot.appendChild(el('span',{class:'dica', style:'display:block;margin:3px 0 0;max-width:44ch'}, esc(f.d)));
+      linha.appendChild(rot);
+      const cx = el('div',{class:'v', style:'display:flex;gap:8px;align-items:center'});
+      const bruto = e[f.c];
+      const i = el('input',{ type:'number', step:f.passo, min:'0',
+        value: bruto == null || bruto === '' ? '' : (f.pct ? Math.round(Number(bruto)*100) : bruto) });
+      if(f.id) i.id = f.id;
+      i.addEventListener('change', async ()=>{
+        const txt = i.value.trim();
+        if(txt === ''){ if(f.c === 'custo_mensal') await grava(f.c, null); return; }
+        let v = Number(txt);
+        if(f.pct){
+          if(v <= 0 || v > 100){ toast('Use um número entre 1 e 100.'); i.value = Math.round(Number(bruto)*100); return; }
+          v = v/100;
+        }
+        if(!f.pct && v <= 0 && f.c !== 'custo_mensal'){ toast('Precisa ser maior que zero.'); i.value = bruto; return; }
+        await grava(f.c, v);
+      });
+      cx.appendChild(i);
+      if(f.pct) cx.appendChild(el('span',{class:'dica', style:'margin:0'},'%'));
+      if(f.c === 'custo_mensal') cx.appendChild(el('span',{class:'dica', style:'margin:0'},'por mês'));
+      linha.appendChild(cx);
+      grade.appendChild(linha);
+    });
+    box.appendChild(grade);
+    return box;
+  }
+
+  // ---------- por onde se perde (funil) ----------
+
+  // A oportunidade guardava só onde está. Agora um gatilho no banco anota toda
+  // mudança de etapa, e isso responde duas perguntas que antes não tinham
+  // resposta: onde a conversa morre, e quanto tempo leva do primeiro contato
+  // até fechar. Não dava pra reconstruir depois — por isso o registro começou
+  // antes de o funil encher.
+  function blocoPorOndeSePerde(){
+    const ev = state.funilEventos || [];
+    const box = el('div',{class:'bloco'});
+    box.appendChild(el('p',{class:'rot'},'Por onde se perde'));
+
+    const porOp = {};
+    ev.forEach(e => { (porOp[e.oportunidade_id] = porOp[e.oportunidade_id] || []).push(e); });
+    const trilhas = Object.keys(porOp).map(id => porOp[id].slice()
+      .sort((a,b)=> String(a.em).localeCompare(String(b.em))));
+
+    const fechados = trilhas.filter(t => t[t.length-1].para === 'fechado');
+    const perdidos = trilhas.filter(t => t[t.length-1].para === 'perdido');
+
+    if(trilhas.length < 5){
+      box.appendChild(el('p',{class:'intro'},
+        'A Central passou a anotar cada mudança de etapa. Com ' + trilhas.length
+        + (trilhas.length === 1 ? ' oportunidade registrada' : ' oportunidades registradas')
+        + ', ainda não há o que ler aqui — mas o histórico já está sendo guardado, '
+        + 'e ele não daria pra reconstruir depois. Volte quando tiver umas quinze.'));
+      return box;
+    }
+
+    const ORDEM = ['mapeado','contatado','conversando','reuniao','proposta'];
+    const itens = ORDEM.map(et=>{
+      const passaram = trilhas.filter(t => t.some(e => e.para === et)).length;
+      const morreram = perdidos.filter(t=>{
+        const i = t.findIndex(e => e.para === et);
+        return i >= 0 && t[i+1] && t[i+1].para === 'perdido';
+      }).length;
+      return { etapa:et, passaram, morreram };
+    }).filter(i => i.passaram);
+
+    box.appendChild(el('p',{class:'intro', style:'margin-bottom:16px'},
+      trilhas.length + ' oportunidades registradas · ' + fechados.length + ' fecharam · '
+      + perdidos.length + ' se perderam.'));
+    box.appendChild(barras(
+      itens.map(i => ({ rotulo: rotulo('etapa_funil', i.etapa) + ' — perdeu ' + i.morreram + ' de ' + i.passaram,
+        valor: i.passaram ? i.morreram / i.passaram : 0 })),
+      v => Math.round(v*100) + '%'));
+
+    if(fechados.length){
+      const dias = fechados.map(t=>
+        Math.round((new Date(t[t.length-1].em) - new Date(t[0].em)) / 86400000)).sort((a,b)=>a-b);
+      const meio = dias[Math.floor(dias.length/2)];
+      box.appendChild(el('p',{class:'intro', style:'margin-top:16px'},
+        'Do primeiro registro até fechar, a mediana é de <b>' + meio
+        + (meio === 1 ? ' dia' : ' dias') + '</b>. É esse o prazo que precisa caber no seu caixa.'));
+    }
     return box;
   }
 
@@ -3110,7 +4009,7 @@
       col.appendChild(cab);
       const pilha = el('div',{class:'pilha'});
       desses.forEach(i => pilha.appendChild(cartaoItem(i, true)));
-      if(!desses.length) pilha.appendChild(el('p',{class:'mini', style:'color:#A9A29A;padding:4px 2px'},'vazio'));
+      if(!desses.length) pilha.appendChild(el('p',{class:'mini', style:'padding:4px 2px'},'vazio'));
       col.appendChild(pilha);
       col.addEventListener('dragover', e=>{ e.preventDefault(); col.classList.add('alvo'); });
       col.addEventListener('dragleave', ()=> col.classList.remove('alvo'));
@@ -3301,6 +4200,7 @@
     });
     bloco.appendChild(grade);
     m.appendChild(bloco);
+    m.appendChild(blocoPorOndeSePerde());
     return m;
   }
 
@@ -3318,7 +4218,7 @@
 
     const pilha = el('div',{class:'pilha'});
     linhas.forEach(o => pilha.appendChild(cartaoLead(o)));
-    if(!linhas.length) pilha.appendChild(el('p',{class:'mini', style:'color:#A9A29A;padding:4px 2px'},'vazio'));
+    if(!linhas.length) pilha.appendChild(el('p',{class:'mini', style:'padding:4px 2px'},'vazio'));
     col.appendChild(pilha);
 
     const novo = el('button',{class:'novo', onclick:()=>novaOportunidade(chave)},'+ oportunidade');
@@ -3682,7 +4582,7 @@
       c.appendChild(acoes);
 
       const det = el('details',{style:'margin-top:14px'});
-      det.appendChild(el('summary',{class:'mono', style:'font-size:0.7rem;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;color:#6E6E6E'},'ver as 24 respostas'));
+      det.appendChild(el('summary',{class:'mono', style:'font-size:0.7rem;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;color:var(--fraco)'},'ver as 24 respostas'));
       det.appendChild(blocoRespostas(sub.respostas));
       c.appendChild(det);
       m.appendChild(c);
@@ -4140,7 +5040,7 @@
 
     const topo = el('div',{style:'display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:baseline'});
     topo.appendChild(el('p',{class:'rot laranja', style:'margin:0'},'Primeiro valor prometido'));
-    topo.appendChild(el('button',{class:'linkbtn', style:'color:#6E6E6E',
+    topo.appendChild(el('button',{class:'linkbtn', style:'color:var(--fraco)',
       onclick:()=>{ state.editandoPV = !state.editandoPV; render(); }}, state.editandoPV ? 'cancelar' : (tem ? 'editar' : 'definir')));
     box.appendChild(topo);
 
@@ -4303,7 +5203,7 @@
     --linha:#E7E2DA;
     --linha2:#F0ECE5;
     --laranja:#FF5E00;
-    --laranja-forte:#C24700;
+    --laranja-forte:#B84300;
     --nosso:#3A3632;
     --deles:#7A00E0;
     --deles-fraco:#F3E8FF;
@@ -5219,7 +6119,7 @@
           + esc({metas:'Meta', baselines:'Ponto de partida', marcos:'Passo', acessos:'Acesso', clientes:'Primeiro valor'}[m.t] || m.t)
           + '</span><span class="mono muted" style="font-size:0.66rem">' + esc(m.c) + '</span>';
         linha.appendChild(cab);
-        linha.appendChild(el('p',{style:'margin:0;font-size:0.86rem;color:#6E6E6E;text-decoration:line-through'}, esc(m.de || '(vazio)')));
+        linha.appendChild(el('p',{style:'margin:0;font-size:0.86rem;color:var(--fraco);text-decoration:line-through'}, esc(m.de || '(vazio)')));
         linha.appendChild(el('p',{style:'margin:4px 0 0;font-size:0.93rem'}, esc(m.para || '(vazio)')));
         if(delicada && state.detalhe.pagina && state.detalhe.pagina.gerada_em){
           const f = el('div',{class:'field', style:'margin:12px 0 0'});
@@ -5342,7 +6242,7 @@
     }
 
     const det = el('details',{style:'margin-top:22px'});
-    det.appendChild(el('summary',{class:'mono', style:'font-size:0.7rem;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;color:#6E6E6E'}, opts.rotuloAdd || '+ adicionar'));
+    det.appendChild(el('summary',{class:'mono', style:'font-size:0.7rem;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;color:var(--fraco)'}, opts.rotuloAdd || '+ adicionar'));
     const form = el('form',{class:'card flat', style:'margin-top:12px'});
     const g = el('div',{class: opts.colunasForm===3 ? 'grid3' : 'grid2'});
     opts.campos.forEach(c=>{
@@ -5538,6 +6438,14 @@
     const total = linhas.reduce((s,l)=>s+(l.minutos||0),0);
     const fat = linhas.filter(l=>l.faturavel).reduce((s,l)=>s+(l.minutos||0),0);
     const box = el('div');
+    box.appendChild(el('p',{class:'intro', style:'margin:0 0 18px'},
+      'O jeito mais barato de encher isto é não digitar nada: marque hora de começo e fim nas tarefas '
+      + 'deste cliente na Agenda, e ao concluir o tempo é apontado sozinho. '
+      + 'Estas horas viram a margem de entrega dele na tela Economia.'));
+    const atalho = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px'});
+    atalho.appendChild(el('button',{class:'btn ghost small', onclick:()=>abrirCliente(c.id,'agenda')},'Ver a agenda dele'));
+    atalho.appendChild(el('button',{class:'btn ghost small', onclick:()=>ir({tipo:'economia'})},'Abrir Economia'));
+    box.appendChild(atalho);
     if(linhas.length){
       box.appendChild(placar([
         { rotulo:'Horas no total', valor:(total/60).toFixed(1)+' h', destaca:true },
@@ -5558,6 +6466,7 @@
         {rotulo:'Tempo', valor:l=> l.minutos >= 60 ? (l.minutos/60).toFixed(1)+' h' : l.minutos+' min'},
         {rotulo:'Quem', chave:'quem'},
         {rotulo:'Cobra do cliente', valor:l=> l.faturavel ? 'Sim' : 'Não'},
+        {rotulo:'De onde veio', valor:l=> l.tarefa_id ? 'da agenda' : 'lançado à mão'},
       ],
       campos:[
         {rotulo:'Dia', nome:'data', tipo:'date', padrao:new Date().toISOString().slice(0,10)},
@@ -5613,7 +6522,7 @@
           state.vista = { tipo:'cliente', id:r.id };
           state.aba = (r.aba && ABAS.some(a => a[0] === r.aba)) ? r.aba : 'respostas';
           carregarDetalhe(r.id).then(render);
-        } else if(['inbox','novo','funil','lista','agenda','listas','clientes','perfil'].includes(r.tipo)){
+        } else if(['inbox','novo','funil','lista','agenda','listas','clientes','perfil','economia'].includes(r.tipo)){
           state.vista = { tipo:r.tipo };
         } else {
           state.vista = { tipo: ((state.perfil || {}).tela_inicial) || 'agora' };
@@ -5628,6 +6537,7 @@
     await sb.auth.signOut();
     state.user = null; state.membro = false; state.clientes = []; state.inbox = [];
     state.tudo = { acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] };
+    state.economia = null; state.funilEventos = [];
     state.vista = { tipo:'agora' };
     state.linkEnviadoPara = null; state.modoLogin = 'link'; state.erro = null;
     render();
