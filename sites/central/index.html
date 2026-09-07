@@ -482,12 +482,151 @@
     flex:0 0 auto; width:19px; height:19px; border-radius:6px; border:2px solid var(--linha);
     background:var(--sup); margin-top:2px; padding:0; line-height:1; font-size:0.7rem; color:#fff;
   }
-  .linha-tar .marca.concluido{ background:#2E9E63; border-color:#2E9E63; }
+  .linha-tar .marca.concluido, .passo .marca.concluido{ background:#1F7A4B; border-color:#1F7A4B; }
   .linha-tar .marca.fazendo{ background:#1B4F8F; border-color:#1B4F8F; }
   .linha-tar .corpo{ flex:1 1 auto; min-width:0; }
   .linha-tar .tit{ font-weight:600; font-size:0.94rem; line-height:1.3; }
   .linha-tar.concluido .tit{ text-decoration:line-through; color:var(--fraco); }
   .linha-tar .sub{ font-size:0.8rem; color:var(--fraco); margin-top:2px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+  /* O cartão do mês passou a mostrar hora e passos, e o quadradinho da esquerda
+     virou botão. Cor continua sendo do estado — prioridade alta é a moldura,
+     não uma cor nova, senão a grade vira semáforo e ninguém lê nada. */
+  .tar .h{ font-family:var(--dado); font-size:0.58rem; color:var(--fraco); flex:0 0 auto; padding-top:1px; }
+  .tar .ps{ font-family:var(--dado); font-size:0.54rem; color:var(--fraco); flex:0 0 auto; padding-top:1px; }
+  /* Na grade do mês a célula tem ~140px: iniciais + hora + contador de passos
+     não deixam nada pro título. O contador fica só na lista e no rótulo do
+     cartão, onde há espaço. */
+  .grade .tar .ps{ display:none; }
+  .tar.urgente{ border-color:var(--al); }
+  .tar button.ini{ border:none; padding:0; cursor:pointer; }
+  .tar button.ini:hover{ outline:2px solid var(--tinta); outline-offset:1px; }
+  .tar.auto{ border-style:dashed; border-left-color:var(--linha); background:none; cursor:pointer; }
+  .ini.auto{ background:var(--an-f); color:var(--an); }
+  .barra-agenda{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+  .filtro-tipo{
+    background:var(--sup2); border:1px solid var(--linha); border-radius:100px; padding:8px 14px;
+    font-family:var(--display); font-weight:600; font-size:0.78rem; color:var(--tinta);
+  }
+  .linha-tar .tit .h{ font-family:var(--dado); font-size:0.78rem; color:var(--fraco); margin-right:8px; }
+  .linha-tar button.corpo{ background:none; border:none; padding:0; text-align:left; color:inherit; font:inherit; }
+  .linha-tar.urgente .tit{ box-shadow:inset 2px 0 0 var(--al); padding-left:8px; margin-left:-8px; }
+  button.linha-tar{
+    width:100%; background:none; border:none; border-top:1px solid var(--linha2);
+    text-align:left; color:inherit; font:inherit; padding:9px 0;
+  }
+  .linha-tar .marca.auto{
+    display:inline-flex; align-items:center; justify-content:center; background:var(--an-f);
+    color:var(--an); border-color:var(--an-b); font-family:var(--dado); font-size:0.62rem;
+  }
+  .linha-tar.auto .tit{ font-weight:500; }
+
+  /* ---------- painel da tarefa ---------- */
+  /* Gaveta, e não caixa no meio da tela: com o painel na lateral o dia que você
+     estava olhando continua à vista enquanto você mexe na tarefa. */
+  .painel-fundo{ position:fixed; inset:0; z-index:60; background:rgba(26,24,21,.34); }
+  .painel{
+    position:fixed; z-index:61; top:0; right:0; bottom:0; width:min(460px,100%);
+    background:var(--sup); border-left:1px solid var(--linha); box-shadow:var(--s2);
+    display:flex; flex-direction:column;
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .painel{ animation:entraPainel .2s cubic-bezier(.2,.7,.3,1); }
+  }
+  @keyframes entraPainel{ from{ transform:translateX(26px); opacity:0; } to{ transform:none; opacity:1; } }
+  body.travado{ overflow:hidden; }
+  .painel .cab{ display:flex; gap:12px; align-items:flex-start; padding:20px 22px 16px; border-bottom:1px solid var(--linha2); }
+  .painel .cab .quando{ margin:6px 0 0; font-size:0.92rem; font-weight:600; font-family:var(--display); }
+  .painel .cab .fechar{
+    margin-left:auto; flex:0 0 auto; width:30px; height:30px; border-radius:50%;
+    background:none; border:1px solid var(--linha); color:var(--fraco); font-size:1rem; line-height:1;
+  }
+  .painel .cab .fechar:hover{ border-color:var(--tinta); color:var(--tinta); }
+  .painel .corpo{ flex:1 1 auto; overflow-y:auto; padding:2px 22px 20px; }
+  .painel .secao{ padding:16px 0; border-top:1px solid var(--linha2); }
+  .painel .secao:first-child{ border-top:none; }
+  .painel .pe{
+    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    padding:13px 22px; border-top:1px solid var(--linha); background:var(--sup2);
+  }
+  .campo-p{ display:grid; grid-template-columns:92px minmax(0,1fr); gap:10px; align-items:center; margin-top:10px; }
+  .campo-p > span:first-child{
+    font-family:var(--dado); font-size:0.58rem; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--fraco);
+  }
+  .campo-p input, .campo-p select, .painel textarea{
+    width:100%; background:var(--sup2); border:1px solid var(--linha); border-radius:9px;
+    padding:9px 11px; font-family:var(--corpo); font-size:0.9rem; color:var(--tinta);
+  }
+  .campo-p input:focus, .campo-p select:focus, .painel textarea:focus{ border-color:var(--laranja); background:var(--sup); }
+  .painel textarea{ margin-top:6px; resize:vertical; line-height:1.5; }
+  .titulo-p{ font-family:var(--display) !important; font-weight:600 !important; font-size:1rem !important; }
+  .duplo{ display:flex; gap:8px; align-items:center; }
+  .duplo .ate{ font-size:0.76rem; color:var(--fraco); flex:0 0 auto; }
+  /* Nome próprio: .chip já é o selo de estado do resto da Central, e reusar a
+     classe repintaria todos eles. Foi assim que .num quebrou a tabela antes. */
+  .chips{ display:flex; gap:6px; flex-wrap:wrap; }
+  .chip-p{
+    background:var(--sup2); border:1px solid var(--linha); border-radius:100px; padding:6px 12px;
+    font-family:var(--display); font-weight:600; font-size:0.76rem; color:var(--fraco);
+  }
+  .chip-p:hover{ border-color:var(--tinta); color:var(--tinta); }
+  .chip-p[aria-pressed="true"]{ background:var(--laranja); border-color:var(--laranja); color:#fff; }
+  .passos{ margin-top:8px; }
+  .passo{ display:flex; gap:9px; align-items:center; padding:3px 0; }
+  .passo .marca{
+    flex:0 0 auto; width:19px; height:19px; border-radius:6px; border:2px solid var(--linha);
+    background:var(--sup); padding:0; font-size:0.7rem; line-height:1; color:#fff;
+  }
+  .passo input{
+    flex:1 1 auto; min-width:0; background:none; border:none; border-bottom:1px solid transparent;
+    padding:5px 2px; font-family:var(--corpo); font-size:0.88rem; color:inherit;
+  }
+  .passo input:focus{ border-bottom-color:var(--laranja); }
+  .passo.ok input{ text-decoration:line-through; color:var(--fraco); }
+  .passo .x{ background:none; border:none; color:var(--fraco); flex:0 0 auto; }
+  .passo .x:hover{ color:var(--al); }
+  .novo-passo{
+    width:100%; margin-top:9px; background:var(--sup2); border:1px dashed var(--linha);
+    border-radius:9px; padding:9px 11px; font-family:var(--corpo); font-size:0.88rem; color:var(--tinta);
+  }
+  .campo-p .abrir{ grid-column:2; font-size:0.76rem; color:var(--laranja-forte); }
+  .btn.perigo{ color:var(--al); border-color:var(--al-b); }
+  .btn.perigo:hover{ background:var(--al); border-color:var(--al); color:#fff; }
+  @media (max-width:620px){
+    .painel{
+      top:auto; left:0; right:0; bottom:0; width:auto; max-height:92vh;
+      border-left:none; border-top:1px solid var(--linha); border-radius:18px 18px 0 0;
+    }
+    @media (prefers-reduced-motion:no-preference){
+      .painel{ animation:sobePainel .22s cubic-bezier(.2,.7,.3,1); }
+    }
+    .campo-p{ grid-template-columns:minmax(0,1fr); gap:5px; align-items:start; }
+    .campo-p .abrir{ grid-column:1; }
+  }
+  @keyframes sobePainel{ from{ transform:translateY(30px); opacity:0; } to{ transform:none; opacity:1; } }
+
+  /* A grade do mês no celular. Sete colunas em 390px dão 40px por dia: cabe o
+     número e mais nada. O cartão de texto sai e entram bolinhas — a carga da
+     semana continua legível de longe —, e o toque leva pra lista do dia. */
+  .pontos{ display:none; gap:3px; flex-wrap:wrap; margin-top:auto; }
+  .pontos i{ width:6px; height:6px; border-radius:50%; background:var(--fraco); display:block; }
+  .pontos i.pendente{ background:#D89A2A; }
+  .pontos i.fazendo{ background:#1B4F8F; }
+  .pontos i.concluido{ background:#2E9E63; }
+  .pontos i.cancelado{ background:var(--linha); }
+  .pontos i.auto{ background:none; border:1px dashed var(--fraco); }
+  .dia-lista .cab .mais-dia{
+    margin-left:auto; background:none; border:1px solid var(--linha); border-radius:50%;
+    width:22px; height:22px; line-height:1; color:var(--fraco); font-size:0.85rem; flex:0 0 auto;
+  }
+  .dia-lista .cab .mais-dia:hover{ border-color:var(--laranja); color:var(--laranja-forte); }
+  .dia-lista.focado{ box-shadow:inset 3px 0 0 var(--laranja); padding-left:12px; }
+  @media (max-width:700px){
+    .grade .tar, .dia .mais{ display:none; }
+    .dia{ min-height:58px; cursor:pointer; }
+    .pontos{ display:flex; }
+  }
 
   /* ---------- listas ---------- */
   .abas-lista{ display:flex; gap:5px; flex-wrap:wrap; margin-bottom:18px; }
@@ -731,6 +870,22 @@
   :root[data-tema="sistema"].escuro .marca-cli{ background:var(--linha2); color:var(--fraco); }
   :root[data-tema="escuro"] .dono.cliente,
   :root[data-tema="sistema"].escuro .dono.cliente{ color:#12100E; }
+  :root[data-tema="escuro"] .tar.auto,
+  :root[data-tema="sistema"].escuro .tar.auto{ background:none; }
+  :root[data-tema="escuro"] .chip-p[aria-pressed="true"],
+  :root[data-tema="sistema"].escuro .chip-p[aria-pressed="true"],
+  :root[data-tema="escuro"] .btn.perigo:hover,
+  :root[data-tema="sistema"].escuro .btn.perigo:hover{ color:#12100E; }
+  :root[data-tema="escuro"] .linha-tar .marca.concluido,
+  :root[data-tema="sistema"].escuro .linha-tar .marca.concluido,
+  :root[data-tema="escuro"] .passo .marca.concluido,
+  :root[data-tema="sistema"].escuro .passo .marca.concluido{ background:var(--ok); border-color:var(--ok); color:#12100E; }
+  :root[data-tema="escuro"] .painel-fundo,
+  :root[data-tema="sistema"].escuro .painel-fundo{ background:rgba(0,0,0,.62); }
+  :root[data-tema="escuro"] .ini.a,
+  :root[data-tema="sistema"].escuro .ini.a{ background:var(--an-f); color:var(--an); }
+  :root[data-tema="escuro"] .ini.b,
+  :root[data-tema="sistema"].escuro .ini.b{ background:var(--roxo-fraco); color:var(--roxo); }
 
   /* ---------- perfil ---------- */
   .cabeca-perfil{ display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
@@ -1001,7 +1156,8 @@
     oportunidades:[], buscaLista:'', colando:false, ordemLista:{ campo:'nome', desc:false },
     tarefas:[], listas:[], listaItens:[], listaAberta:null,
     busca:'', verTudo:false, perfil:null, escondidos:[],
-    visaoAgenda:'calendario', visaoLista:'lista', filtroQuem:'todos',
+    visaoAgenda:'calendario', visaoLista:'lista', filtroQuem:'todos', filtroTipo:'todos',
+    verDerivados:true, diaFoco:null,
     mesAgenda:new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),
     buscaCliente:'',
     tudo:{ acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] },
@@ -1479,7 +1635,7 @@
     const tab = el('table',{style:'margin-top:12px'});
     tab.innerHTML = '<tbody>'
       + [['Ctrl + K', 'Buscar em tudo'],
-         ['Esc', 'Fechar a busca ou a gaveta'],
+         ['Esc', 'Fechar o painel, a busca ou a gaveta'],
          ['← →', 'Andar entre as abas do cliente'],
          ['← →', 'Mover o cartão no funil, quando ele está selecionado'],
          ['Ctrl + Enter', 'Salvar a nota que você está escrevendo'],
@@ -2150,11 +2306,36 @@
     ['pendente','A fazer'], ['fazendo','Fazendo'], ['concluido','Feito'], ['cancelado','Cancelado'],
   ];
 
+  // O que cabe numa agenda de agência. O tipo não ganha cor: cor aqui é do
+  // estado, que é o que precisa saltar aos olhos numa grade de trinta dias. O
+  // tipo ganha nome — e é por ele que dá pra olhar uma semana e ver que tem
+  // gravação demais e edição de menos.
+  const TIPOS_TAREFA = [
+    ['tarefa',     'Tarefa',     'Qualquer coisa que precisa ser feita'],
+    ['gravacao',   'Gravação',   'Dia de gravar, com o cliente ou sem'],
+    ['edicao',     'Edição',     'Cortar, legendar, finalizar'],
+    ['reuniao',    'Reunião',    'Conversa marcada, com hora'],
+    ['publicacao', 'Publicação', 'O que vai ao ar naquele dia'],
+    ['entrega',    'Entrega',    'O que o cliente recebe na mão'],
+    ['cobranca',   'Cobrança',   'Boleto, nota, cobrança'],
+    ['prazo',      'Prazo',      'Data limite de alguma coisa'],
+  ];
+  const rotuloTipo = v => (TIPOS_TAREFA.find(x => x[0] === v) || [v,'Tarefa'])[1];
+
+  const PRIORIDADES = [
+    ['baixa','Baixa','Se sobrar tempo'],
+    ['normal','Normal','O ritmo de sempre'],
+    ['alta','Alta','Sai na frente do resto do dia'],
+  ];
+
   const iso = d => {
     const x = new Date(d);
     return x.getFullYear() + '-' + String(x.getMonth()+1).padStart(2,'0') + '-' + String(x.getDate()).padStart(2,'0');
   };
   const hojeIso = () => iso(new Date());
+  const soHora = h => h ? String(h).slice(0,5) : '';
+  // Onde a grade do mês deixa de caber: abaixo disso a célula vira bolinha.
+  const estreito = () => window.matchMedia('(max-width:700px)').matches;
 
   async function salvarTarefa(id, campos){
     const { error } = await sb.from('tarefas').update(campos).eq('id', id);
@@ -2167,7 +2348,7 @@
     const ordem = ['pendente','fazendo','concluido'];
     const i = ordem.indexOf(t.estado);
     const novo = ordem[(i + 1) % ordem.length];
-    t.estado = novo; render();
+    t.estado = novo; render(); pintarPainel();
     if(!await salvarTarefa(t.id, { estado:novo })){ await carregarTudo(); render(); return; }
     await carregarTudo(); render();
   }
@@ -2175,19 +2356,20 @@
   async function moverTarefa(t, dia){
     if(t.data === dia) return;
     const antes = t.data;
-    t.data = dia; render();
+    t.data = dia; render(); pintarPainel();
     if(!await salvarTarefa(t.id, { data:dia })){ t.data = antes; render(); return; }
     await carregarTudo(); render();
   }
 
-  async function novaTarefa(dia, clienteId){
-    const titulo = prompt('O que precisa ser feito?');
-    if(!titulo || !titulo.trim()) return;
-    const linha = { titulo:titulo.trim(), data:dia || hojeIso(), responsavel:state.filtroQuem === 'todos' ? 'os_dois' : state.filtroQuem };
-    if(clienteId) linha.cliente_id = clienteId;
-    const { error } = await sb.from('tarefas').insert(linha);
-    if(error){ toast('Não deu: ' + error.message); return; }
-    await carregarTudo(); render();
+  // Uma tarefa nova nasce dentro do painel, em rascunho: só vira linha no banco
+  // quando tem nome. Antes disso, fechar sem preencher não deixa lixo.
+  function novaTarefa(dia, clienteId){
+    abrirPainel({
+      nova:true, titulo:'', tipo:'tarefa', estado:'pendente', prioridade:'normal',
+      data: dia || hojeIso(),
+      responsavel: state.filtroQuem === 'todos' ? 'os_dois' : state.filtroQuem,
+      cliente_id: clienteId || null, passos:[],
+    });
   }
 
   function tarefasVisiveis(clienteId){
@@ -2196,8 +2378,353 @@
     if(state.filtroQuem !== 'todos'){
       t = t.filter(x => x.responsavel === state.filtroQuem || x.responsavel === 'os_dois');
     }
+    if(state.filtroTipo !== 'todos') t = t.filter(x => (x.tipo || 'tarefa') === state.filtroTipo);
     return t;
   }
+
+  // Ordem dentro do dia: quem tem hora vai primeiro, na ordem do relógio; o
+  // resto vem depois, na ordem em que foi criado.
+  const porHora = (a,b) =>
+    (a.hora ? 0 : 1) - (b.hora ? 0 : 1)
+    || String(a.hora||'').localeCompare(String(b.hora||''))
+    || String(a.criado_em||'').localeCompare(String(b.criado_em||''));
+
+  // ---------- o que a Central já sabe ----------
+
+  // Datas que já estão guardadas em outro lugar e que ninguém deveria ter que
+  // digitar de novo na agenda: o dia de pagamento de cada cliente, o fim do
+  // contrato, a data do primeiro valor prometido, a próxima ação de cada
+  // oportunidade e os marcos do plano. Entram como leitura — clicar leva pro
+  // lugar onde aquilo se edita de verdade, que continua sendo um só.
+  function derivados(de, ate, clienteId){
+    const fim = [];
+    const dentro = d => d && d >= de && d <= ate;
+    const cliente = id => state.clientes.find(c => c.id === id);
+
+    state.clientes.forEach(c=>{
+      if(clienteId !== undefined && c.id !== clienteId) return;
+      if(c.dia_pagamento){
+        // Um por mês dentro da janela. Dia 31 em mês de 30 cai no último dia:
+        // é o que o banco faz na prática, e é o que a pessoa espera.
+        const d0 = new Date(de + 'T00:00:00'), d1 = new Date(ate + 'T00:00:00');
+        for(let a = new Date(d0.getFullYear(), d0.getMonth(), 1); a <= d1; a.setMonth(a.getMonth()+1)){
+          const ultimo = new Date(a.getFullYear(), a.getMonth()+1, 0).getDate();
+          const dia = iso(new Date(a.getFullYear(), a.getMonth(), Math.min(c.dia_pagamento, ultimo)));
+          if(dentro(dia)) fim.push({ data:dia, oq:'Pagamento — ' + c.nome, de:'contrato',
+            ir:()=>abrirCliente(c.id, 'respostas') });
+        }
+      }
+      if(dentro(c.fim_contrato)) fim.push({ data:c.fim_contrato, oq:'Fim do contrato — ' + c.nome,
+        de:'contrato', ir:()=>abrirCliente(c.id, 'respostas') });
+      if(dentro(c.primeiro_valor_data)) fim.push({ data:c.primeiro_valor_data,
+        oq:'Primeiro valor prometido — ' + c.nome, de:'promessa', ir:()=>abrirCliente(c.id, 'plano') });
+    });
+
+    (state.tudo.marcos || []).forEach(m=>{
+      if(clienteId !== undefined && m.cliente_id !== clienteId) return;
+      if(!dentro(m.data_prevista) || m.data_cumprida) return;
+      const c = cliente(m.cliente_id);
+      fim.push({ data:m.data_prevista, oq:m.titulo + (c ? ' — ' + c.nome : ''), de:'plano',
+        ir:()=> c && abrirCliente(c.id, 'plano') });
+    });
+
+    if(clienteId === undefined){
+      state.oportunidades.forEach(o=>{
+        if(!dentro(o.proxima_acao_em) || o.etapa === 'perdido' || o.etapa === 'cliente') return;
+        fim.push({ data:o.proxima_acao_em, oq:(o.proxima_acao || 'Próxima ação') + ' — ' + o.nome,
+          de:'captação', ir:()=>ir({tipo:'funil'}) });
+      });
+    }
+    return state.verDerivados === false ? [] : fim;
+  }
+
+  function cartaoDerivado(x){
+    const c = el('button',{class:'tar auto', title:x.oq + ' · vem de ' + x.de, onclick:x.ir});
+    c.appendChild(el('span',{class:'ini auto'},'i'));
+    c.appendChild(el('span',{class:'t'}, esc(x.oq)));
+    return c;
+  }
+
+  // ---------- painel da tarefa ----------
+
+  // Uma tarefa deixou de ser uma linha de texto: tem tipo, hora de começo e de
+  // fim, prioridade, cliente, passos, lugar, link e anotação. Nada disso cabe
+  // num prompt(), e espalhar quinze campos na grade do mês tornaria o mês
+  // ilegível. Por isso o painel: a grade continua sendo a grade, e o detalhe
+  // abre ao lado, com o dia ainda à vista.
+  let painelAberto = null;
+
+  function pintarPainel(){
+    if(painelAberto && painelAberto.repintar) painelAberto.repintar();
+  }
+
+  function fecharPainel(){
+    if(!painelAberto) return;
+    const { caixa, fundo, voltarFoco } = painelAberto;
+    painelAberto = null;
+    caixa.remove(); fundo.remove();
+    document.body.classList.remove('travado');
+    if(voltarFoco && document.contains(voltarFoco)) voltarFoco.focus();
+    carregarTudo().then(render);
+  }
+
+  function abrirPainel(t){
+    if(painelAberto) fecharPainel();
+    const voltarFoco = document.activeElement;
+    const fundo = el('div',{class:'painel-fundo', onclick:fecharPainel});
+    const caixa = el('div',{class:'painel', role:'dialog', 'aria-modal':'true',
+      'aria-label': t.nova ? 'Nova tarefa' : 'Detalhes da tarefa'});
+    document.body.appendChild(fundo);
+    document.body.appendChild(caixa);
+    document.body.classList.add('travado');
+    painelAberto = { caixa, fundo, voltarFoco, tarefa:t, repintar:null };
+
+    // Grava um campo. Enquanto é rascunho fica só na memória; a linha nasce no
+    // banco no "Criar", com tudo de uma vez. Depois disso cada campo grava ao
+    // sair dele — formulário com botão de salvar no fim é o que faz ninguém
+    // preencher a metade de baixo.
+    async function grava(campos){
+      Object.assign(t, campos);
+      if(t.nova){ pintarCabeca(); return true; }
+      if(!await salvarTarefa(t.id, campos)){ return false; }
+      const viva = state.tarefas.find(x => x.id === t.id);
+      if(viva) Object.assign(viva, campos);
+      pintarCabeca(); render();
+      return true;
+    }
+
+    const cab = el('div',{class:'cab'});
+    caixa.appendChild(cab);
+    const corpo = el('div',{class:'corpo'});
+    caixa.appendChild(corpo);
+    const pe = el('div',{class:'pe'});
+    caixa.appendChild(pe);
+
+    function pintarCabeca(){
+      cab.innerHTML = '';
+      const esq = el('div',{style:'min-width:0'});
+      esq.appendChild(el('p',{class:'rot laranja'}, t.nova ? 'Nova' : rotuloTipo(t.tipo)));
+      const quando = el('p',{class:'quando'});
+      const d = new Date(t.data + 'T00:00:00');
+      quando.textContent = d.toLocaleDateString('pt-BR',{ weekday:'long', day:'numeric', month:'long' })
+        + (t.hora ? ' · ' + soHora(t.hora) + (t.hora_fim ? ' às ' + soHora(t.hora_fim) : '') : '');
+      esq.appendChild(quando);
+      cab.appendChild(esq);
+      cab.appendChild(el('button',{class:'fechar', 'aria-label':'Fechar o painel',
+        onclick:fecharPainel},'×'));
+    }
+    painelAberto.repintar = pintarCabeca;
+    pintarCabeca();
+
+    // --- uma seção
+    const secao = (rot, dica) => {
+      const s = el('section',{class:'secao'});
+      s.appendChild(el('p',{class:'rot'}, esc(rot)));
+      if(dica) s.appendChild(el('p',{class:'dica', style:'margin:6px 0 12px'}, esc(dica)));
+      corpo.appendChild(s);
+      return s;
+    };
+    const linha = (s, rot, ctrl) => {
+      const l = el('label',{class:'campo-p'});
+      l.appendChild(el('span',{}, esc(rot)));
+      l.appendChild(ctrl);
+      s.appendChild(l);
+      return l;
+    };
+    const chips = (s, rot, opcoes, atual, aoEscolher) => {
+      const cx = el('div',{class:'campo-p'});
+      cx.appendChild(el('span',{}, esc(rot)));
+      const g = el('div',{class:'chips'});
+      opcoes.forEach(([k, nome, ajuda])=>{
+        const b = el('button',{class:'chip-p', 'aria-pressed':String(atual() === k),
+          title: ajuda || nome, onclick:async()=>{
+            if(atual() === k) return;
+            if(await aoEscolher(k)) g.querySelectorAll('.chip-p').forEach((x,i)=>
+              x.setAttribute('aria-pressed', String(opcoes[i][0] === k)));
+          }}, esc(nome));
+        g.appendChild(b);
+      });
+      cx.appendChild(g);
+      s.appendChild(cx);
+      return g;
+    };
+    const texto = (s, rot, campo, tipo, dica) => {
+      const i = el('input',{ type:tipo || 'text', value: t[campo] == null ? '' : t[campo],
+        placeholder: dica || '' });
+      i.addEventListener('change', async ()=>{
+        const v = i.value.trim();
+        await grava({ [campo]: v === '' ? null : v });
+      });
+      linha(s, rot, i);
+      return i;
+    };
+
+    // --- o quê
+    const sOq = secao('O quê');
+    const tit = el('input',{ type:'text', value:t.titulo || '', placeholder:'Ex.: Gravar 4 reels com o Rafa',
+      class:'titulo-p' });
+    tit.addEventListener('change', ()=>grava({ titulo: tit.value.trim() }));
+    linha(sOq, 'Nome', tit);
+    chips(sOq, 'Tipo', TIPOS_TAREFA, ()=>t.tipo || 'tarefa', k=>grava({ tipo:k }));
+
+    // --- quando
+    const sQuando = secao('Quando');
+    const dt = el('input',{ type:'date', value:t.data });
+    dt.addEventListener('change', async ()=>{
+      if(!dt.value){ dt.value = t.data; return; }
+      await grava({ data: dt.value });
+    });
+    linha(sQuando, 'Dia', dt);
+    const h1 = el('input',{ type:'time', value: soHora(t.hora) });
+    const h2 = el('input',{ type:'time', value: soHora(t.hora_fim) });
+    const gravaHoras = async ()=>{
+      const a = h1.value || null, b = h2.value || null;
+      if(a && b && b < a){ toast('A hora de terminar veio antes da de começar.'); h2.value = soHora(t.hora_fim); return; }
+      await grava({ hora:a, hora_fim:b });
+    };
+    h1.addEventListener('change', gravaHoras);
+    h2.addEventListener('change', gravaHoras);
+    const duplo = el('div',{class:'duplo'});
+    duplo.appendChild(h1); duplo.appendChild(el('span',{class:'ate'},'até')); duplo.appendChild(h2);
+    linha(sQuando, 'Hora', duplo);
+
+    // --- quem
+    const sQuem = secao('Quem');
+    chips(sQuem, 'Responsável', EQUIPE.map(e=>[e[0], e[1]]), ()=>t.responsavel, k=>grava({ responsavel:k }));
+    const sel = el('select');
+    sel.appendChild(el('option',{value:''},'Interno (sem cliente)'));
+    state.clientes.forEach(c => sel.appendChild(el('option',{value:c.id}, esc(c.nome))));
+    sel.value = t.cliente_id || '';
+    sel.addEventListener('change', ()=>grava({ cliente_id: sel.value || null }));
+    linha(sQuem, 'Cliente', sel);
+
+    // --- como está
+    const sEstado = secao('Como está');
+    chips(sEstado, 'Situação', ESTADOS_TAREFA, ()=>t.estado, k=>grava({ estado:k }));
+    chips(sEstado, 'Prioridade', PRIORIDADES, ()=>t.prioridade || 'normal', k=>grava({ prioridade:k }));
+
+    // --- passos
+    // O checklist é o que transforma "gravar reels" em uma coisa que dá pra
+    // parar no meio e retomar sem perder onde estava.
+    const sPassos = secao('Passos', 'Quebre a tarefa no que dá pra marcar um a um.');
+    const listaPassos = el('div',{class:'passos'});
+    sPassos.appendChild(listaPassos);
+    const novoPasso = el('input',{ type:'text', placeholder:'+ acrescentar passo', class:'novo-passo' });
+    novoPasso.addEventListener('keydown', async e=>{
+      if(e.key !== 'Enter') return;
+      const v = novoPasso.value.trim();
+      if(!v) return;
+      const ps = (t.passos || []).concat([{ t:v, ok:false }]);
+      if(await grava({ passos:ps })){ novoPasso.value = ''; desenharPassos(); novoPasso.focus(); }
+    });
+    sPassos.appendChild(novoPasso);
+
+    function desenharPassos(){
+      const ps = t.passos || [];
+      listaPassos.innerHTML = '';
+      if(!ps.length){
+        listaPassos.appendChild(el('p',{class:'dica', style:'margin:0 0 10px'},'Nenhum passo ainda.'));
+      }
+      ps.forEach((p, i)=>{
+        const l = el('div',{class:'passo'+(p.ok?' ok':'')});
+        l.appendChild(el('button',{class:'marca'+(p.ok?' concluido':''), 'aria-pressed':String(!!p.ok),
+          'aria-label': (p.ok ? 'Desmarcar: ' : 'Marcar: ') + p.t,
+          onclick:async()=>{
+            const novos = ps.map((x,j)=> j===i ? { t:x.t, ok:!x.ok } : x);
+            if(await grava({ passos:novos })) desenharPassos();
+          }}, p.ok ? '✓' : ''));
+        const cam = el('input',{ type:'text', value:p.t });
+        cam.addEventListener('change', async ()=>{
+          const v = cam.value.trim();
+          const novos = v ? ps.map((x,j)=> j===i ? { t:v, ok:x.ok } : x) : ps.filter((x,j)=> j!==i);
+          if(await grava({ passos:novos })) desenharPassos();
+        });
+        l.appendChild(cam);
+        l.appendChild(el('button',{class:'x', 'aria-label':'Remover o passo ' + p.t, onclick:async()=>{
+          const novos = ps.filter((x,j)=> j!==i);
+          if(await grava({ passos:novos })) desenharPassos();
+        }},'×'));
+        listaPassos.appendChild(l);
+      });
+      const feitos = ps.filter(p=>p.ok).length;
+      if(ps.length) listaPassos.appendChild(el('p',{class:'dica', style:'margin:8px 0 0'},
+        feitos + ' de ' + ps.length + ' ' + (feitos === 1 ? 'passo feito' : 'passos feitos') + '.'));
+    }
+    desenharPassos();
+
+    // --- onde
+    const sOnde = secao('Onde');
+    texto(sOnde, 'Lugar', 'local', 'text', 'Estúdio, endereço, "na loja dele"…');
+    const lk = texto(sOnde, 'Link', 'link', 'url', 'Chamada, pasta, referência…');
+    const verLink = el('a',{ class:'abrir', target:'_blank', rel:'noopener noreferrer' },'abrir');
+    const arrumaLink = ()=>{
+      const v = (t.link || '').trim();
+      verLink.hidden = !v;
+      if(v) verLink.href = /^https?:/i.test(v) ? v : 'https://' + v;
+    };
+    lk.parentNode.appendChild(verLink);
+    lk.addEventListener('change', ()=>setTimeout(arrumaLink, 0));
+    arrumaLink();
+
+    // --- anotações
+    const sNota = secao('Anotação', 'O que não cabe no nome: o combinado, o que deu errado da última vez.');
+    const ta = el('textarea',{ rows:'4', placeholder:'Escreva aqui…' });
+    ta.value = t.detalhe || '';
+    ta.addEventListener('change', ()=>grava({ detalhe: ta.value.trim() || null }));
+    sNota.appendChild(ta);
+
+    // --- pé
+    function pintarPe(){
+      pe.innerHTML = '';
+      if(t.nova){
+        const criar = el('button',{class:'btn'},'Criar tarefa');
+        criar.addEventListener('click', async ()=>{
+          const nome = tit.value.trim();
+          if(!nome){ toast('Dê um nome pra tarefa antes de criar.'); tit.focus(); return; }
+          criar.disabled = true;
+          const linha = { titulo:nome, tipo:t.tipo, data:t.data, hora:t.hora || null,
+            hora_fim:t.hora_fim || null, responsavel:t.responsavel, cliente_id:t.cliente_id || null,
+            estado:t.estado, prioridade:t.prioridade, local:t.local || null, link:t.link || null,
+            detalhe:t.detalhe || null, passos:t.passos || [] };
+          const { data, error } = await sb.from('tarefas').insert(linha).select().single();
+          if(error){ toast('Não deu: ' + error.message); criar.disabled = false; return; }
+          t.nova = false; t.id = data.id;
+          state.tarefas.push(Object.assign({}, linha, { id:data.id }));
+          toast('Criada.'); render(); pintarCabeca(); pintarPe();
+        });
+        pe.appendChild(criar);
+        pe.appendChild(el('button',{class:'btn ghost', onclick:fecharPainel},'Cancelar'));
+        return;
+      }
+      const cli = t.cliente_id && state.clientes.find(c => c.id === t.cliente_id);
+      if(cli) pe.appendChild(el('button',{class:'btn ghost small',
+        onclick:()=>{ fecharPainel(); abrirCliente(cli.id, 'agenda'); }}, 'Abrir ' + esc(cli.nome)));
+      pe.appendChild(el('span',{style:'flex:1'}));
+      pe.appendChild(el('button',{class:'btn ghost small perigo', onclick:()=>{
+        const id = t.id, nome = t.titulo;
+        fecharPainel();
+        removerComVolta('tarefas', id, nome, async()=>{ await carregarTudo(); render(); });
+      }},'Remover'));
+      pe.appendChild(el('button',{class:'btn small', onclick:fecharPainel},'Fechar'));
+    }
+    pintarPe();
+
+    // Foco preso dentro do painel enquanto ele está aberto: quem navega por Tab
+    // não pode cair sem aviso na tela de trás, que está inerte.
+    caixa.addEventListener('keydown', e=>{
+      if(e.key === 'Escape'){ e.preventDefault(); fecharPainel(); return; }
+      if(e.key !== 'Tab') return;
+      const alvos = [...caixa.querySelectorAll('button, input, select, textarea, a[href]')]
+        .filter(n => !n.hidden && n.offsetParent !== null && !n.disabled);
+      if(!alvos.length) return;
+      const primeiro = alvos[0], ultimo = alvos[alvos.length - 1];
+      if(e.shiftKey && document.activeElement === primeiro){ e.preventDefault(); ultimo.focus(); }
+      else if(!e.shiftKey && document.activeElement === ultimo){ e.preventDefault(); primeiro.focus(); }
+    });
+    setTimeout(()=>tit.focus(), 0);
+  }
+
+  // ---------- telas ----------
 
   function telaAgenda(){
     const m = el('main');
@@ -2205,8 +2732,8 @@
     cabeca.appendChild(el('p',{class:'rot laranja'},'Equipe'));
     cabeca.appendChild(el('h1',{class:'page'},'Agenda'));
     cabeca.appendChild(el('p',{class:'intro'},
-      'O que cada um faz em cada dia. Clique no quadradinho pra andar entre a fazer, fazendo e feito. '
-      + 'Arraste a tarefa pra outro dia no calendário.'));
+      'O que cada um faz em cada dia. Clique numa tarefa pra abrir o painel e mexer em tudo: '
+      + 'tipo, hora, cliente, prioridade, passos, lugar e anotação. Arraste pra outro dia.'));
 
     const hoje = hojeIso();
     const todas = tarefasVisiveis();
@@ -2232,7 +2759,7 @@
   }
 
   function barraAgenda(clienteId){
-    const barra = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px'});
+    const barra = el('div',{class:'barra-agenda'});
 
     const visao = el('div',{class:'visao', role:'tablist'});
     [['calendario','Calendário'],['lista','Lista']].forEach(([k,rot])=>{
@@ -2249,8 +2776,23 @@
     });
     barra.appendChild(quem);
 
+    // Filtro por tipo: com oito tipos, oito botões seria uma segunda barra. Um
+    // menu diz a mesma coisa e ocupa a largura de um.
+    const filtro = el('select',{class:'filtro-tipo', 'aria-label':'Filtrar por tipo'});
+    filtro.appendChild(el('option',{value:'todos'},'Todos os tipos'));
+    TIPOS_TAREFA.forEach(([k,rot]) => filtro.appendChild(el('option',{value:k}, esc(rot))));
+    filtro.value = state.filtroTipo;
+    filtro.addEventListener('change', ()=>{ state.filtroTipo = filtro.value; render(); });
+    barra.appendChild(filtro);
+
     barra.appendChild(el('button',{class:'btn ghost small',
       onclick:()=>novaTarefa(hojeIso(), clienteId || undefined)},'+ tarefa hoje'));
+
+    const verAuto = el('button',{class:'btn ghost small', 'aria-pressed':String(state.verDerivados !== false),
+      title:'Pagamentos, fins de contrato, marcos do plano e próximas ações do funil',
+      onclick:()=>{ state.verDerivados = state.verDerivados === false; render(); }},
+      state.verDerivados === false ? 'mostrar datas do sistema' : 'ocultar datas do sistema');
+    barra.appendChild(verAuto);
     return barra;
   }
 
@@ -2283,8 +2825,10 @@
     const ultimo = new Date(ref.getFullYear(), ref.getMonth()+1, 0);
     const total = desloca + ultimo.getDate();
     const celulas = Math.ceil(total / 7) * 7;
+    const fimGrade = new Date(inicio); fimGrade.setDate(inicio.getDate() + celulas - 1);
 
     const todas = tarefasVisiveis(clienteId).filter(t => !foiEscondido(t));
+    const auto = derivados(iso(inicio), iso(fimGrade), clienteId);
     const grade = el('div',{class:'grade'});
     for(let i = 0; i < celulas; i++){
       const d = new Date(inicio); d.setDate(inicio.getDate() + i);
@@ -2294,15 +2838,38 @@
 
       const n = el('div',{class:'n'});
       n.appendChild(el('span',{}, String(d.getDate())));
-      const doDia = todas.filter(t => t.data === chave);
+      const doDia = todas.filter(t => t.data === chave).sort(porHora);
+      const autoDoDia = auto.filter(x => x.data === chave);
       const abertas = doDia.filter(t => t.estado === 'pendente' || t.estado === 'fazendo').length;
       if(abertas) n.appendChild(el('em',{}, String(abertas)));
       cel.appendChild(n);
 
-      doDia.slice(0,3).forEach(t => cel.appendChild(cartaoTarefa(t, true)));
-      if(doDia.length > 3) cel.appendChild(el('span',{class:'mais'}, '+' + (doDia.length - 3)));
+      const cabe = 3;
+      doDia.slice(0, cabe).forEach(t => cel.appendChild(cartaoTarefa(t, true)));
+      autoDoDia.slice(0, Math.max(0, cabe - doDia.length)).forEach(x => cel.appendChild(cartaoDerivado(x)));
+      const sobra = Math.max(0, doDia.length + autoDoDia.length - cabe);
+      if(sobra > 0) cel.appendChild(el('span',{class:'mais'}, '+' + sobra));
 
-      cel.addEventListener('dblclick', ()=>novaTarefa(chave, clienteId || undefined));
+      // No celular a célula tem 40px de largura: cabe o número do dia e mais
+      // nada. Em vez de espremer o título até virar reticências, o dia vira
+      // bolinha por tarefa — dá pra ver a carga da semana de longe — e o toque
+      // leva pra lista daquele dia, onde o texto cabe.
+      if(doDia.length || autoDoDia.length){
+        const pontos = el('div',{class:'pontos'});
+        doDia.slice(0,6).forEach(t => pontos.appendChild(el('i',{class:t.estado})));
+        if(autoDoDia.length) pontos.appendChild(el('i',{class:'auto'}));
+        cel.appendChild(pontos);
+      }
+
+      cel.addEventListener('click', e=>{
+        if(e.target.closest('.tar')) return;
+        if(!estreito()) return;
+        state.visaoAgenda = 'lista'; state.diaFoco = chave; render();
+      });
+      cel.addEventListener('dblclick', e=>{
+        if(e.target.closest('.tar')) return;
+        novaTarefa(chave, clienteId || undefined);
+      });
       cel.addEventListener('dragover', e=>{ e.preventDefault(); cel.classList.add('alvo'); });
       cel.addEventListener('dragleave', ()=> cel.classList.remove('alvo'));
       cel.addEventListener('drop', async e=>{
@@ -2315,21 +2882,40 @@
     }
     box.appendChild(grade);
     box.appendChild(el('p',{class:'dica', style:'margin-top:12px'},
-      'Dois cliques num dia criam uma tarefa nele. O número no canto é quanto falta fazer naquele dia.'));
+      'Clique numa tarefa pra abrir o painel; no quadradinho, pra andar entre a fazer, fazendo e feito. '
+      + 'Dois cliques num dia vazio criam uma tarefa nele. O número no canto é quanto falta fazer naquele dia. '
+      + 'As linhas com <b>i</b> vêm de outro lugar da Central e se editam lá. '
+      + 'No celular o dia vira bolinhas — um toque abre a lista dele.'));
     return box;
   }
 
+  // O cartão do mês. O quadradinho da esquerda anda o estado; o resto do cartão
+  // abre o painel. Antes o cartão inteiro girava o estado, e era fácil marcar
+  // como feito uma tarefa que você só queria ler.
   function cartaoTarefa(t, curto){
-    const c = el('div',{class:'tar '+t.estado, draggable:'true', tabindex:'0', title:t.titulo});
+    const c = el('div',{class:'tar '+t.estado+(t.prioridade === 'alta' ? ' urgente' : ''),
+      draggable:'true', tabindex:'0',
+      title: t.titulo + (t.hora ? ' · ' + soHora(t.hora) : '') + ' · ' + rotuloTipo(t.tipo)
+        + ((t.passos || []).length ? ' · ' + (t.passos.filter(x=>x.ok).length) + '/' + t.passos.length + ' passos' : '')});
     c.addEventListener('dragstart', e=>{
       e.dataTransfer.setData('text/plain', t.id); e.dataTransfer.effectAllowed='move';
       c.classList.add('arrastando');
     });
     c.addEventListener('dragend', ()=> c.classList.remove('arrastando'));
-    c.appendChild(el('span',{class:'ini '+classePessoa(t.responsavel)}, inicial(t.responsavel)));
+    const marca = el('button',{class:'ini '+classePessoa(t.responsavel),
+      'aria-label':'Estado de ' + t.titulo + ': ' + (ESTADOS_TAREFA.find(e=>e[0]===t.estado)||['','?'])[1]
+        + '. Clique pra mudar.'}, inicial(t.responsavel));
+    marca.addEventListener('click', e=>{ e.stopPropagation(); girarEstado(t); });
+    c.appendChild(marca);
+    if(t.hora) c.appendChild(el('span',{class:'h'}, soHora(t.hora)));
     c.appendChild(el('span',{class:'t'}, esc(t.titulo)));
-    c.addEventListener('click', ()=>girarEstado(t));
-    c.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); girarEstado(t); } });
+    const ps = t.passos || [];
+    if(ps.length) c.appendChild(el('span',{class:'ps'}, ps.filter(p=>p.ok).length + '/' + ps.length));
+    c.addEventListener('click', ()=>abrirPainel(t));
+    c.addEventListener('keydown', e=>{
+      if(e.key === 'Enter'){ e.preventDefault(); abrirPainel(t); }
+      else if(e.key === ' '){ e.preventDefault(); girarEstado(t); }
+    });
     return c;
   }
 
@@ -2337,9 +2923,15 @@
     const box = el('div');
     const hoje = hojeIso();
     const todas = tarefasVisiveis(clienteId).filter(t => !foiEscondido(t)).slice()
-      .sort((a,b)=> a.data.localeCompare(b.data) || String(a.hora||'').localeCompare(String(b.hora||'')));
+      .sort((a,b)=> a.data.localeCompare(b.data) || porHora(a,b));
 
-    if(!todas.length){
+    // A janela da lista: de trinta dias atrás até noventa à frente. Sem janela,
+    // as datas do sistema (pagamento todo mês, por exemplo) seriam infinitas.
+    const de = new Date(); de.setDate(de.getDate() - 30);
+    const ate = new Date(); ate.setDate(ate.getDate() + 90);
+    const auto = derivados(iso(de), iso(ate), clienteId);
+
+    if(!todas.length && !auto.length){
       const v = el('div',{class:'vazio'});
       v.appendChild(el('strong',{},'Nenhuma tarefa'));
       v.appendChild(el('span',{},'Use "+ tarefa hoje", ou dê dois cliques num dia do calendário.'));
@@ -2348,30 +2940,43 @@
     }
 
     const porDia = {};
-    todas.forEach(t => { (porDia[t.data] = porDia[t.data] || []).push(t); });
+    todas.forEach(t => { (porDia[t.data] = porDia[t.data] || { t:[], a:[] }).t.push(t); });
+    auto.forEach(x => { (porDia[x.data] = porDia[x.data] || { t:[], a:[] }).a.push(x); });
     Object.keys(porDia).sort().forEach(dia=>{
       const d = new Date(dia + 'T00:00:00');
-      const g = el('div',{class:'dia-lista'+(dia===hoje?' e-hoje':'')});
+      const g = el('div',{class:'dia-lista'+(dia===hoje?' e-hoje':'')+(dia===state.diaFoco?' focado':''),
+        'data-dia':dia});
       const cab = el('div',{class:'cab'});
       cab.appendChild(el('b',{}, d.toLocaleDateString('pt-BR',{ weekday:'long', day:'numeric', month:'long' })));
       if(dia === hoje) cab.appendChild(el('span',{},'hoje'));
       else if(dia < hoje) cab.appendChild(el('span',{style:'color:var(--al)'}, emDias(diasAte(dia))));
       else cab.appendChild(el('span',{}, emDias(diasAte(dia))));
+      cab.appendChild(el('button',{class:'mais-dia', title:'nova tarefa nesse dia',
+        'aria-label':'Nova tarefa em ' + d.toLocaleDateString('pt-BR'),
+        onclick:()=>novaTarefa(dia, clienteId || undefined)},'+'));
       g.appendChild(cab);
 
-      porDia[dia].forEach(t=>{
-        const l = el('div',{class:'linha-tar '+t.estado});
+      porDia[dia].t.forEach(t=>{
+        const l = el('div',{class:'linha-tar '+t.estado+(t.prioridade === 'alta' ? ' urgente' : '')});
         l.appendChild(el('button',{class:'marca '+t.estado, title:'mudar estado',
           onclick:()=>girarEstado(t)}, t.estado === 'concluido' ? '✓' : (t.estado === 'fazendo' ? '•' : '')));
-        const corpo = el('div',{class:'corpo'});
-        corpo.appendChild(el('div',{class:'tit'}, esc(t.titulo)));
+        const corpo = el('button',{class:'corpo', onclick:()=>abrirPainel(t)});
+        const tit = el('div',{class:'tit'});
+        if(t.hora) tit.appendChild(el('span',{class:'h'}, soHora(t.hora)
+          + (t.hora_fim ? '–' + soHora(t.hora_fim) : '')));
+        tit.appendChild(el('span',{}, esc(t.titulo)));
+        corpo.appendChild(tit);
         const sub = el('div',{class:'sub'});
         sub.appendChild(el('span',{class:'ini '+classePessoa(t.responsavel)}, inicial(t.responsavel)));
         sub.appendChild(el('span',{}, esc(pessoa(t.responsavel))));
+        if((t.tipo || 'tarefa') !== 'tarefa') sub.appendChild(el('span',{}, '· ' + esc(rotuloTipo(t.tipo))));
         const cli = t.cliente_id && state.clientes.find(c => c.id === t.cliente_id);
         if(cli) sub.appendChild(el('span',{}, '· ' + esc(cli.nome)));
         else if(clienteId === undefined) sub.appendChild(el('span',{},'· interno'));
-        if(t.hora) sub.appendChild(el('span',{}, '· ' + String(t.hora).slice(0,5)));
+        if(t.prioridade === 'alta') sub.appendChild(el('span',{style:'color:var(--al)'},'· prioridade alta'));
+        const ps = t.passos || [];
+        if(ps.length) sub.appendChild(el('span',{}, '· ' + ps.filter(p=>p.ok).length + '/' + ps.length + ' passos'));
+        if(t.local) sub.appendChild(el('span',{}, '· ' + esc(t.local)));
         if(t.detalhe) sub.appendChild(el('span',{}, '· ' + esc(t.detalhe)));
         corpo.appendChild(sub);
         l.appendChild(corpo);
@@ -2381,8 +2986,23 @@
           }},'×'));
         g.appendChild(l);
       });
+
+      porDia[dia].a.forEach(x=>{
+        const l = el('button',{class:'linha-tar auto', onclick:x.ir});
+        l.appendChild(el('span',{class:'marca auto'},'i'));
+        const corpo = el('div',{class:'corpo'});
+        corpo.appendChild(el('div',{class:'tit'}, esc(x.oq)));
+        corpo.appendChild(el('div',{class:'sub'}, 'vem de ' + esc(x.de) + ' · clique pra abrir onde se edita'));
+        l.appendChild(corpo);
+        g.appendChild(l);
+      });
       box.appendChild(g);
     });
+    if(state.diaFoco) setTimeout(()=>{
+      const alvo = box.querySelector('.dia-lista.focado');
+      if(alvo) alvo.scrollIntoView({ block:'center' });
+      state.diaFoco = null;
+    }, 0);
     return box;
   }
 
@@ -5014,6 +5634,7 @@
   }
 
   document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && painelAberto){ fecharPainel(); return; }
     if(e.key === 'Escape' && state.gaveta){ state.gaveta = false; render(); return; }
     if((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')){
       const campo = document.querySelector('.buscatopo input');
