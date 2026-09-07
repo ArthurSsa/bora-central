@@ -74,18 +74,6 @@
   .cifra u{ text-decoration:none; color:var(--laranja); }
 
   /* ---------- topo ---------- */
-  .topbar{
-    background:var(--sup); box-shadow:var(--s1);
-    padding:0 22px; height:56px; display:flex; align-items:center; justify-content:space-between;
-    position:sticky; top:0; z-index:40;
-  }
-  .topbar .brand{
-    font-family:var(--display); font-weight:700; font-size:0.85rem;
-    letter-spacing:0.16em; text-transform:uppercase; display:flex; align-items:center; gap:10px;
-    background:none; border:none; padding:0; color:inherit;
-  }
-  .topbar .brand .dot{ width:8px; height:8px; border-radius:50%; background:var(--laranja); display:inline-block; flex:0 0 auto; }
-  .topbar .who{ font-family:var(--dado); font-size:0.68rem; color:var(--fraco); display:flex; align-items:center; gap:14px; }
   .linkbtn{ background:none; border:none; color:var(--laranja-forte); font-size:0.72rem; font-family:var(--dado); padding:0; text-decoration:underline; }
 
   .menu-btn{
@@ -99,7 +87,7 @@
   /* ---------- lateral ---------- */
   .side{
     background:var(--sup); border-radius:var(--r); box-shadow:var(--s1); padding:14px 0 16px;
-    position:sticky; top:76px;
+    position:sticky; top:80px;
   }
   .side h4{
     font-family:var(--dado); font-size:0.56rem; letter-spacing:0.16em; text-transform:uppercase;
@@ -165,7 +153,7 @@
   .etapa .q{ display:block; font-family:var(--dado); font-size:0.55rem; letter-spacing:0.11em; text-transform:uppercase; color:var(--fraco); }
 
   /* ---------- abas ---------- */
-  .abas-caixa{ position:sticky; top:56px; z-index:30; background:var(--papel); padding:8px 0 2px; margin:-8px 0 -2px; }
+  .abas-caixa{ position:sticky; top:60px; z-index:30; background:var(--papel); padding:8px 0 2px; margin:-8px 0 -2px; }
   .abas{ display:flex; gap:5px; overflow-x:auto; scrollbar-width:none; padding:2px; }
   .abas::-webkit-scrollbar{ display:none; }
   .tab{
@@ -525,20 +513,315 @@
 
   .kanban{ display:grid; grid-auto-flow:column; grid-auto-columns:270px; gap:12px; overflow-x:auto; padding:2px 2px 12px; }
 
+
+  /* ---------- barra de cima: agora ela navega ---------- */
+  .topbar{
+    background:var(--sup); box-shadow:var(--s1);
+    padding:0 20px; height:60px; display:flex; align-items:center; gap:22px;
+    position:sticky; top:0; z-index:40;
+  }
+  .topbar .brand{
+    font-family:var(--display); font-weight:700; font-size:0.82rem;
+    letter-spacing:0.15em; text-transform:uppercase; display:flex; align-items:center; gap:9px;
+    background:none; border:none; padding:0; color:inherit; white-space:nowrap; flex:0 0 auto;
+  }
+  .topbar .brand .dot{ width:8px; height:8px; border-radius:50%; background:var(--laranja); display:inline-block; flex:0 0 auto; }
+
+  .navtopo{ display:flex; gap:3px; flex:1 1 auto; min-width:0; overflow-x:auto; scrollbar-width:none; }
+  .navtopo::-webkit-scrollbar{ display:none; }
+  .navtopo button{
+    display:flex; align-items:center; gap:7px; white-space:nowrap; flex:0 0 auto;
+    background:none; border:none; border-radius:9px; padding:8px 13px; color:var(--fraco);
+    font-family:var(--display); font-weight:600; font-size:0.88rem;
+    transition:background .14s ease, color .14s ease;
+  }
+  .navtopo button:hover{ background:var(--sup2); color:var(--tinta); }
+  .navtopo button[aria-current="page"]{ background:var(--laranja-fraco); color:var(--laranja-forte); }
+  .navtopo .conta{
+    font-family:var(--dado); font-size:0.58rem; background:var(--laranja); color:#fff;
+    border-radius:100px; padding:1px 6px; letter-spacing:0;
+  }
+  .navtopo button[aria-current="page"] .conta{ background:var(--laranja-forte); }
+
+  .topbar .fim{ display:flex; align-items:center; gap:12px; flex:0 0 auto; }
+  .topbar .who{ font-family:var(--dado); font-size:0.66rem; color:var(--fraco); }
+
+  /* busca global */
+  .buscatopo{ position:relative; flex:0 0 auto; }
+  .buscatopo input{
+    width:190px; padding:8px 12px 8px 30px; border:1px solid var(--linha); border-radius:100px;
+    background:var(--sup2); font-size:0.84rem;
+  }
+  .buscatopo input:focus{ background:var(--sup); border-color:var(--tinta); width:250px; }
+  .buscatopo input{ transition:width .16s ease, background .14s ease, border-color .14s ease; }
+  .buscatopo::before{
+    content:''; position:absolute; left:11px; top:50%; margin-top:-5px;
+    width:9px; height:9px; border:1.5px solid var(--fraco); border-radius:50%; pointer-events:none;
+  }
+  .buscatopo::after{
+    content:''; position:absolute; left:19px; top:50%; margin-top:3px;
+    width:5px; height:1.5px; background:var(--fraco); transform:rotate(45deg); pointer-events:none;
+  }
+  .achados{
+    position:absolute; top:calc(100% + 8px); right:0; width:min(340px, calc(100vw - 40px));
+    background:var(--sup); border-radius:12px; box-shadow:var(--s2); padding:8px; z-index:50;
+    max-height:60vh; overflow-y:auto;
+  }
+  .achados h6{
+    font-family:var(--dado); font-size:0.54rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--fraco); margin:10px 10px 4px; font-weight:400;
+  }
+  .achados h6:first-child{ margin-top:4px; }
+  .achados button{
+    display:block; width:100%; text-align:left; background:none; border:none; border-radius:8px;
+    padding:8px 10px; font-size:0.88rem; color:inherit; line-height:1.3;
+  }
+  .achados button:hover{ background:var(--sup2); }
+  .achados button span{ display:block; font-size:0.74rem; color:var(--fraco); }
+
+  /* ---------- índice de clientes ---------- */
+  .grupo-cli{ margin-bottom:26px; }
+  .grupo-cli > h3{
+    font-family:var(--dado); font-size:0.58rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--fraco); margin:0 0 12px; display:flex; gap:9px; align-items:center; font-weight:400;
+  }
+  .cartoes{ display:grid; grid-template-columns:repeat(auto-fill, minmax(272px,1fr)); gap:12px; }
+  .cli-cartao{
+    background:var(--sup); border:1px solid var(--linha); border-radius:13px; padding:16px 17px;
+    text-align:left; color:inherit; display:flex; flex-direction:column; gap:11px;
+    transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+  }
+  .cli-cartao:hover{ transform:translateY(-2px); box-shadow:var(--s2); border-color:transparent; }
+  .cli-cartao .topo{ display:flex; gap:11px; align-items:flex-start; }
+  .marca-cli{
+    flex:0 0 auto; width:38px; height:38px; border-radius:10px; display:flex; align-items:center;
+    justify-content:center; font-family:var(--display); font-weight:700; font-size:0.98rem;
+    background:var(--sup2); color:var(--fraco);
+  }
+  .cli-cartao .nome{ font-family:var(--display); font-weight:700; font-size:1.02rem; line-height:1.2; letter-spacing:-0.015em; }
+  .cli-cartao .sub{ font-size:0.78rem; color:var(--fraco); margin-top:2px; }
+  .cli-cartao .barra{ height:5px; background:var(--linha2); border-radius:100px; overflow:hidden; }
+  .cli-cartao .barra i{ display:block; height:100%; border-radius:100px; background:linear-gradient(90deg,#FF8A3C,var(--laranja)); }
+  .cli-cartao .pes{
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+    font-family:var(--dado); font-size:0.56rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--fraco);
+  }
+  .cli-cartao .pes b{ font-family:var(--display); font-size:0.82rem; letter-spacing:0; text-transform:none; color:var(--tinta); }
+  .cli-cartao .alertas{ display:flex; gap:6px; flex-wrap:wrap; }
+
+  /* ---------- propriedades do perfil ---------- */
+  .props{ display:grid; grid-template-columns:repeat(auto-fill, minmax(310px,1fr)); gap:2px 26px; }
+  .prop{ display:flex; gap:10px; align-items:baseline; padding:7px 0; border-bottom:1px solid var(--linha2); }
+  .prop > span{
+    flex:0 0 96px; font-family:var(--dado); font-size:0.56rem; letter-spacing:0.11em;
+    text-transform:uppercase; color:var(--fraco);
+  }
+  .prop .v{ flex:1 1 auto; min-width:0; }
+  .prop input, .prop select{
+    width:100%; border:1px solid transparent; border-radius:7px; background:none; padding:4px 7px;
+    font-size:0.89rem; color:inherit; margin-left:-7px;
+  }
+  .prop input:hover, .prop select:hover{ background:var(--sup2); }
+  .prop input:focus, .prop select:focus{ background:var(--sup); border-color:var(--tinta); }
+  .prop input::placeholder{ color:#BDB6AD; }
+  .prop a{ color:var(--laranja-forte); font-size:0.8rem; text-decoration:none; white-space:nowrap; }
+  .prop a:hover{ text-decoration:underline; }
+
+  /* ---------- notas ---------- */
+  .nota-nova textarea{
+    width:100%; min-height:72px; padding:12px 14px; border:1px solid var(--linha); border-radius:11px;
+    background:var(--sup2); font-family:var(--corpo); font-size:0.92rem; line-height:1.5; resize:vertical;
+  }
+  .nota-nova textarea:focus{ background:var(--sup); border-color:var(--tinta); }
+  .nota{
+    border-left:2px solid var(--linha); padding:0 0 0 16px; margin:18px 0 0; position:relative;
+  }
+  .nota.fixa{ border-left-color:var(--laranja); }
+  .nota .cab{
+    display:flex; gap:9px; align-items:center; flex-wrap:wrap;
+    font-family:var(--dado); font-size:0.56rem; letter-spacing:0.11em; text-transform:uppercase; color:var(--fraco);
+  }
+  .nota .cab button{ background:none; border:none; color:var(--fraco); font-size:0.62rem; padding:0; }
+  .nota .cab button:hover{ color:var(--tinta); }
+  .nota .cab button.fixar.on{ color:var(--laranja-forte); }
+  .nota p{ margin:6px 0 0; font-size:0.94rem; line-height:1.55; white-space:pre-wrap; }
+
+  /* ---------- grupos de aba ---------- */
+  .grupo-abas{ display:flex; gap:14px; align-items:center; flex:0 0 auto; }
+  .grupo-abas .sep{ width:1px; height:20px; background:var(--linha); flex:0 0 auto; }
+
+  @media (max-width:900px){
+    .topbar{ height:auto; flex-wrap:wrap; padding:10px 14px; gap:10px 12px; }
+    /* order vale entre irmãos: .buscatopo é filha de .fim, não da barra.
+       Quem se ordena aqui é .fim, e a busca cresce dentro dela. */
+    .topbar .fim{ order:2; flex:1 1 100%; gap:10px; }
+    .buscatopo{ flex:1 1 auto; }
+    .buscatopo input, .buscatopo input:focus{ width:100%; }
+    .navtopo{ order:3; width:100%; }
+    .topbar .who{ display:none; }
+    .topbar .brand{ flex:1 1 auto; }
+  }
+
+
+  /* ==================================================================
+     Modo escuro. Só os tokens mudam — nenhum componente sabe que existe
+     um segundo tema, e é isso que impede o "no escuro aquela tela ficou
+     branca". Três estados: escolha explícita clara, escolha explícita
+     escura, e "sistema", que segue o aparelho.
+     Contraste conferido: o par mais apertado é 6,2:1 (texto fraco sobre
+     cartão), acima dos 4,5 exigidos para texto normal.
+     ================================================================== */
+  :root[data-tema="escuro"], :root[data-tema="sistema"].escuro{
+    --papel:#12100E;
+    --sup:#1B1815;
+    --sup2:#221E1A;
+    --tinta:#F2EEE8;
+    --fraco:#A09890;
+    --linha:#302B26;
+    --linha2:#262119;
+    --laranja:#FF7A2E;
+    --laranja-forte:#FF9A5C;
+    --laranja-fraco:#2E1B0E;
+    --roxo:#B166FF;
+    --roxo-fraco:#241634;
+
+    --ok:#7FD6A6;    --ok-f:#16291F;   --ok-b:#24422F;
+    --al:#FF9382;    --al-f:#2E1714;   --al-b:#4A2620;
+    --es:#EFC873;    --es-f:#2B2110;   --es-b:#463620;
+    --an:#9CC0F2;    --an-f:#152131;   --an-b:#25384F;
+    --nt:#B8B0A7;    --nt-f:#262119;   --nt-b:#3A342C;
+
+    --s1:0 1px 2px rgba(0,0,0,.5), 0 6px 22px rgba(0,0,0,.4);
+    --s2:0 2px 5px rgba(0,0,0,.55), 0 16px 44px rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+  /* No claro a sombra separa a barra da página; no escuro sombra não aparece,
+     e sem isso o topo e o conteúdo viram a mesma mancha preta. */
+  :root[data-tema="escuro"] .topbar,
+  :root[data-tema="sistema"].escuro .topbar{ border-bottom:1px solid var(--linha); }
+
+  /* Peças que fixavam cor à mão, e por isso não seguiam os tokens. */
+  :root[data-tema="escuro"] .bloco.escuro,
+  :root[data-tema="sistema"].escuro .bloco.escuro{ background:linear-gradient(135deg,#241F1A,#141210); }
+  :root[data-tema="escuro"] .tab[aria-selected="true"],
+  :root[data-tema="sistema"].escuro .tab[aria-selected="true"]{ background:var(--laranja); border-color:var(--laranja); color:#12100E; }
+  :root[data-tema="escuro"] .btn,
+  :root[data-tema="sistema"].escuro .btn{ background:var(--tinta); color:var(--papel); border-color:var(--tinta); }
+  :root[data-tema="escuro"] .btn:hover,
+  :root[data-tema="sistema"].escuro .btn:hover{ background:var(--laranja); border-color:var(--laranja); color:#12100E; }
+  :root[data-tema="escuro"] .btn.ghost,
+  :root[data-tema="sistema"].escuro .btn.ghost{ background:transparent; color:var(--tinta); border-color:var(--linha); }
+  :root[data-tema="escuro"] .visao button[aria-selected="true"],
+  :root[data-tema="sistema"].escuro .visao button[aria-selected="true"],
+  :root[data-tema="escuro"] details[open] > summary,
+  :root[data-tema="sistema"].escuro details[open] > summary{ background:var(--laranja); color:#12100E; border-color:var(--laranja); }
+  :root[data-tema="escuro"] .toast,
+  :root[data-tema="sistema"].escuro .toast{ background:var(--sup2); color:var(--tinta); border:1px solid var(--linha); }
+  :root[data-tema="escuro"] .navtopo button[aria-current="page"] .conta,
+  :root[data-tema="sistema"].escuro .navtopo button[aria-current="page"] .conta{ background:var(--laranja); color:#12100E; }
+  :root[data-tema="escuro"] .pill,
+  :root[data-tema="sistema"].escuro .pill,
+  :root[data-tema="escuro"] .navtopo .conta,
+  :root[data-tema="sistema"].escuro .navtopo .conta{ color:#12100E; }
+  :root[data-tema="escuro"] .etapa.meio .bola,
+  :root[data-tema="sistema"].escuro .etapa.meio .bola{ background:linear-gradient(90deg,#D89A2A 50%,var(--sup2) 50%); }
+  :root[data-tema="escuro"] .tar,
+  :root[data-tema="sistema"].escuro .tar{ background:var(--sup2); }
+  :root[data-tema="escuro"] .marca-cli,
+  :root[data-tema="sistema"].escuro .marca-cli{ background:var(--linha2); color:var(--fraco); }
+  :root[data-tema="escuro"] .dono.cliente,
+  :root[data-tema="sistema"].escuro .dono.cliente{ color:#12100E; }
+
+  /* ---------- perfil ---------- */
+  .cabeca-perfil{ display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+  .retrato{
+    width:88px; height:88px; border-radius:50%; object-fit:cover; flex:0 0 auto;
+    background:var(--sup2); border:1px solid var(--linha);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-weight:700; font-size:1.9rem; color:var(--fraco);
+  }
+  .escolhas{ display:grid; gap:8px; }
+  .opcoes{ display:flex; gap:8px; flex-wrap:wrap; }
+  .opcao{
+    background:var(--sup2); border:1px solid var(--linha); border-radius:11px; padding:12px 16px;
+    text-align:left; color:inherit; min-width:132px; transition:border-color .14s ease, background .14s ease;
+  }
+  .opcao:hover{ border-color:var(--tinta); }
+  .opcao[aria-pressed="true"]{ border-color:var(--laranja); background:var(--laranja-fraco); }
+  .opcao b{ display:block; font-family:var(--display); font-weight:600; font-size:0.9rem; }
+  .opcao span{ display:block; font-size:0.76rem; color:var(--fraco); margin-top:3px; line-height:1.35; }
+  .opcao[aria-pressed="true"] b{ color:var(--laranja-forte); }
+  .amostra{ display:flex; gap:6px; margin-top:9px; }
+  .amostra i{ width:15px; height:15px; border-radius:4px; border:1px solid rgba(128,128,128,.35); display:block; }
+
+  /* ---------- densidade compacta ---------- */
+  :root[data-densidade="compacto"] .bloco{ padding:16px 18px; }
+  :root[data-densidade="compacto"] main{ gap:12px; }
+  :root[data-densidade="compacto"] .shell{ gap:14px; padding:14px; }
+  :root[data-densidade="compacto"] td{ padding:9px 12px 9px 0; }
+  :root[data-densidade="compacto"] .prop{ padding:4px 0; }
+  :root[data-densidade="compacto"] .item-l{ padding:10px 13px; margin-bottom:6px; }
+  :root[data-densidade="compacto"] .linha-tar{ padding:6px 0; }
+  :root[data-densidade="compacto"] .pend{ padding:10px 13px; margin-bottom:6px; }
+  :root[data-densidade="compacto"] h1.page{ font-size:1.6rem; }
+  :root[data-densidade="compacto"] .cifra{ font-size:1.9rem; }
+
+  /* ---------- logo ---------- */
+  /* A marca é um logotipo de dois andares, não um ícone: em 30px o "RA" de
+     baixo vira borrão. Por isso ela vem por altura (36px) e largura
+     automática, respeitando a proporção do arquivo. */
+  .logo{ display:flex; align-items:center; gap:11px; flex:0 0 auto; background:none; border:none; padding:0; color:inherit; }
+  .logo svg{ height:36px; width:auto; display:block; flex:0 0 auto; }
+  .logo .nome{
+    font-family:var(--display); font-weight:700; font-size:0.78rem;
+    letter-spacing:0.14em; text-transform:uppercase; white-space:nowrap;
+    padding-left:11px; border-left:1px solid var(--linha);
+  }
+  @media (max-width:520px){ .logo .nome{ display:none; } .logo svg{ height:32px; } }
+  .logo-login svg{ height:76px; width:auto; display:block; margin-bottom:22px; }
+
+  /* ---------- avatar no topo ---------- */
+  .euzinho{
+    display:flex; align-items:center; gap:8px; background:none; border:1px solid transparent;
+    border-radius:100px; padding:4px 10px 4px 4px; color:inherit;
+  }
+  .euzinho:hover{ border-color:var(--linha); background:var(--sup2); }
+  .euzinho[aria-current="page"]{ border-color:var(--laranja); background:var(--laranja-fraco); }
+  .euzinho img, .euzinho .ini-foto{
+    width:28px; height:28px; border-radius:50%; object-fit:cover; flex:0 0 auto;
+    background:var(--sup2); border:1px solid var(--linha);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--dado); font-size:0.6rem; font-weight:700; color:var(--fraco);
+  }
+  .euzinho span{ font-size:0.82rem; font-weight:600; white-space:nowrap; }
+  @media (max-width:900px){ .euzinho span{ display:none; } }
+
+  /* ---------- desfazer ---------- */
+  /* O toast comum é click-through (pointer-events:none), senão ele engole o
+     clique de quem está trabalhando embaixo. O de desfazer TEM um botão, então
+     precisa receber clique — sem esta linha o botão aparece e não funciona. */
+  .toast.comdesfazer{ display:flex; align-items:center; gap:16px; padding-right:14px; }
+  .toast.comdesfazer.show{ pointer-events:auto; }
+  .toast .desfazer{
+    background:none; border:1px solid rgba(255,255,255,.35); border-radius:100px;
+    color:inherit; font-family:var(--display); font-weight:700; font-size:0.76rem; padding:5px 12px;
+  }
+  .toast .desfazer:hover{ background:rgba(255,255,255,.15); }
+
   /* ---------- celular: a lateral vira gaveta ---------- */
   @media (max-width:900px){
     .shell{ grid-template-columns:minmax(0,1fr); padding:14px; gap:14px; }
     .menu-btn{ display:inline-block; }
     .side{
-      position:fixed; inset:56px 0 auto 0; z-index:35; border-radius:0 0 var(--r) var(--r);
-      box-shadow:var(--s2); max-height:calc(100vh - 56px); overflow-y:auto;
+      position:fixed; inset:auto 0 auto 0; top:116px; z-index:35; border-radius:0 0 var(--r) var(--r);
+      box-shadow:var(--s2); max-height:calc(100vh - 116px); overflow-y:auto;
       transform:translateY(-8px); opacity:0; visibility:hidden; pointer-events:none;
       transition:opacity .18s ease, transform .18s ease, visibility .18s;
     }
     /* visibility, e não só opacity: gaveta fechada não pode ser alcançada pelo
        Tab nem lida por leitor de tela. */
     .side.aberta{ transform:none; opacity:1; visibility:visible; pointer-events:auto; }
-    .abas-caixa{ top:56px; }
+    .abas-caixa{ top:0; }
     .bloco{ padding:20px 18px; }
   }
   @media (max-width:680px){
@@ -712,11 +995,12 @@
   const state = {
     user:null, membro:false, carregando:true,
     clientes:[], inbox:[], vista:{ tipo:'agora' }, aba:'respostas',
-    detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[], pagina:null, correcoes:[] },
+    detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[], pagina:null, correcoes:[], notas:[] },
     erro:null, modoLogin:'link', linkEnviadoPara:null, editandoPV:false,
     gaveta:false, voltarPara:null,
     oportunidades:[], buscaLista:'', colando:false, ordemLista:{ campo:'nome', desc:false },
     tarefas:[], listas:[], listaItens:[], listaAberta:null,
+    busca:'', verTudo:false, perfil:null, escondidos:[],
     visaoAgenda:'calendario', visaoLista:'lista', filtroQuem:'todos',
     mesAgenda:new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),
     buscaCliente:'',
@@ -733,6 +1017,8 @@
     const h = (location.hash || '').replace(/^#\/?/, '');
     const [a, b, c] = h.split('/').filter(Boolean);
     if(a === 'c' && b) return { tipo:'cliente', id:b, aba:c || null };
+    if(a === 'perfil') return { tipo:'perfil' };
+    if(a === 'clientes') return { tipo:'clientes' };
     if(a === 'agenda') return { tipo:'agenda' };
     if(a === 'listas') return { tipo:'listas' };
     if(a === 'funil') return { tipo:'funil' };
@@ -744,6 +1030,8 @@
 
   function enderecoDe(vista, aba){
     if(vista.tipo === 'cliente') return '#/c/' + vista.id + '/' + (aba || state.aba || 'respostas');
+    if(vista.tipo === 'perfil') return '#/perfil';
+    if(vista.tipo === 'clientes') return '#/clientes';
     if(vista.tipo === 'agenda') return '#/agenda';
     if(vista.tipo === 'listas') return '#/listas';
     if(vista.tipo === 'funil') return '#/funil';
@@ -780,7 +1068,7 @@
       state.aba = (opts.aba && ABAS.some(a => a[0] === opts.aba)) ? opts.aba : (state.aba || 'respostas');
       if(trocouCliente){
         state.editandoPV = false;
-        state.detalhe = { onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[], pagina:null, correcoes:[] };
+        state.detalhe = { onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[], pagina:null, correcoes:[], notas:[] };
         render();
         carregarDetalhe(vista.id).then(render);
         return;
@@ -821,7 +1109,7 @@
     // As seis tabelas vêm inteiras, sem filtro de cliente: é o que a tela Agora
     // precisa pra cruzar tudo. São dezenas de linhas no total, não milhares —
     // no dia em que forem, isso vira uma view no banco, não mais selects aqui.
-    const [cli, inbox, ac, me, ba, ma, co, ho, op, ta, li, it] = await Promise.all([
+    const [cli, inbox, ac, me, ba, ma, co, ho, op, ta, li, it, pf] = await Promise.all([
       sb.from('clientes').select('*').order('nome'),
       sb.from('onboarding_respostas').select('*').is('cliente_id', null).order('recebido_em', { ascending:false }),
       sb.from('acessos').select('*'),
@@ -834,6 +1122,7 @@
       sb.from('tarefas').select('*').order('data'),
       sb.from('listas').select('*').order('ordem'),
       sb.from('lista_itens').select('*').order('ordem'),
+      sb.from('perfil_bora').select('*').limit(1),
     ]);
     if(cli.error) state.erro = cli.error.message;
     state.clientes = cli.data || [];
@@ -847,11 +1136,14 @@
     state.listas = li.data || [];
     state.listaItens = it.data || [];
     if(!state.listaAberta && state.listas.length) state.listaAberta = state.listas[0].id;
+    // A política do banco já entrega só o perfil de quem está logado.
+    state.perfil = (pf.data && pf.data[0]) || state.perfil;
+    aplicarTema();
   }
 
   async function carregarDetalhe(clienteId){
     const d = state.detalhe;
-    const [on, me, ba, ma, co, ho, ac, pg, cr] = await Promise.all([
+    const [on, me, ba, ma, co, ho, ac, pg, cr, nt] = await Promise.all([
       sb.from('onboarding_respostas').select('*').eq('cliente_id', clienteId).order('recebido_em',{ascending:false}).limit(1),
       sb.from('metas').select('*').eq('cliente_id', clienteId).order('registrado_em'),
       sb.from('baselines').select('*').eq('cliente_id', clienteId).order('congelado_em'),
@@ -861,12 +1153,14 @@
       sb.from('acessos').select('*').eq('cliente_id', clienteId).order('ordem').order('recurso'),
       sb.from('paginas').select('*').eq('cliente_id', clienteId).limit(1),
       sb.from('correcoes').select('*').eq('cliente_id', clienteId).order('corrigido_em'),
+      sb.from('notas').select('*').eq('cliente_id', clienteId).order('criado_em', { ascending:false }),
     ]);
     d.onboarding = (on.data && on.data[0]) || null;
     d.metas = me.data || []; d.baselines = ba.data || []; d.marcos = ma.data || [];
     d.conformidade = co.data || []; d.horas = ho.data || []; d.acessos = ac.data || [];
     d.pagina = (pg.data && pg.data[0]) || null;
     d.correcoes = cr.data || [];
+    d.notas = nt.data || [];
   }
 
   async function inserir(tabela, linha){
@@ -902,29 +1196,15 @@
     shell.appendChild(conteudo());
     app.appendChild(shell);
     if(state.gaveta) app.appendChild(el('div',{
-      style:'position:fixed;inset:56px 0 0 0;z-index:34;background:rgba(26,24,21,.28)',
+      style:'position:fixed;inset:0;z-index:34;background:rgba(26,24,21,.28)',
       onclick:()=>{ state.gaveta = false; render(); }}));
-  }
-
-  function topbar(){
-    const bar = el('div',{class:'topbar'});
-    const esq = el('div',{style:'display:flex;align-items:center;gap:14px'});
-    esq.appendChild(el('button',{class:'menu-btn', 'aria-expanded':String(state.gaveta),
-      onclick:()=>{ state.gaveta = !state.gaveta; render(); }}, state.gaveta ? 'Fechar' : 'Menu'));
-    esq.appendChild(el('button',{class:'brand', onclick:()=>ir({tipo:'agora'})},
-      '<span class="dot"></span>Central Bora'));
-    bar.appendChild(esq);
-    const who = el('div',{class:'who'});
-    who.appendChild(el('span',{},esc(state.user.email)));
-    who.appendChild(el('button',{class:'linkbtn', onclick:sair},'sair'));
-    bar.appendChild(who);
-    return bar;
   }
 
   function telaLogin(){
     const box = el('div',{class:'login'});
+    box.appendChild(el('div',{class:'logo-login'}, LOGO));
     box.appendChild(el('p',{class:'rot laranja'},'Uso interno da Bora Postar'));
-    box.appendChild(el('h1',{class:'page'},'Central Bora'));
+    box.appendChild(el('h1',{class:'page'},'Central'));
 
     // Confirmação depois de enviar o link
     if(state.linkEnviadoPara){
@@ -1015,88 +1295,615 @@
     return m;
   }
 
+  // ---------- logo ----------
+  // A marca de verdade: BÖRA em dois andares, o mesmo arquivo que está no
+  // formulário. Veio de um export do Figma e foi limpo — saiu o retângulo
+  // branco de fundo (que virava um bloco branco no modo escuro), saíram as
+  // máscaras que só serviam pra desenhar um contorno de 7,2 (virou traço
+  // centrado de 14,4 no próprio preenchimento, que dá o mesmo resultado) e
+  // saiu o risco branco que abria a falha no travessão do A — no lugar dele,
+  // dois travessões com a falha entre eles, porque branco só some em fundo
+  // branco. Sobrou só o desenho, em currentColor: a marca vira com o tema.
+  // A laranja é a única cor fixa — é ela que identifica a Bora.
+  const LOGO = '<svg viewBox="137 133 1150 1265" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+    + '<ellipse cx="1042.19" cy="538.341" rx="241.56" ry="245.52" fill="#FF5E00"/>'  // orelha laranja — a única cor fixa; é ela que identifica a Bora
+    + '<path d="M500.319 362.021C526.316 362.287 549.625 368.704 570.146 381.335L571.122 381.941L571.137 381.952L571.153 381.961C591.492 395.025 607.168 413.953 618.229 438.567L618.745 439.707C629.489 463.708 634.606 492.739 634.258 526.669L632.126 734.709L632.09 738.309L628.49 738.272L144.675 733.316L141.076 733.279L141.113 729.679L143.173 528.55C143.522 494.556 149.17 465.725 160.286 442.199C170.914 418.724 186.044 400.794 205.725 388.594C224.934 376.396 247.344 370.489 272.813 370.75C297.755 371.005 318.917 376.638 336.095 387.863C353.116 398.984 366.083 413.663 374.945 431.85H374.944C377.297 436.554 379.391 441.388 381.232 446.35C384.302 436.459 388.695 427.193 394.417 418.567C405.977 400.684 421.076 386.827 439.678 377.049C458.3 366.803 478.536 361.798 500.319 362.021ZM487.49 467.246C467.643 467.042 452.271 473.454 440.938 486.263C429.559 499.125 423.528 517.249 423.284 541.097L422.349 632.186L547.162 633.465L548.11 540.994C548.355 517.073 543.121 499.056 532.906 486.452C522.808 473.993 507.874 467.454 487.49 467.246ZM286.241 476.935C267.729 476.745 253.781 482.51 243.877 493.898L243.831 493.953L243.781 494.004C233.467 504.95 227.858 522.048 227.613 546.004L226.75 630.182L343.269 631.376L344.139 546.507C344.375 523.517 339.365 506.465 329.657 494.809C319.531 483.195 305.226 477.13 286.241 476.935Z" fill="currentColor" stroke="currentColor" stroke-width="7.2"/>'  // o B com os dois pontos: as duas pessoas
+    + '<circle cx="285.55" cy="226.382" r="90" fill="currentColor"/>'
+    + '<circle cx="508.26" cy="228.964" r="90" fill="currentColor"/>'
+    + '<path d="M227.486 1391V907.16H432.773C471.941 907.16 504.197 913.842 529.541 927.205C555.346 940.107 574.469 958.078 586.91 981.118C599.813 1003.7 606.264 1029.27 606.264 1057.84C606.264 1079.96 601.426 1100.47 591.749 1119.36C582.072 1137.79 569.17 1153.69 553.042 1167.05C570.552 1179.03 583.915 1194.47 593.131 1213.36C602.808 1232.25 608.107 1253.91 609.029 1278.33L614.558 1391H519.864L512.261 1278.33C511.339 1262.21 508.114 1249.07 502.584 1238.94C497.515 1228.34 489.451 1220.5 478.392 1215.44C467.333 1210.37 452.357 1207.83 433.464 1207.83H324.254V1391H227.486ZM324.254 1129.73H426.552C455.122 1129.73 475.858 1123.28 488.76 1110.37C501.662 1097.47 508.114 1079.96 508.114 1057.84C508.114 1035.26 501.662 1017.75 488.76 1005.31C475.858 992.408 455.122 985.957 426.552 985.957H324.254V1129.73Z" fill="currentColor" stroke="currentColor" stroke-width="14.4"/>'  // R
+    + '<path d="M988.997 911L813.432 1394.84H916.421L1048.44 1009.84L1181.15 1394.84H1283.45L1107.88 911H988.997Z" fill="currentColor" stroke="currentColor" stroke-width="14.4"/>'  // A (o travessão vem separado, em dois pedaços)
+    + '<path d="M937.58 1287.47L1027 1285.87" stroke="currentColor" stroke-width="75"/>'
+    + '<path d="M1065 1285.19L1153.42 1283.6" stroke="currentColor" stroke-width="75"/>'
+    + '</svg>';
+
+  // ---------- tema e preferências ----------
+
+  const TEMAS = [
+    ['sistema','Como o aparelho','Segue o que o celular ou o computador estiver usando'],
+    ['claro',  'Claro',          'Papel morno, o de sempre'],
+    ['escuro', 'Escuro',         'Para trabalhar de noite sem queimar a vista'],
+  ];
+  const DENSIDADES = [
+    ['confortavel','Confortável','Mais respiro entre as coisas'],
+    ['compacto',   'Compacto',   'Cabe mais na tela, bom em monitor pequeno'],
+  ];
+  const TELAS = [
+    ['agora','Agora'], ['agenda','Agenda'], ['funil','Captação'],
+    ['clientes','Clientes'], ['listas','Arquivo'],
+  ];
+
+  // O tema aplicado no elemento raiz. "sistema" precisa da classe .escuro
+  // porque CSS puro não consegue combinar um atributo com prefers-color-scheme
+  // sem duplicar o bloco inteiro — e duplicar é onde os dois se desencontram.
+  let ouvinteSistema = null;
+  function aplicarTema(){
+    const p = state.perfil || {};
+    const tema = p.tema || 'sistema';
+    const raiz = document.documentElement;
+    raiz.setAttribute('data-tema', tema);
+    raiz.setAttribute('data-densidade', p.densidade || 'confortavel');
+    if(tema === 'sistema'){
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      raiz.classList.toggle('escuro', mq.matches);
+      if(!ouvinteSistema){
+        ouvinteSistema = e => {
+          if((state.perfil || {}).tema === 'sistema') raiz.classList.toggle('escuro', e.matches);
+        };
+        mq.addEventListener('change', ouvinteSistema);
+      }
+    } else {
+      raiz.classList.remove('escuro');
+    }
+  }
+
+  async function salvarPerfil(campos){
+    const uid = state.user && state.user.id;
+    if(!uid){ toast('Sessão sem identificação; recarregue a página.'); return false; }
+    const atual = state.perfil || {};
+    const existe = !!atual.user_id;
+    const { error } = existe
+      ? await sb.from('perfil_bora').update(campos).eq('user_id', uid)
+      : await sb.from('perfil_bora').insert(Object.assign({ user_id:uid }, campos));
+    if(error){ toast('Não deu: ' + error.message); return false; }
+    state.perfil = Object.assign({ user_id:uid }, atual, campos);
+    return true;
+  }
+
+  const meuNome = () => {
+    const p = state.perfil || {};
+    if((p.nome || '').trim()) return p.nome.trim();
+    return ((state.user && state.user.email) || '?').split('@')[0];
+  };
+  const minhasIniciais = () => meuNome().trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
+
+  function avatarTopo(){
+    const b = el('button',{class:'euzinho', onclick:()=>ir({tipo:'perfil'}), title:'Meu perfil'});
+    if(state.vista.tipo === 'perfil') b.setAttribute('aria-current','page');
+    const foto = (state.perfil || {}).foto;
+    if(foto) b.appendChild(el('img',{src:foto, alt:''}));
+    else b.appendChild(el('span',{class:'ini-foto'}, esc(minhasIniciais())));
+    b.appendChild(el('span',{}, esc(meuNome())));
+    return b;
+  }
+
+  function telaPerfil(){
+    const m = el('main');
+    const p = state.perfil || {};
+
+    const cabeca = el('div',{class:'bloco'});
+    cabeca.appendChild(el('p',{class:'rot laranja'},'Sua conta'));
+    const linha = el('div',{class:'cabeca-perfil', style:'margin-top:14px'});
+
+    const retrato = p.foto
+      ? el('img',{class:'retrato', src:p.foto, alt:'Sua foto'})
+      : el('div',{class:'retrato'}, esc(minhasIniciais()));
+    linha.appendChild(retrato);
+
+    const dir = el('div',{style:'flex:1 1 260px;min-width:0'});
+    const campoNome = el('div',{class:'field', style:'margin-bottom:10px'});
+    campoNome.appendChild(el('label',{},'Como você quer ser chamado'));
+    const inp = el('input',{type:'text', value:p.nome || '', placeholder:(state.user.email||'').split('@')[0]});
+    inp.addEventListener('change', async ()=>{
+      if(await salvarPerfil({ nome: inp.value.trim() || null })){ toast('Salvo.'); render(); }
+    });
+    campoNome.appendChild(inp);
+    campoNome.appendChild(el('span',{class:'dica'},'Aparece na barra de cima e como autor das notas.'));
+    dir.appendChild(campoNome);
+
+    const acoes = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;align-items:center'});
+    const arquivo = el('input',{type:'file', accept:'image/*', style:'display:none'});
+    arquivo.addEventListener('change', ()=> receberFoto(arquivo));
+    acoes.appendChild(el('button',{class:'btn ghost small', onclick:()=>arquivo.click()},
+      p.foto ? 'Trocar foto' : 'Escolher foto'));
+    if(p.foto) acoes.appendChild(el('button',{class:'btn ghost small', onclick:async()=>{
+      if(await salvarPerfil({ foto:null })){ toast('Foto removida.'); render(); }
+    }},'Remover'));
+    acoes.appendChild(arquivo);
+    dir.appendChild(acoes);
+    dir.appendChild(el('span',{class:'dica', style:'margin-top:8px'},
+      'A foto é reduzida no seu navegador antes de subir, pra não pesar. Fica visível só pra você e pra Bia.'));
+    linha.appendChild(dir);
+    cabeca.appendChild(linha);
+    m.appendChild(cabeca);
+
+    // --- aparência
+    const ap = el('div',{class:'bloco'});
+    ap.appendChild(el('p',{class:'rot'},'Aparência'));
+    ap.appendChild(el('p',{class:'intro', style:'margin:6px 0 16px'},
+      'Vale só pra você. A Bia pode deixar diferente no computador dela.'));
+
+    const gTema = el('div',{class:'escolhas'});
+    gTema.appendChild(el('p',{class:'rot', style:'margin:0 0 2px'},'Tema'));
+    const oTema = el('div',{class:'opcoes'});
+    TEMAS.forEach(([v, rot, ajuda])=>{
+      const b = el('button',{class:'opcao', 'aria-pressed':String((p.tema||'sistema')===v),
+        onclick:async()=>{ if(await salvarPerfil({ tema:v })){ aplicarTema(); render(); } }});
+      b.innerHTML = '<b>'+esc(rot)+'</b><span>'+esc(ajuda)+'</span>'
+        + '<span class="amostra">' + amostraTema(v) + '</span>';
+      oTema.appendChild(b);
+    });
+    gTema.appendChild(oTema);
+    ap.appendChild(gTema);
+
+    const gDens = el('div',{class:'escolhas', style:'margin-top:22px'});
+    gDens.appendChild(el('p',{class:'rot', style:'margin:0 0 2px'},'Espaçamento'));
+    const oDens = el('div',{class:'opcoes'});
+    DENSIDADES.forEach(([v, rot, ajuda])=>{
+      const b = el('button',{class:'opcao', 'aria-pressed':String((p.densidade||'confortavel')===v),
+        onclick:async()=>{ if(await salvarPerfil({ densidade:v })){ aplicarTema(); render(); } }});
+      b.innerHTML = '<b>'+esc(rot)+'</b><span>'+esc(ajuda)+'</span>';
+      oDens.appendChild(b);
+    });
+    gDens.appendChild(oDens);
+    ap.appendChild(gDens);
+    m.appendChild(ap);
+
+    // --- ao abrir
+    const ab = el('div',{class:'bloco'});
+    ab.appendChild(el('p',{class:'rot'},'Ao abrir a Central'));
+    ab.appendChild(el('p',{class:'intro', style:'margin:6px 0 16px'},
+      'Qual tela aparece quando você entra sem um endereço específico.'));
+    const oTela = el('div',{class:'opcoes'});
+    TELAS.forEach(([v, rot])=>{
+      const b = el('button',{class:'opcao', style:'min-width:112px', 'aria-pressed':String((p.tela_inicial||'agora')===v),
+        onclick:async()=>{ if(await salvarPerfil({ tela_inicial:v })){ toast('Salvo.'); render(); } }});
+      b.innerHTML = '<b>'+esc(rot)+'</b>';
+      oTela.appendChild(b);
+    });
+    ab.appendChild(oTela);
+    m.appendChild(ab);
+
+    // --- atalhos
+    const at = el('div',{class:'bloco'});
+    at.appendChild(el('p',{class:'rot'},'Atalhos'));
+    const tab = el('table',{style:'margin-top:12px'});
+    tab.innerHTML = '<tbody>'
+      + [['Ctrl + K', 'Buscar em tudo'],
+         ['Esc', 'Fechar a busca ou a gaveta'],
+         ['← →', 'Andar entre as abas do cliente'],
+         ['← →', 'Mover o cartão no funil, quando ele está selecionado'],
+         ['Ctrl + Enter', 'Salvar a nota que você está escrevendo'],
+         ['Enter', 'Descer uma linha na planilha']]
+        .map(([k,d]) => '<tr><td style="width:150px"><span class="tag">'+esc(k)+'</span></td><td>'+esc(d)+'</td></tr>').join('')
+      + '</tbody>';
+    at.appendChild(tab);
+    m.appendChild(at);
+
+    const sai = el('div',{class:'bloco'});
+    sai.appendChild(el('p',{class:'rot'},'Sessão'));
+    sai.appendChild(el('p',{class:'intro', style:'margin:6px 0 14px'},
+      esc(state.user.email) + ' — entrada por link de e-mail, sem senha.'));
+    sai.appendChild(el('button',{class:'btn ghost small', onclick:sair},'Sair desta conta'));
+    m.appendChild(sai);
+    return m;
+  }
+
+  function amostraTema(v){
+    const cores = {
+      claro:  ['#F5F2EC','#FFFFFF','#1A1815','#FF5E00'],
+      escuro: ['#12100E','#1B1815','#F2EEE8','#FF7A2E'],
+    };
+    if(v === 'sistema'){
+      return cores.claro.slice(0,2).map(c=>'<i style="background:'+c+'"></i>').join('')
+           + cores.escuro.slice(0,2).map(c=>'<i style="background:'+c+'"></i>').join('');
+    }
+    return cores[v].map(c=>'<i style="background:'+c+'"></i>').join('');
+  }
+
+  // Reduz no navegador antes de subir: 256px de lado maior, JPEG. Uma foto de
+  // celular tem 4MB; guardar isso numa coluna de texto seria um problema novo.
+  function receberFoto(input){
+    const f = input.files && input.files[0];
+    if(!f) return;
+    if(!/^image\//.test(f.type)){ toast('Isso não parece uma imagem.'); return; }
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      const img = new Image();
+      img.onload = async () => {
+        const lado = 256;
+        const c = document.createElement('canvas');
+        c.width = lado; c.height = lado;
+        const ctx = c.getContext('2d');
+        // Recorte quadrado central: foto de retrato inteira num círculo fica torta.
+        const menor = Math.min(img.width, img.height);
+        ctx.drawImage(img, (img.width - menor)/2, (img.height - menor)/2, menor, menor, 0, 0, lado, lado);
+        const dados = c.toDataURL('image/jpeg', 0.82);
+        if(dados.length > 300000){ toast('Imagem grande demais mesmo depois de reduzir.'); return; }
+        if(await salvarPerfil({ foto:dados })){ toast('Foto salva.'); render(); }
+      };
+      img.onerror = () => toast('Não deu pra ler essa imagem.');
+      img.src = leitor.result;
+    };
+    leitor.onerror = () => toast('Não deu pra ler o arquivo.');
+    leitor.readAsDataURL(f);
+    input.value = '';
+  }
+
+  // ---------- desfazer ----------
+  // Remover era imediato e sem volta. Agora a linha some da tela na hora, mas a
+  // gravação espera oito segundos — tempo de perceber o engano e voltar atrás.
+  let pendenteDesfazer = null;
+  function removerComVolta(tabela, id, oQue, depois){
+    if(pendenteDesfazer) pendenteDesfazer.confirmar();   // já havia um: aquele vai
+    const relogio = setTimeout(()=>{ if(pendenteDesfazer) pendenteDesfazer.confirmar(); }, 8000);
+    pendenteDesfazer = {
+      async confirmar(){
+        clearTimeout(relogio);
+        pendenteDesfazer = null;
+        const { error } = await sb.from(tabela).delete().eq('id', id);
+        if(error) toast('Não deu pra remover: ' + error.message);
+      },
+      cancelar(){
+        clearTimeout(relogio);
+        pendenteDesfazer = null;
+        state.escondidos = state.escondidos.filter(x => x !== id);
+        toast('De volta.');
+        render();
+      },
+    };
+    state.escondidos.push(id);
+    render();
+    toastComVolta('Removido: ' + oQue, ()=>{ pendenteDesfazer && pendenteDesfazer.cancelar(); });
+    if(depois) depois();
+  }
+
+  const foiEscondido = x => state.escondidos.includes(x.id);
+
+  function toastComVolta(msg, aoDesfazer){
+    const t = document.getElementById('toast');
+    t.innerHTML = '';
+    t.className = 'toast comdesfazer show';
+    t.appendChild(el('span',{}, esc(msg)));
+    const b = el('button',{class:'desfazer'},'Desfazer');
+    b.addEventListener('click', ()=>{ t.classList.remove('show'); aoDesfazer(); });
+    t.appendChild(b);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>{ t.classList.remove('show'); t.className = 'toast'; }, 8000);
+  }
+
+  // ---------- barra de cima ----------
+
+  // As cinco áreas do negócio. Estavam empilhadas na lateral, competindo com a
+  // lista de clientes; subiram porque são a primeira decisão que se toma ao
+  // abrir o painel — e a lateral ficou livre pra ser contextual.
+  const AREAS = [
+    ['agora',    'Agora'],
+    ['agenda',   'Agenda'],
+    ['funil',    'Captação'],
+    ['clientes', 'Clientes'],
+    ['listas',   'Arquivo'],
+  ];
+
+  // Qual área está acesa. Telas filhas acendem a área a que pertencem: a
+  // planilha acende Captação, a ficha de um cliente acende Clientes.
+  function areaAtiva(){
+    const t = state.vista.tipo;
+    if(t === 'lista') return 'funil';
+    if(t === 'cliente' || t === 'novo' || t === 'inbox') return 'clientes';
+    return t;
+  }
+
+  function contagemArea(chave){
+    if(chave === 'agora'){
+      const n = pendencias().filter(p => p.urgencia === 'alta').length;
+      return n || null;
+    }
+    if(chave === 'agenda'){
+      const hj = hojeIso();
+      const n = state.tarefas.filter(t => t.data <= hj && (t.estado === 'pendente' || t.estado === 'fazendo')).length;
+      return n || null;
+    }
+    if(chave === 'funil'){
+      const n = state.oportunidades.filter(o =>
+        o.etapa !== 'perdido' && o.etapa !== 'fechado' &&
+        o.proxima_acao_em && diasAte(o.proxima_acao_em) < 0).length;
+      return n || null;
+    }
+    if(chave === 'clientes') return state.inbox.length || null;
+    return null;
+  }
+
+  function topbar(){
+    const bar = el('div',{class:'topbar'});
+    bar.appendChild(el('button',{class:'menu-btn', 'aria-expanded':String(state.gaveta),
+      onclick:()=>{ state.gaveta = !state.gaveta; render(); }}, state.gaveta ? 'Fechar' : 'Menu'));
+    bar.appendChild(el('button',{class:'logo', onclick:()=>ir({tipo:'agora'}), 'aria-label':'Central Bora — ir para o Agora'},
+      LOGO + '<span class="nome">Central</span>'));
+
+    const nav = el('div',{class:'navtopo'});
+    const ativa = areaAtiva();
+    AREAS.forEach(([chave, rot])=>{
+      const b = el('button',{ onclick:()=>ir({tipo:chave}) });
+      if(chave === ativa) b.setAttribute('aria-current','page');
+      const n = contagemArea(chave);
+      b.innerHTML = esc(rot) + (n ? '<span class="conta">' + n + '</span>' : '');
+      nav.appendChild(b);
+    });
+    bar.appendChild(nav);
+
+    const fim = el('div',{class:'fim'});
+    fim.appendChild(buscaGlobal());
+    fim.appendChild(avatarTopo());
+    bar.appendChild(fim);
+    return bar;
+  }
+
+  // Busca uma coisa só: qualquer coisa. Cliente, oportunidade, tarefa, item de
+  // lista. Com pouco dado uma busca por seção seria quatro caixas; com uma só,
+  // quem procura não precisa saber onde a coisa mora.
+  function buscaGlobal(){
+    const cx = el('div',{class:'buscatopo'});
+    const inp = el('input',{type:'search', placeholder:'Buscar…', value:state.busca, 'aria-label':'Buscar em tudo'});
+    inp.addEventListener('input', ()=>{ state.busca = inp.value; desenharAchados(cx, inp); });
+    inp.addEventListener('focus', ()=> desenharAchados(cx, inp));
+    inp.addEventListener('keydown', e=>{
+      if(e.key === 'Escape'){ inp.value = ''; state.busca = ''; desenharAchados(cx, inp); inp.blur(); }
+    });
+    cx.appendChild(inp);
+    if(state.busca) setTimeout(()=>desenharAchados(cx, inp), 0);
+    return cx;
+  }
+
+  function desenharAchados(cx, inp){
+    const velho = cx.querySelector('.achados');
+    if(velho) velho.remove();
+    const q = (state.busca || '').trim().toLowerCase();
+    if(q.length < 2) return;
+
+    const bate = s => String(s == null ? '' : s).toLowerCase().includes(q);
+    const grupos = [
+      ['Clientes', state.clientes.filter(c => bate(c.nome) || bate(c.vertical) || bate(c.contato_nome)),
+        c => ({ t:c.nome, s:rotulo('estagio', c.estagio), ir:()=>abrirCliente(c.id) })],
+      ['Captação', state.oportunidades.filter(o => bate(o.nome) || bate(o.bairro) || bate(o.origem)),
+        o => ({ t:o.nome, s:rotulo('etapa_funil', o.etapa) + (o.bairro ? ' · ' + o.bairro : ''),
+                ir:()=>{ state.buscaLista = o.nome; ir({tipo:'lista'}); } })],
+      ['Agenda', state.tarefas.filter(t => bate(t.titulo)),
+        t => ({ t:t.titulo, s:soData(t.data) + ' · ' + pessoa(t.responsavel), ir:()=>ir({tipo:'agenda'}) })],
+      ['Arquivo', state.listaItens.filter(i => bate(i.titulo) || (i.tags||[]).some(bate)),
+        i => ({ t:i.titulo, s:(state.listas.find(l => l.id === i.lista_id) || {}).nome || '',
+                ir:()=>{ state.listaAberta = i.lista_id; ir({tipo:'listas'}); } })],
+    ];
+
+    const box = el('div',{class:'achados'});
+    let total = 0;
+    grupos.forEach(([rot, linhas, montar])=>{
+      if(!linhas.length) return;
+      box.appendChild(el('h6',{}, rot));
+      linhas.slice(0,5).forEach(x=>{
+        const d = montar(x); total++;
+        const b = el('button',{onclick:()=>{
+          state.busca = ''; inp.value = '';
+          d.ir();
+        }});
+        b.innerHTML = esc(d.t) + (d.s ? '<span>' + esc(d.s) + '</span>' : '');
+        box.appendChild(b);
+      });
+    });
+    if(!total) box.appendChild(el('p',{class:'muted', style:'padding:12px;margin:0;font-size:0.85rem'},
+      'Nada com "' + esc(state.busca) + '".'));
+    cx.appendChild(box);
+  }
+
+  // ---------- lateral contextual ----------
+  // Dentro de um cliente ela lista as seções dele. Fora, lista o que faz
+  // sentido pra área aberta. Antes ela tentava ser tudo ao mesmo tempo.
   function lateral(){
     const s = el('div',{class:'side'+(state.gaveta?' aberta':'')});
+    const t = state.vista.tipo;
 
-    const pend = pendencias();
-    const altas = pend.filter(p => p.urgencia === 'alta').length;
-    s.appendChild(el('h4',{},'Painel'));
-    const ba = el('button',{class:'navitem'+(state.vista.tipo==='agora'?' active':''), onclick:()=>ir({tipo:'agora'})});
-    ba.innerHTML = '<b>Agora</b><span class="sub">'+(pend.length
-      ? (altas ? altas+' urgente'+(altas===1?'':'s')+' de '+pend.length : pend.length+' em aberto')
-      : 'nada em aberto')+'</span>';
-    s.appendChild(ba);
-
-    // Captação vem antes de clientes de propósito: com dois clientes, o trabalho
-    // do dia é conseguir o terceiro.
-    const emJogo = state.oportunidades.filter(o => o.etapa !== 'perdido' && o.etapa !== 'fechado');
-    const paradas = emJogo.filter(o => o.proxima_acao_em && diasAte(o.proxima_acao_em) < 0).length;
-    // Agenda vem logo depois do Agora: é onde se olha "o que eu faço hoje".
-    const hj = hojeIso();
-    const minhasHoje = state.tarefas.filter(t => t.data === hj && (t.estado === 'pendente' || t.estado === 'fazendo'));
-    const atrasadasT = state.tarefas.filter(t => t.data < hj && (t.estado === 'pendente' || t.estado === 'fazendo'));
-    s.appendChild(el('h4',{},'Equipe'));
-    const bag = el('button',{class:'navitem'+(state.vista.tipo==='agenda'?' active':''), onclick:()=>ir({tipo:'agenda'})});
-    bag.innerHTML = '<b>Agenda</b><span class="sub">'+(minhasHoje.length || atrasadasT.length
-      ? minhasHoje.length+' hoje'+(atrasadasT.length?' · '+atrasadasT.length+' atrasada'+(atrasadasT.length===1?'':'s'):'')
-      : 'nada marcado hoje')+'</span>';
-    s.appendChild(bag);
-
-    s.appendChild(el('h4',{},'Captação'));
-    const bf = el('button',{class:'navitem'+(state.vista.tipo==='funil'?' active':''), onclick:()=>ir({tipo:'funil'})});
-    bf.innerHTML = '<b>Funil</b><span class="sub">'+(emJogo.length
-      ? emJogo.length+' em jogo'+(paradas?' · '+paradas+' atrasada'+(paradas===1?'':'s'):'')
-      : 'ninguém no funil')+'</span>';
-    s.appendChild(bf);
-    const bl = el('button',{class:'navitem'+(state.vista.tipo==='lista'?' active':''), onclick:()=>ir({tipo:'lista'})});
-    bl.innerHTML = '<b>Planilha</b><span class="sub">'+state.oportunidades.length+' no total</span>';
-    s.appendChild(bl);
-
-    s.appendChild(el('h4',{},'Arquivo'));
-    const bls = el('button',{class:'navitem'+(state.vista.tipo==='listas'?' active':''), onclick:()=>ir({tipo:'listas'})});
-    bls.innerHTML = '<b>Listas</b><span class="sub">'+(state.listas.length
-      ? state.listas.length+' lista'+(state.listas.length===1?'':'s')+' · '+state.listaItens.length+' itens'
-      : 'nenhuma lista')+'</span>';
-    s.appendChild(bls);
-
-    const h1 = el('h4',{},'Caixa de entrada');
-    if(state.inbox.length) h1.appendChild(el('span',{class:'pill'}, String(state.inbox.length)));
-    s.appendChild(h1);
-    const bi = el('button',{class:'navitem'+(state.vista.tipo==='inbox'?' active':''), onclick:()=>ir({tipo:'inbox'})});
-    bi.innerHTML = state.inbox.length
-      ? '<b>Respostas sem cliente</b><span class="sub">'+state.inbox.length+' aguardando</span>'
-      : '<b>Respostas sem cliente</b><span class="sub">nada pendente</span>';
-    s.appendChild(bi);
-
-    s.appendChild(el('h4',{},'Clientes'));
-    // A busca só aparece quando começa a doer. Com três clientes ela é ruído.
-    if(state.clientes.length > 6){
-      const cx = el('div',{class:'busca'});
-      const inp = el('input',{type:'search', placeholder:'Buscar cliente…', value:state.buscaCliente});
-      inp.addEventListener('input', ()=>{ state.buscaCliente = inp.value; render();
-        const n = document.querySelector('.busca input'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } });
-      cx.appendChild(inp);
-      s.appendChild(cx);
+    if(t === 'cliente'){
+      const c = clienteAtual();
+      s.appendChild(el('h4',{},'Cliente'));
+      const volta = el('button',{class:'navitem', onclick:()=>ir({tipo:'clientes'})});
+      volta.innerHTML = '<b>&larr; Todos os clientes</b><span class="sub">'+state.clientes.length+' no total</span>';
+      s.appendChild(volta);
+      if(c){
+        s.appendChild(el('h4',{},'Seções'));
+        ABAS.forEach(([k,rot])=>{
+          const est = estadoDaAba(k, c);
+          const b = el('button',{class:'navitem'+(state.aba===k?' active':''), onclick:()=>irAba(k)});
+          b.innerHTML = '<b><span class="ponto '+est+'" style="display:inline-block;margin-right:7px"></span>'+esc(rot)+'</b>';
+          s.appendChild(b);
+        });
+      }
+      return s;
     }
-    const q = (state.buscaCliente || '').trim().toLowerCase();
-    const lista = q ? state.clientes.filter(c => String(c.nome).toLowerCase().includes(q)) : state.clientes;
-    if(!lista.length){
-      s.appendChild(el('div',{class:'navitem muted'}, q ? 'Nenhum com esse nome' : 'Nenhum cliente ainda'));
-    } else {
-      lista.forEach(c=>{
-        const b = el('button',{class:'navitem'+(state.vista.tipo==='cliente'&&state.vista.id===c.id?' active':''), onclick:()=>abrirCliente(c.id)});
-        b.innerHTML = '<b>'+esc(c.nome)+'</b><span class="sub">'+esc(rotulo('estagio',c.estagio))+'</span>';
-        s.appendChild(b);
-      });
+
+    if(t === 'funil' || t === 'lista'){
+      s.appendChild(el('h4',{},'Captação'));
+      const emJogo = state.oportunidades.filter(o => o.etapa !== 'perdido' && o.etapa !== 'fechado');
+      const bf = el('button',{class:'navitem'+(t==='funil'?' active':''), onclick:()=>ir({tipo:'funil'})});
+      bf.innerHTML = '<b>Funil</b><span class="sub">'+(emJogo.length ? emJogo.length+' em jogo' : 'ninguém no funil')+'</span>';
+      s.appendChild(bf);
+      const bl = el('button',{class:'navitem'+(t==='lista'?' active':''), onclick:()=>ir({tipo:'lista'})});
+      bl.innerHTML = '<b>Planilha</b><span class="sub">'+state.oportunidades.length+' no total</span>';
+      s.appendChild(bl);
+      return s;
     }
-    const wrap = el('div',{class:'act'});
-    wrap.appendChild(el('button',{class:'btn ghost small', onclick:()=>ir({tipo:'novo'})},'+ Novo cliente'));
-    s.appendChild(wrap);
+
+    if(t === 'clientes' || t === 'inbox' || t === 'novo'){
+      s.appendChild(el('h4',{},'Clientes'));
+      const bt = el('button',{class:'navitem'+(t==='clientes'?' active':''), onclick:()=>ir({tipo:'clientes'})});
+      bt.innerHTML = '<b>Todos</b><span class="sub">'+state.clientes.length+'</span>';
+      s.appendChild(bt);
+      const h = el('h4',{},'Caixa de entrada');
+      if(state.inbox.length) h.appendChild(el('span',{class:'pill'}, String(state.inbox.length)));
+      s.appendChild(h);
+      const bi = el('button',{class:'navitem'+(t==='inbox'?' active':''), onclick:()=>ir({tipo:'inbox'})});
+      bi.innerHTML = '<b>Respostas sem cliente</b><span class="sub">'
+        + (state.inbox.length ? state.inbox.length+' aguardando' : 'nada pendente')+'</span>';
+      s.appendChild(bi);
+      const w = el('div',{class:'act'});
+      w.appendChild(el('button',{class:'btn ghost small', onclick:()=>ir({tipo:'novo'})},'+ Novo cliente'));
+      s.appendChild(w);
+      return s;
+    }
+
+    // Agora e Agenda: atalho para os clientes ativos, que é o que se abre a seguir.
+    s.appendChild(el('h4',{},'Ir direto pra'));
+    const ativos = state.clientes.filter(c => c.estagio === 'onboarding' || c.estagio === 'ativo');
+    if(!ativos.length) s.appendChild(el('div',{class:'navitem muted'},'Nenhum cliente ativo'));
+    ativos.forEach(c=>{
+      const b = el('button',{class:'navitem', onclick:()=>abrirCliente(c.id)});
+      b.innerHTML = '<b>'+esc(c.nome)+'</b><span class="sub">'+esc(rotulo('estagio',c.estagio))+'</span>';
+      s.appendChild(b);
+    });
+    const w = el('div',{class:'act'});
+    w.appendChild(el('button',{class:'btn ghost small', onclick:()=>ir({tipo:'clientes'})},'Ver todos'));
+    s.appendChild(w);
     return s;
+  }
+
+  // ---------- índice de clientes ----------
+
+  function telaClientes(){
+    const m = el('main');
+    const cabeca = el('div',{class:'bloco'});
+    cabeca.appendChild(el('p',{class:'rot laranja'},'Carteira'));
+    cabeca.appendChild(el('h1',{class:'page'},'Clientes'));
+    cabeca.appendChild(el('p',{class:'intro'},
+      'Todos, separados por em que pé estão. O que dá pra saber sem entrar em ninguém está no cartão.'));
+
+    const ativos = state.clientes.filter(c => c.estagio === 'onboarding' || c.estagio === 'ativo');
+    const receita = ativos.reduce((s,c)=> s + (Number(c.valor_mensal) || 0), 0);
+    const fila = el('div',{class:'capa-fila'});
+    const cif = (g,p,r,d)=>{ const x=el('div');
+      x.innerHTML = '<span class="cifra">'+(d?'<u>':'')+esc(g)+(d?'</u>':'')+(p?'<em>'+esc(p)+'</em>':'')
+        + '</span><p class="rot">'+esc(r)+'</p>'; return x; };
+    fila.appendChild(cif(ativos.length, '/'+state.clientes.length, 'Em atendimento', true));
+    if(receita) fila.appendChild(cif(dinheiro(receita).replace(/\s/g,' '), '/mês', 'Receita recorrente'));
+    fila.appendChild(cif(state.inbox.length, '', 'Respostas sem dono'));
+    cabeca.appendChild(fila);
+    m.appendChild(cabeca);
+
+    const bloco = el('div',{class:'bloco'});
+    const fer = el('div',{class:'ferramentas'});
+    const busca = el('input',{type:'search', placeholder:'Filtrar clientes…', value:state.buscaCliente});
+    busca.addEventListener('input', ()=>{ state.buscaCliente = busca.value; render();
+      const n = document.querySelector('.ferramentas input[type="search"]');
+      if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } });
+    fer.appendChild(busca);
+    fer.appendChild(el('button',{class:'btn ghost small', onclick:()=>ir({tipo:'novo'})},'+ Novo cliente'));
+    bloco.appendChild(fer);
+
+    const q = (state.buscaCliente || '').trim().toLowerCase();
+    const lista = q
+      ? state.clientes.filter(c => String(c.nome).toLowerCase().includes(q)
+          || String(c.vertical||'').toLowerCase().includes(q))
+      : state.clientes;
+
+    if(!lista.length){
+      bloco.appendChild(el('div',{class:'vazio'},
+        q ? 'Nenhum cliente com esse nome.' : 'Nenhum cliente ainda. Quando alguém fechar no funil, ele entra aqui.'));
+      m.appendChild(bloco);
+      return m;
+    }
+
+    ESTAGIOS.forEach(est=>{
+      const desses = lista.filter(c => c.estagio === est);
+      if(!desses.length) return;
+      const g = el('div',{class:'grupo-cli'});
+      const h = el('h3',{});
+      h.innerHTML = esc(rotulo('estagio', est)) + '<span class="chip ' + corDe('estagio', est) + '">' + desses.length + '</span>';
+      g.appendChild(h);
+      const cx = el('div',{class:'cartoes'});
+      desses.forEach(c => cx.appendChild(cartaoCliente(c)));
+      g.appendChild(cx);
+      bloco.appendChild(g);
+    });
+    m.appendChild(bloco);
+    return m;
+  }
+
+  function cartaoCliente(c){
+    const b = el('button',{class:'cli-cartao', onclick:()=>abrirCliente(c.id)});
+
+    const topo = el('div',{class:'topo'});
+    const ini = (c.nome || '?').trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
+    topo.appendChild(el('span',{class:'marca-cli'}, esc(ini)));
+    const t = el('div',{style:'min-width:0'});
+    t.appendChild(el('div',{class:'nome'}, esc(c.nome)));
+    t.appendChild(el('div',{class:'sub'}, esc(c.vertical || 'sem ramo definido')));
+    topo.appendChild(t);
+    b.appendChild(topo);
+
+    // A barra só faz sentido pra quem está em onboarding ou ativo; nos outros
+    // estágios ela seria um número inventado.
+    if(c.estagio === 'onboarding' || c.estagio === 'ativo'){
+      const e = etapasDoResumo(c);
+      const barra = el('div',{class:'barra'});
+      barra.appendChild(el('i',{style:'width:'+Math.round((e.prontas/e.total)*100)+'%'}));
+      b.appendChild(barra);
+    }
+
+    const pes = el('div',{class:'pes'});
+    if(c.valor_mensal != null) pes.appendChild(el('b',{}, esc(dinheiro(c.valor_mensal))));
+    if(c.inicio_contrato){
+      // Passados os 90 dias, "dia 140 de 90" não quer dizer nada: o primeiro
+      // ciclo acabou e o que importa vira há quanto tempo ele está na casa.
+      const d = Math.max(0, -diasAte(c.inicio_contrato));
+      pes.appendChild(el('span',{}, d <= 90 ? 'dia ' + d + ' de 90'
+        : 'há ' + Math.floor(d/30) + ' meses'));
+    }
+    if(c.responsavel) pes.appendChild(el('span',{}, esc(c.responsavel)));
+    if(pes.childNodes.length) b.appendChild(pes);
+
+    const al = el('div',{class:'alertas'});
+    const meus = pendencias().filter(p => p.cliente && p.cliente.id === c.id);
+    const altas = meus.filter(p => p.urgencia === 'alta').length;
+    if(altas) al.appendChild(el('span',{class:'chip alerta'}, altas + (altas===1?' urgente':' urgentes')));
+    else if(meus.length) al.appendChild(el('span',{class:'chip espera'}, meus.length + ' em aberto'));
+    else if(c.estagio === 'onboarding' || c.estagio === 'ativo') al.appendChild(el('span',{class:'chip ok'},'em dia'));
+    const tarefas = state.tarefas.filter(x => x.cliente_id === c.id && (x.estado==='pendente'||x.estado==='fazendo')).length;
+    if(tarefas) al.appendChild(el('span',{class:'chip neutro'}, tarefas + (tarefas===1?' tarefa':' tarefas')));
+    if(al.childNodes.length) b.appendChild(al);
+    return b;
+  }
+
+  // Versão leve do termômetro para o cartão: só a contagem, sem montar a tela
+  // toda (o cartão não tem os detalhes carregados, só o que veio de clientes).
+  function etapasDoResumo(c){
+    const t = state.tudo;
+    const uteis = t.acessos.filter(a => a.cliente_id === c.id && a.status !== 'nao_aplicavel');
+    const ok = uteis.filter(a => a.status === 'recebido').length;
+    const metas = t.metas.filter(m => m.cliente_id === c.id);
+    const comFracasso = metas.filter(m => (m.fracasso||'').trim()).length;
+    const conf = t.conformidade.filter(i => i.cliente_id === c.id);
+    const marcas = [
+      state.inbox.length >= 0 && t.baselines.some(b => b.cliente_id === c.id),
+      uteis.length > 0 && ok >= uteis.length,
+      metas.length > 0 && comFracasso >= metas.length,
+      !!(c.primeiro_valor_prometido || '').trim() && !!c.primeiro_valor_data,
+      conf.length > 0 && !conf.some(i => i.status === 'pendente'),
+      t.marcos.some(m => m.cliente_id === c.id),
+    ];
+    return { prontas: marcas.filter(Boolean).length, total: marcas.length };
   }
 
   function conteudo(){
     if(state.vista.tipo==='agora') return telaAgora();
+    if(state.vista.tipo==='perfil') return telaPerfil();
+    if(state.vista.tipo==='clientes') return telaClientes();
     if(state.vista.tipo==='agenda') return telaAgenda();
     if(state.vista.tipo==='listas') return telaListas();
     if(state.vista.tipo==='funil') return telaFunil();
@@ -1477,7 +2284,7 @@
     const total = desloca + ultimo.getDate();
     const celulas = Math.ceil(total / 7) * 7;
 
-    const todas = tarefasVisiveis(clienteId);
+    const todas = tarefasVisiveis(clienteId).filter(t => !foiEscondido(t));
     const grade = el('div',{class:'grade'});
     for(let i = 0; i < celulas; i++){
       const d = new Date(inicio); d.setDate(inicio.getDate() + i);
@@ -1529,7 +2336,7 @@
   function listaDias(clienteId){
     const box = el('div');
     const hoje = hojeIso();
-    const todas = tarefasVisiveis(clienteId).slice()
+    const todas = tarefasVisiveis(clienteId).filter(t => !foiEscondido(t)).slice()
       .sort((a,b)=> a.data.localeCompare(b.data) || String(a.hora||'').localeCompare(String(b.hora||'')));
 
     if(!todas.length){
@@ -1570,7 +2377,7 @@
         l.appendChild(corpo);
         l.appendChild(el('button',{class:'apagar', style:'background:none;border:none;color:var(--fraco)',
           title:'remover', onclick:async()=>{
-            if(await apagar('tarefas', t.id)){ await carregarTudo(); render(); }
+            removerComVolta('tarefas', t.id, t.titulo, async()=>{ await carregarTudo(); render(); });
           }},'×'));
         g.appendChild(l);
       });
@@ -1651,7 +2458,7 @@
     }
     bloco.appendChild(barra);
 
-    const itens = state.listaItens.filter(i => i.lista_id === L.id);
+    const itens = state.listaItens.filter(i => i.lista_id === L.id && !foiEscondido(i));
     bloco.appendChild(state.visaoLista === 'kanban' ? kanbanLista(L, itens) : listaSimples(L, itens));
     m.appendChild(bloco);
     return m;
@@ -1745,7 +2552,7 @@
 
     c.appendChild(el('button',{style:'background:none;border:none;color:var(--fraco);font-size:1rem',
       title:'remover', onclick:async()=>{
-        if(await apagar('lista_itens', i.id)){ await carregarTudo(); render(); }
+        removerComVolta('lista_itens', i.id, i.titulo, async()=>{ await carregarTudo(); render(); });
       }},'×'));
     return c;
   }
@@ -1880,7 +2687,7 @@
   function colunaFunil(chave, rot, ajuda){
     const col = el('div',{class:'coluna', 'data-etapa':chave});
     const linhas = state.oportunidades
-      .filter(o => o.etapa === chave)
+      .filter(o => o.etapa === chave && !foiEscondido(o))
       .sort((a,b)=> (a.ordem||0) - (b.ordem||0) || String(a.nome).localeCompare(String(b.nome)));
 
     const cab = el('div',{class:'cab'});
@@ -2045,7 +2852,7 @@
 
   function listaFiltrada(){
     const q = (state.buscaLista || '').trim().toLowerCase();
-    let linhas = state.oportunidades.slice();
+    let linhas = state.oportunidades.filter(o => !foiEscondido(o));
     if(q) linhas = linhas.filter(o => COLUNAS_LISTA.some(c =>
       String(o[c.chave] == null ? '' : o[c.chave]).toLowerCase().includes(q)));
     const { campo, desc } = state.ordemLista;
@@ -2098,7 +2905,7 @@
       COLUNAS_LISTA.forEach(c => tr.appendChild(celula(o, c)));
       const acao = el('td');
       acao.appendChild(el('button',{class:'apagar', title:'remover', onclick:async()=>{
-        if(await apagar('oportunidades', o.id)){ await carregarTudo(); render(); }
+        removerComVolta('oportunidades', o.id, o.nome, async()=>{ await carregarTudo(); render(); });
       }},'×'));
       tr.appendChild(acao);
       tb.appendChild(tr);
@@ -2371,7 +3178,8 @@
     });
     caixaSel.appendChild(sel);
     selos.appendChild(caixaSel);
-    if(c.responsavel) selos.appendChild(el('span',{class:'selo'},'resp. ' + esc(c.responsavel)));
+    if(c.whatsapp) selos.appendChild(el('span',{class:'selo'},'WhatsApp ' + esc(c.whatsapp)));
+    if(c.dia_pagamento) selos.appendChild(el('span',{class:'selo'},'paga dia ' + esc(c.dia_pagamento)));
     if(c.brand_profile_id) selos.appendChild(el('span',{class:'selo'},'marca vinculada no app'));
     capa.appendChild(selos);
 
@@ -2390,13 +3198,20 @@
       return d;
     };
     fila.appendChild(cifra(prontas, '/' + etapas.length, 'Etapas de pé', true));
-    if(dia !== null) fila.appendChild(cifra(dia, '/90', 'Dias de contrato'));
+    if(dia !== null){
+      fila.appendChild(dia <= 90
+        ? cifra(dia, '/90', 'Dias de contrato')
+        : cifra(Math.floor(dia/30), ' meses', 'Tempo de casa'));
+    }
     if(acessosUteis.length) fila.appendChild(cifra(acessosOk, '/' + acessosUteis.length, 'Acessos em mãos'));
+    if(c.valor_mensal != null) fila.appendChild(cifra(dinheiro(c.valor_mensal).replace(/\s/g,' '), '/mês', 'Valor do contrato'));
     capa.appendChild(fila);
     m.appendChild(capa);
 
+    m.appendChild(blocoPropriedades(c));
     m.appendChild(termometro(c));
     m.appendChild(blocoPrimeiroValor(c));
+    m.appendChild(blocoNotas(c));
 
     // ---- abas: lista de verdade, com estado visível e navegação por teclado
     const caixaAbas = el('div',{class:'abas-caixa'});
@@ -2496,6 +3311,130 @@
     if(k === 'horas') return d.horas.length ? 'cheio' : '';
     if(k === 'pagina') return (d.pagina && d.pagina.gerada_em) ? 'cheio' : '';
     return '';
+  }
+
+  // ---------- propriedades do cliente ----------
+
+  // Tudo o que a gente procura quando precisa, num lugar só, editável onde
+  // está. Cada campo grava ao sair dele — sem botão de salvar, porque um
+  // formulário com quinze campos e um botão no fim é o que faz ninguém preencher.
+  const PROPS_CLIENTE = [
+    { c:'contato_nome', r:'Falo com',      t:'text',   p:'Nome da pessoa' },
+    { c:'whatsapp',     r:'WhatsApp',      t:'text',   p:'85 9…', link:v => 'https://wa.me/55' + String(v).replace(/\D/g,''), lr:'abrir' },
+    { c:'email',        r:'E-mail',        t:'email',  p:'—',    link:v => 'mailto:' + v, lr:'escrever' },
+    { c:'instagram',    r:'Instagram',     t:'text',   p:'@perfil', link:v => 'https://instagram.com/' + String(v).replace(/^@/,''), lr:'abrir' },
+    { c:'site',         r:'Site',          t:'text',   p:'—',    link:v => /^https?:/.test(v) ? v : 'https://' + v, lr:'abrir' },
+    { c:'endereco',     r:'Onde fica',     t:'text',   p:'Bairro, rua' },
+    { c:'vertical',     r:'Ramo',          t:'text',   p:'—' },
+    { c:'responsavel',  r:'Nosso responsável', t:'text', p:'Arthur ou Bia' },
+    { c:'valor_mensal', r:'Valor por mês', t:'number', p:'0' },
+    { c:'dia_pagamento',r:'Paga todo dia', t:'number', p:'1 a 31' },
+    { c:'inicio_contrato', r:'Começou em', t:'date' },
+    { c:'fim_contrato', r:'Termina em',    t:'date' },
+    { c:'como_chegou',  r:'Como chegou',   t:'text',   p:'Indicação, mapa, Instagram…' },
+  ];
+
+  function blocoPropriedades(c){
+    const box = el('div',{class:'bloco'});
+    const topo = el('div',{style:'display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px'});
+    topo.appendChild(el('p',{class:'rot'},'Ficha'));
+    topo.appendChild(el('button',{class:'linkbtn', onclick:()=>{ state.verTudo = !state.verTudo; render(); }},
+      state.verTudo ? 'mostrar só o preenchido' : 'mostrar todos os campos'));
+    box.appendChild(topo);
+
+    const grade = el('div',{class:'props'});
+    let escondidos = 0;
+    PROPS_CLIENTE.forEach(pr=>{
+      const v = c[pr.c];
+      const vazio = v == null || v === '';
+      if(vazio && !state.verTudo){ escondidos++; return; }
+      const linha = el('div',{class:'prop'});
+      linha.appendChild(el('span',{}, esc(pr.r)));
+      const cx = el('div',{class:'v', style:'display:flex;gap:8px;align-items:center'});
+      const i = el('input',{ type:pr.t === 'number' ? 'number' : (pr.t === 'date' ? 'date' : 'text'),
+        value: vazio ? '' : v, placeholder: pr.p || '—' });
+      i.addEventListener('change', async ()=>{
+        const txt = i.value.trim();
+        const novo = txt === '' ? null : (pr.t === 'number' ? Number(txt) : txt);
+        if(String(c[pr.c] == null ? '' : c[pr.c]) === String(novo == null ? '' : novo)) return;
+        const campos = {}; campos[pr.c] = novo;
+        if(await atualizar('clientes', c.id, campos)){
+          c[pr.c] = novo; toast('Salvo.'); await carregarTudo(); render();
+        } else i.value = vazio ? '' : v;
+      });
+      cx.appendChild(i);
+      if(pr.link && !vazio){
+        cx.appendChild(el('a',{ href:pr.link(v), target:'_blank', rel:'noopener noreferrer' }, pr.lr || 'abrir'));
+      }
+      linha.appendChild(cx);
+      grade.appendChild(linha);
+    });
+    box.appendChild(grade);
+    if(escondidos && !state.verTudo){
+      box.appendChild(el('p',{class:'dica', style:'margin-top:12px'},
+        escondidos + (escondidos === 1 ? ' campo vazio escondido.' : ' campos vazios escondidos.')
+        + ' Clique em "mostrar todos os campos" pra preencher.'));
+    }
+    return box;
+  }
+
+  // ---------- notas ----------
+
+  function blocoNotas(c){
+    const box = el('div',{class:'bloco'});
+    box.appendChild(el('p',{class:'rot'},'Diário'));
+    box.appendChild(el('p',{class:'intro', style:'margin:6px 0 16px'},
+      'O que não cabe em tabela: o que foi dito na reunião, por que uma decisão foi tomada, o que ele não gosta. '
+      + 'Cada nota fica com a data — é histórico, não rascunho que se sobrescreve.'));
+
+    const nova = el('div',{class:'nota-nova'});
+    const ta = el('textarea',{placeholder:'Escreva o que aconteceu…'});
+    nova.appendChild(ta);
+    const acao = el('div',{style:'display:flex;gap:10px;align-items:center;margin-top:10px'});
+    const btn = el('button',{class:'btn small'},'Anotar');
+    btn.addEventListener('click', async ()=>{
+      const texto = ta.value.trim();
+      if(!texto){ toast('Escreva alguma coisa primeiro.'); return; }
+      btn.disabled = true;
+      const { error } = await sb.from('notas').insert({
+        cliente_id:c.id, texto, autor:(state.user && state.user.email) || null });
+      if(error){ toast('Não deu: ' + error.message); btn.disabled = false; return; }
+      ta.value = '';
+      await carregarDetalhe(c.id); render();
+    });
+    acao.appendChild(btn);
+    acao.appendChild(el('span',{class:'dica', style:'margin:0'},'Ctrl+Enter também salva.'));
+    ta.addEventListener('keydown', e=>{
+      if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); btn.click(); }
+    });
+    nova.appendChild(acao);
+    box.appendChild(nova);
+
+    const notas = (state.detalhe.notas || []).filter(n => !foiEscondido(n)).slice()
+      .sort((a,b)=> (b.fixada?1:0) - (a.fixada?1:0) || String(b.criado_em).localeCompare(String(a.criado_em)));
+    if(!notas.length){
+      box.appendChild(el('p',{class:'dica', style:'margin-top:20px'},'Nenhuma nota ainda.'));
+      return box;
+    }
+    notas.forEach(n=>{
+      const d = el('div',{class:'nota'+(n.fixada?' fixa':'')});
+      const cab = el('div',{class:'cab'});
+      cab.appendChild(el('span',{}, dataBR(n.criado_em)));
+      if(n.autor) cab.appendChild(el('span',{}, esc(String(n.autor).split('@')[0])));
+      cab.appendChild(el('button',{class:'fixar'+(n.fixada?' on':''), title:'fixar no topo',
+        onclick:async()=>{
+          const { error } = await sb.from('notas').update({ fixada: !n.fixada }).eq('id', n.id);
+          if(error){ toast('Não deu: ' + error.message); return; }
+          await carregarDetalhe(c.id); render();
+        }}, n.fixada ? 'fixada' : 'fixar'));
+      cab.appendChild(el('button',{title:'remover', onclick:async()=>{
+        removerComVolta('notas', n.id, 'a nota', async()=>{ await carregarDetalhe(c.id); render(); });
+      }},'remover'));
+      d.appendChild(cab);
+      d.appendChild(el('p',{}, esc(n.texto)));
+      box.appendChild(d);
+    });
+    return box;
   }
 
   // Diz, em uma linha, o que a aba é e quando se preenche. Sem isso são sete
@@ -2794,6 +3733,7 @@
 
   /* ---- capa ---- */
   header{ padding:56px 0 0; }
+  header .marca{ height:52px; width:auto; display:block; color:var(--tinta); margin-bottom:26px; }
   header h1{
     font-family:var(--display); font-weight:700; font-size:clamp(2rem,6.4vw,3.1rem);
     line-height:1.0; letter-spacing:-0.035em; margin:14px 0 0; text-wrap:balance;
@@ -3453,11 +4393,14 @@
     return '<!doctype html>\n<html lang="pt-BR">\n<head>\n<meta charset="utf-8">\n'
 + '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
 + '<title>' + E(nome) + ' — 90 dias com a Bora Postar</title>\n'
++ '<link rel="icon" href="data:image/svg+xml,' + encodeURIComponent(LOGO.replace('>',
+    '><style>:root{color:#14120F}@media(prefers-color-scheme:dark){:root{color:#F4F1EC}}</style>')) + '">\n'
 + '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Archivo:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">\n'
 + '<style>\n' + CSS_PAGINA_CLIENTE + '</style>\n</head>\n'
 + '<body data-cliente="' + E(c.id) + '" data-nome="' + E(nome) + '">\n<div class="folha">\n'
 + '  <header>\n'
-+ '    <p class="rotulo laranja">Bora Postar · plano de trabalho</p>\n'
++ '    ' + LOGO.replace('aria-hidden="true"', 'class="marca" role="img" aria-label="Bora Postar"') + '\n'
++ '    <p class="rotulo laranja">plano de trabalho</p>\n'
 + '    <h1>Noventa dias com <em>' + E(nome) + '</em></h1>\n'
 + '    <div class="cifras">\n'
 + '      <div class="cifra"><b><u>' + dia + '</u><em>/90</em></b><span>Dias de trabalho</span></div>\n'
@@ -3608,7 +4551,8 @@
     box.appendChild(el('p',{class:'muted', style:'margin:0 0 12px;font-size:0.87rem'},
       'Cole aqui o que o botão "Copiar alterações" da página gerou. Nada é salvo antes de você conferir a lista.'));
 
-    const ta = el('textarea',{style:'width:100%;min-height:80px;padding:9px;border:1.5px solid #0A0A0A;font-family:monospace;font-size:0.78rem'});
+    const ta = el('textarea',{class:'colar-pagina',
+      style:'width:100%;min-height:84px;padding:11px;border:1px solid var(--linha);border-radius:10px;background:var(--sup2);font-family:var(--dado);font-size:0.76rem'});
     box.appendChild(ta);
     const saida = el('div');
     const btn = el('button',{class:'btn small', style:'margin-top:10px'},'Conferir alterações');
@@ -4049,10 +4993,10 @@
           state.vista = { tipo:'cliente', id:r.id };
           state.aba = (r.aba && ABAS.some(a => a[0] === r.aba)) ? r.aba : 'respostas';
           carregarDetalhe(r.id).then(render);
-        } else if(['inbox','novo','funil','lista','agenda','listas'].includes(r.tipo)){
+        } else if(['inbox','novo','funil','lista','agenda','listas','clientes','perfil'].includes(r.tipo)){
           state.vista = { tipo:r.tipo };
         } else {
-          state.vista = { tipo:'agora' };
+          state.vista = { tipo: ((state.perfil || {}).tela_inicial) || 'agora' };
         }
       }
     }
@@ -4070,9 +5014,26 @@
   }
 
   document.addEventListener('keydown', (e)=>{
-    if(e.key === 'Escape' && state.gaveta){ state.gaveta = false; render(); }
+    if(e.key === 'Escape' && state.gaveta){ state.gaveta = false; render(); return; }
+    if((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')){
+      const campo = document.querySelector('.buscatopo input');
+      if(campo){ e.preventDefault(); campo.focus(); campo.select(); }
+    }
   });
 
+  // O ícone da aba é a própria marca, montada a partir do LOGO — um arquivo só,
+  // sem cópia pra sair de sincronia. O currentColor não vale num favicon (ele
+  // não herda nada da página), então o SVG leva a própria regra de cor dentro.
+  (function favicon(){
+    const marca = LOGO.replace('>', '><style>:root{color:#1A1815}'
+      + '@media(prefers-color-scheme:dark){:root{color:#F2EEE8}}</style>');
+    const l = document.createElement('link');
+    l.rel = 'icon';
+    l.href = 'data:image/svg+xml,' + encodeURIComponent(marca);
+    document.head.appendChild(l);
+  })();
+
+  aplicarTema();   // antes de tudo, senão a tela pisca branca no modo escuro
   iniciarSessao();
 })();
 </script>
