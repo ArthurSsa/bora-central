@@ -416,6 +416,115 @@
     background:var(--sup2); font-family:var(--dado); font-size:0.76rem; resize:vertical;
   }
 
+
+  /* ---------- agenda ---------- */
+  .mes{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  .mes .nome{ font-family:var(--display); font-weight:700; font-size:1.15rem; }
+  .mes .setas{ display:flex; gap:6px; }
+  .mes .setas button{
+    background:var(--sup2); border:1px solid var(--linha); border-radius:8px; width:32px; height:30px;
+    color:var(--fraco); font-size:0.85rem; line-height:1;
+  }
+  .mes .setas button:hover{ border-color:var(--tinta); color:var(--tinta); }
+  .mes .setas button.hoje{ width:auto; padding:0 12px; font-family:var(--display); font-weight:600; font-size:0.76rem; }
+
+  .semana{ display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; margin-bottom:6px; }
+  .semana span{
+    font-family:var(--dado); font-size:0.55rem; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--fraco); text-align:center; padding:2px 0;
+  }
+  .grade{ display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
+  .dia{
+    background:var(--sup2); border:1px solid var(--linha); border-radius:10px; padding:7px 7px 8px;
+    min-height:96px; display:flex; flex-direction:column; gap:5px; text-align:left; color:inherit;
+    transition:border-color .14s ease, background .14s ease;
+  }
+  .dia.fora{ opacity:.42; }
+  .dia.hoje{ border-color:var(--laranja); border-width:2px; background:var(--laranja-fraco); }
+  .dia.alvo{ border-color:var(--laranja); background:var(--laranja-fraco); }
+  .dia .n{
+    font-family:var(--display); font-weight:700; font-size:0.9rem; line-height:1;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .dia .n em{ font-style:normal; font-family:var(--dado); font-size:0.55rem; color:var(--fraco); }
+  .dia.hoje .n{ color:var(--laranja-forte); }
+  .tar{
+    display:flex; gap:5px; align-items:flex-start; background:var(--sup); border:1px solid var(--linha);
+    border-left:3px solid var(--fraco); border-radius:6px; padding:4px 6px; cursor:grab;
+    font-size:0.72rem; line-height:1.25; text-align:left; width:100%; color:inherit;
+  }
+  .tar:hover{ border-color:var(--tinta); }
+  .tar.arrastando{ opacity:.4; }
+  .tar.pendente{ border-left-color:#D89A2A; }
+  .tar.fazendo{ border-left-color:#1B4F8F; }
+  .tar.concluido{ border-left-color:#2E9E63; }
+  .tar.concluido .t{ text-decoration:line-through; color:var(--fraco); }
+  .tar.cancelado{ border-left-color:var(--linha); opacity:.55; }
+  .tar.cancelado .t{ text-decoration:line-through; }
+  .tar .t{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ini{
+    flex:0 0 auto; width:17px; height:17px; border-radius:50%; background:var(--nt-f); color:var(--nt);
+    font-family:var(--dado); font-size:0.52rem; font-weight:700; display:inline-flex; align-items:center;
+    justify-content:center; letter-spacing:0;
+  }
+  .ini.a{ background:#E7EEF8; color:#1B4F8F; }
+  .ini.b{ background:#F2E8FF; color:#6A00C7; }
+  .dia .mais{ font-family:var(--dado); font-size:0.55rem; color:var(--fraco); }
+
+  .visao{ display:flex; gap:4px; background:var(--sup2); border:1px solid var(--linha); border-radius:100px; padding:3px; width:fit-content; }
+  .visao button{
+    background:none; border:none; border-radius:100px; padding:6px 14px; color:var(--fraco);
+    font-family:var(--display); font-weight:600; font-size:0.78rem;
+  }
+  .visao button[aria-selected="true"]{ background:var(--tinta); color:#fff; }
+
+  .dia-lista{ border-top:1px solid var(--linha2); padding:14px 0; }
+  .dia-lista:first-child{ border-top:none; padding-top:0; }
+  .dia-lista .cab{
+    display:flex; gap:10px; align-items:baseline; margin-bottom:9px;
+    font-family:var(--dado); font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--fraco);
+  }
+  .dia-lista .cab b{ font-family:var(--display); font-size:0.95rem; letter-spacing:0; text-transform:none; color:var(--tinta); }
+  .dia-lista.e-hoje .cab b{ color:var(--laranja-forte); }
+  .linha-tar{
+    display:flex; gap:11px; align-items:flex-start; padding:9px 0; border-top:1px solid var(--linha2);
+  }
+  .linha-tar:first-of-type{ border-top:none; }
+  .linha-tar .marca{
+    flex:0 0 auto; width:19px; height:19px; border-radius:6px; border:2px solid var(--linha);
+    background:var(--sup); margin-top:2px; padding:0; line-height:1; font-size:0.7rem; color:#fff;
+  }
+  .linha-tar .marca.concluido{ background:#2E9E63; border-color:#2E9E63; }
+  .linha-tar .marca.fazendo{ background:#1B4F8F; border-color:#1B4F8F; }
+  .linha-tar .corpo{ flex:1 1 auto; min-width:0; }
+  .linha-tar .tit{ font-weight:600; font-size:0.94rem; line-height:1.3; }
+  .linha-tar.concluido .tit{ text-decoration:line-through; color:var(--fraco); }
+  .linha-tar .sub{ font-size:0.8rem; color:var(--fraco); margin-top:2px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+  /* ---------- listas ---------- */
+  .abas-lista{ display:flex; gap:5px; flex-wrap:wrap; margin-bottom:18px; }
+  .item-l{
+    background:var(--sup); border:1px solid var(--linha); border-radius:11px; padding:14px 16px;
+    display:flex; gap:14px; align-items:flex-start; margin-bottom:9px;
+  }
+  .item-l:hover{ box-shadow:var(--s1); }
+  .item-l .corpo{ flex:1 1 auto; min-width:0; }
+  .item-l .tit{ font-weight:600; font-size:0.98rem; line-height:1.3; }
+  .item-l.concluido .tit, .item-l.arquivado .tit{ color:var(--fraco); text-decoration:line-through; }
+  .item-l .meta{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:8px; }
+  .item-l .det{ font-size:0.85rem; color:var(--fraco); margin-top:5px; line-height:1.45; }
+  .tag{
+    font-family:var(--dado); font-size:0.58rem; letter-spacing:0.08em; text-transform:uppercase;
+    background:var(--sup2); border:1px solid var(--linha); border-radius:100px; padding:3px 9px; color:var(--fraco);
+  }
+  .tag button{ background:none; border:none; color:inherit; padding:0 0 0 5px; font-size:0.7rem; line-height:1; }
+  .tag button:hover{ color:var(--al); }
+  .tag.add{ border-style:dashed; cursor:pointer; }
+  .tag.add:hover{ border-color:var(--tinta); color:var(--tinta); }
+  .cifra-l{ font-family:var(--display); font-weight:700; font-size:1rem; }
+
+  .kanban{ display:grid; grid-auto-flow:column; grid-auto-columns:270px; gap:12px; overflow-x:auto; padding:2px 2px 12px; }
+
   /* ---------- celular: a lateral vira gaveta ---------- */
   @media (max-width:900px){
     .shell{ grid-template-columns:minmax(0,1fr); padding:14px; gap:14px; }
@@ -514,6 +623,9 @@
     ['horas','Horas', 'Quanto custa entregar um mês',
       'Medido, não estimado. É o número que falta para o preço deixar de ser opinião — e para saber o que vale a pena automatizar.',
       'Lançar toda semana, senão vira chute'],
+    ['agenda','Agenda', 'O que cada um faz por este cliente, e quando',
+      'As mesmas tarefas da Agenda geral, filtradas só pra ele. Calendário ou lista, do jeito que preferir olhar.',
+      'Preencher no kickoff e ir mexendo toda semana'],
     ['pagina','Página do cliente', 'O plano de 90 dias que o cliente lê',
       'Monta com os dados desta ficha a página que vira relatório no dia 90, e abre pra você escrever direto nela. O que você escrever volta pra cá e não se perde quando gerar de novo.',
       'Gerar depois do kickoff, e de novo nos dias 30, 60 e 90'],
@@ -604,6 +716,9 @@
     erro:null, modoLogin:'link', linkEnviadoPara:null, editandoPV:false,
     gaveta:false, voltarPara:null,
     oportunidades:[], buscaLista:'', colando:false, ordemLista:{ campo:'nome', desc:false },
+    tarefas:[], listas:[], listaItens:[], listaAberta:null,
+    visaoAgenda:'calendario', visaoLista:'lista', filtroQuem:'todos',
+    mesAgenda:new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),
     buscaCliente:'',
     tudo:{ acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] },
   };
@@ -618,6 +733,8 @@
     const h = (location.hash || '').replace(/^#\/?/, '');
     const [a, b, c] = h.split('/').filter(Boolean);
     if(a === 'c' && b) return { tipo:'cliente', id:b, aba:c || null };
+    if(a === 'agenda') return { tipo:'agenda' };
+    if(a === 'listas') return { tipo:'listas' };
     if(a === 'funil') return { tipo:'funil' };
     if(a === 'lista') return { tipo:'lista' };
     if(a === 'inbox') return { tipo:'inbox' };
@@ -627,6 +744,8 @@
 
   function enderecoDe(vista, aba){
     if(vista.tipo === 'cliente') return '#/c/' + vista.id + '/' + (aba || state.aba || 'respostas');
+    if(vista.tipo === 'agenda') return '#/agenda';
+    if(vista.tipo === 'listas') return '#/listas';
     if(vista.tipo === 'funil') return '#/funil';
     if(vista.tipo === 'lista') return '#/lista';
     if(vista.tipo === 'inbox') return '#/inbox';
@@ -702,7 +821,7 @@
     // As seis tabelas vêm inteiras, sem filtro de cliente: é o que a tela Agora
     // precisa pra cruzar tudo. São dezenas de linhas no total, não milhares —
     // no dia em que forem, isso vira uma view no banco, não mais selects aqui.
-    const [cli, inbox, ac, me, ba, ma, co, ho, op] = await Promise.all([
+    const [cli, inbox, ac, me, ba, ma, co, ho, op, ta, li, it] = await Promise.all([
       sb.from('clientes').select('*').order('nome'),
       sb.from('onboarding_respostas').select('*').is('cliente_id', null).order('recebido_em', { ascending:false }),
       sb.from('acessos').select('*'),
@@ -712,6 +831,9 @@
       sb.from('conformidade_itens').select('*'),
       sb.from('horas').select('*'),
       sb.from('oportunidades').select('*').order('ordem'),
+      sb.from('tarefas').select('*').order('data'),
+      sb.from('listas').select('*').order('ordem'),
+      sb.from('lista_itens').select('*').order('ordem'),
     ]);
     if(cli.error) state.erro = cli.error.message;
     state.clientes = cli.data || [];
@@ -721,6 +843,10 @@
       marcos: ma.data || [], conformidade: co.data || [], horas: ho.data || [],
     };
     state.oportunidades = op.data || [];
+    state.tarefas = ta.data || [];
+    state.listas = li.data || [];
+    state.listaItens = it.data || [];
+    if(!state.listaAberta && state.listas.length) state.listaAberta = state.listas[0].id;
   }
 
   async function carregarDetalhe(clienteId){
@@ -905,6 +1031,17 @@
     // do dia é conseguir o terceiro.
     const emJogo = state.oportunidades.filter(o => o.etapa !== 'perdido' && o.etapa !== 'fechado');
     const paradas = emJogo.filter(o => o.proxima_acao_em && diasAte(o.proxima_acao_em) < 0).length;
+    // Agenda vem logo depois do Agora: é onde se olha "o que eu faço hoje".
+    const hj = hojeIso();
+    const minhasHoje = state.tarefas.filter(t => t.data === hj && (t.estado === 'pendente' || t.estado === 'fazendo'));
+    const atrasadasT = state.tarefas.filter(t => t.data < hj && (t.estado === 'pendente' || t.estado === 'fazendo'));
+    s.appendChild(el('h4',{},'Equipe'));
+    const bag = el('button',{class:'navitem'+(state.vista.tipo==='agenda'?' active':''), onclick:()=>ir({tipo:'agenda'})});
+    bag.innerHTML = '<b>Agenda</b><span class="sub">'+(minhasHoje.length || atrasadasT.length
+      ? minhasHoje.length+' hoje'+(atrasadasT.length?' · '+atrasadasT.length+' atrasada'+(atrasadasT.length===1?'':'s'):'')
+      : 'nada marcado hoje')+'</span>';
+    s.appendChild(bag);
+
     s.appendChild(el('h4',{},'Captação'));
     const bf = el('button',{class:'navitem'+(state.vista.tipo==='funil'?' active':''), onclick:()=>ir({tipo:'funil'})});
     bf.innerHTML = '<b>Funil</b><span class="sub">'+(emJogo.length
@@ -912,8 +1049,15 @@
       : 'ninguém no funil')+'</span>';
     s.appendChild(bf);
     const bl = el('button',{class:'navitem'+(state.vista.tipo==='lista'?' active':''), onclick:()=>ir({tipo:'lista'})});
-    bl.innerHTML = '<b>Lista</b><span class="sub">'+state.oportunidades.length+' no total</span>';
+    bl.innerHTML = '<b>Planilha</b><span class="sub">'+state.oportunidades.length+' no total</span>';
     s.appendChild(bl);
+
+    s.appendChild(el('h4',{},'Arquivo'));
+    const bls = el('button',{class:'navitem'+(state.vista.tipo==='listas'?' active':''), onclick:()=>ir({tipo:'listas'})});
+    bls.innerHTML = '<b>Listas</b><span class="sub">'+(state.listas.length
+      ? state.listas.length+' lista'+(state.listas.length===1?'':'s')+' · '+state.listaItens.length+' itens'
+      : 'nenhuma lista')+'</span>';
+    s.appendChild(bls);
 
     const h1 = el('h4',{},'Caixa de entrada');
     if(state.inbox.length) h1.appendChild(el('span',{class:'pill'}, String(state.inbox.length)));
@@ -953,6 +1097,8 @@
 
   function conteudo(){
     if(state.vista.tipo==='agora') return telaAgora();
+    if(state.vista.tipo==='agenda') return telaAgenda();
+    if(state.vista.tipo==='listas') return telaListas();
     if(state.vista.tipo==='funil') return telaFunil();
     if(state.vista.tipo==='lista') return telaLista();
     if(state.vista.tipo==='inbox') return telaInbox();
@@ -1010,6 +1156,34 @@
     state.oportunidades.filter(o => o.etapa === 'fechado' && !o.cliente_id).forEach(o=>{
       add('alta', null, null, o.nome + ' fechou e ainda não virou cliente',
         'Sem a ficha, nada do onboarding começa: nem acesso, nem baseline, nem promessa.', 'funil');
+    });
+
+    // Agenda. Tarefa que passou da data não avisa sozinha, e é a coisa mais
+    // barata de resolver: ou se faz, ou se remarca.
+    const hj = hojeIso();
+    const atrasadas = state.tarefas.filter(t => t.data < hj && (t.estado === 'pendente' || t.estado === 'fazendo'));
+    if(atrasadas.length){
+      const porQuem = {};
+      atrasadas.forEach(t => { porQuem[t.responsavel] = (porQuem[t.responsavel] || 0) + 1; });
+      add('alta', null, null,
+        atrasadas.length + (atrasadas.length === 1 ? ' tarefa passou da data' : ' tarefas passaram da data'),
+        Object.keys(porQuem).map(q => porQuem[q] + ' de ' + pessoa(q)).join(', ')
+        + '. Ou se faz hoje, ou se remarca — deixar parada é a única opção ruim.', 'agenda');
+    }
+    const deHoje = state.tarefas.filter(t => t.data === hj && (t.estado === 'pendente' || t.estado === 'fazendo'));
+    if(deHoje.length) add('media', null, null,
+      deHoje.length + (deHoje.length === 1 ? ' tarefa marcada pra hoje' : ' tarefas marcadas pra hoje'),
+      deHoje.slice(0,4).map(t => t.titulo).join(' · ') + (deHoje.length > 4 ? ' e mais ' + (deHoje.length-4) : ''), 'agenda');
+
+    // Listas: o que tem data de fim chegando. Contrato que vence sem ninguém
+    // olhar vira renovação automática ruim ou cliente perdido em silêncio.
+    state.listaItens.filter(i => i.data_fim && i.estado !== 'arquivado' && i.estado !== 'concluido').forEach(i=>{
+      const d = diasAte(i.data_fim);
+      if(d === null || d > 30) return;
+      const L = state.listas.find(l => l.id === i.lista_id);
+      add(d < 0 ? 'alta' : 'media', null, null,
+        i.titulo + (d < 0 ? ' venceu ' + emDias(d) : ' termina ' + emDias(d)),
+        (L ? L.nome + '. ' : '') + 'Decidir agora se renova, encerra ou renegocia.', 'listas');
     });
 
     const ativos = state.clientes.filter(c => c.estagio === 'onboarding' || c.estagio === 'ativo');
@@ -1140,14 +1314,474 @@
         else if(p.destino) ir({tipo:p.destino});
         else ir({tipo:'inbox'});
       }});
+      const de = { funil:'Captação', agenda:'Agenda', listas:'Arquivo' };
       b.appendChild(el('div',{class:'quem'},
-        p.cliente ? esc(p.cliente.nome) : (p.destino === 'funil' ? 'Captação' : 'Caixa de entrada')));
+        p.cliente ? esc(p.cliente.nome) : (de[p.destino] || 'Caixa de entrada')));
       b.appendChild(el('div',{class:'oq'}, esc(p.oq)));
       if(p.porq) b.appendChild(el('div',{class:'porq'}, esc(p.porq)));
       m.appendChild(b);
     });
 
     return m;
+  }
+
+  // ---------- agenda ----------
+
+  // A equipe. Fica aqui porque são dois; no dia em que forem cinco, isto vira
+  // tabela. Cor não distingue pessoa de propósito: cor é reservada pro estado,
+  // que é o que precisa saltar aos olhos. Pessoa é a inicial.
+  const EQUIPE = [
+    ['arthur', 'Arthur', 'A', 'a'],
+    ['bia',    'Bia',    'B', 'b'],
+    ['os_dois','Os dois','AB',''],
+  ];
+  const pessoa = v => (EQUIPE.find(e => e[0] === v) || [v, v || '—', '?', ''])[1];
+  const inicial = v => (EQUIPE.find(e => e[0] === v) || [v, v, '?', ''])[2];
+  const classePessoa = v => (EQUIPE.find(e => e[0] === v) || ['','','',''])[3];
+
+  const ESTADOS_TAREFA = [
+    ['pendente','A fazer'], ['fazendo','Fazendo'], ['concluido','Feito'], ['cancelado','Cancelado'],
+  ];
+
+  const iso = d => {
+    const x = new Date(d);
+    return x.getFullYear() + '-' + String(x.getMonth()+1).padStart(2,'0') + '-' + String(x.getDate()).padStart(2,'0');
+  };
+  const hojeIso = () => iso(new Date());
+
+  async function salvarTarefa(id, campos){
+    const { error } = await sb.from('tarefas').update(campos).eq('id', id);
+    if(error){ toast('Não deu: ' + error.message); return false; }
+    return true;
+  }
+
+  // Um clique percorre os estados na ordem em que a vida acontece.
+  async function girarEstado(t){
+    const ordem = ['pendente','fazendo','concluido'];
+    const i = ordem.indexOf(t.estado);
+    const novo = ordem[(i + 1) % ordem.length];
+    t.estado = novo; render();
+    if(!await salvarTarefa(t.id, { estado:novo })){ await carregarTudo(); render(); return; }
+    await carregarTudo(); render();
+  }
+
+  async function moverTarefa(t, dia){
+    if(t.data === dia) return;
+    const antes = t.data;
+    t.data = dia; render();
+    if(!await salvarTarefa(t.id, { data:dia })){ t.data = antes; render(); return; }
+    await carregarTudo(); render();
+  }
+
+  async function novaTarefa(dia, clienteId){
+    const titulo = prompt('O que precisa ser feito?');
+    if(!titulo || !titulo.trim()) return;
+    const linha = { titulo:titulo.trim(), data:dia || hojeIso(), responsavel:state.filtroQuem === 'todos' ? 'os_dois' : state.filtroQuem };
+    if(clienteId) linha.cliente_id = clienteId;
+    const { error } = await sb.from('tarefas').insert(linha);
+    if(error){ toast('Não deu: ' + error.message); return; }
+    await carregarTudo(); render();
+  }
+
+  function tarefasVisiveis(clienteId){
+    let t = state.tarefas;
+    if(clienteId !== undefined) t = t.filter(x => x.cliente_id === clienteId);
+    if(state.filtroQuem !== 'todos'){
+      t = t.filter(x => x.responsavel === state.filtroQuem || x.responsavel === 'os_dois');
+    }
+    return t;
+  }
+
+  function telaAgenda(){
+    const m = el('main');
+    const cabeca = el('div',{class:'bloco'});
+    cabeca.appendChild(el('p',{class:'rot laranja'},'Equipe'));
+    cabeca.appendChild(el('h1',{class:'page'},'Agenda'));
+    cabeca.appendChild(el('p',{class:'intro'},
+      'O que cada um faz em cada dia. Clique no quadradinho pra andar entre a fazer, fazendo e feito. '
+      + 'Arraste a tarefa pra outro dia no calendário.'));
+
+    const hoje = hojeIso();
+    const todas = tarefasVisiveis();
+    const deHoje = todas.filter(t => t.data === hoje && t.estado !== 'cancelado');
+    const atrasadas = todas.filter(t => t.data < hoje && (t.estado === 'pendente' || t.estado === 'fazendo'));
+    const feitasHoje = deHoje.filter(t => t.estado === 'concluido').length;
+
+    const fila = el('div',{class:'capa-fila'});
+    const cif = (g,p,r,d)=>{ const x=el('div');
+      x.innerHTML = '<span class="cifra">'+(d?'<u>':'')+esc(g)+(d?'</u>':'')+(p?'<em>'+esc(p)+'</em>':'')
+        + '</span><p class="rot">'+esc(r)+'</p>'; return x; };
+    fila.appendChild(cif(feitasHoje, '/'+deHoje.length, 'Feitas hoje', true));
+    fila.appendChild(cif(atrasadas.length, '', 'Atrasadas'));
+    fila.appendChild(cif(todas.filter(t => t.data > hoje && t.estado === 'pendente').length, '', 'Pela frente'));
+    cabeca.appendChild(fila);
+    m.appendChild(cabeca);
+
+    const bloco = el('div',{class:'bloco'});
+    bloco.appendChild(barraAgenda(null));
+    bloco.appendChild(state.visaoAgenda === 'calendario' ? calendario(undefined) : listaDias(undefined));
+    m.appendChild(bloco);
+    return m;
+  }
+
+  function barraAgenda(clienteId){
+    const barra = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px'});
+
+    const visao = el('div',{class:'visao', role:'tablist'});
+    [['calendario','Calendário'],['lista','Lista']].forEach(([k,rot])=>{
+      const b = el('button',{role:'tab', 'aria-selected':String(state.visaoAgenda===k),
+        onclick:()=>{ state.visaoAgenda = k; render(); }}, rot);
+      visao.appendChild(b);
+    });
+    barra.appendChild(visao);
+
+    const quem = el('div',{class:'visao'});
+    [['todos','Todos']].concat(EQUIPE.slice(0,2).map(e=>[e[0], e[1]])).forEach(([k,rot])=>{
+      quem.appendChild(el('button',{'aria-selected':String(state.filtroQuem===k),
+        onclick:()=>{ state.filtroQuem = k; render(); }}, rot));
+    });
+    barra.appendChild(quem);
+
+    barra.appendChild(el('button',{class:'btn ghost small',
+      onclick:()=>novaTarefa(hojeIso(), clienteId || undefined)},'+ tarefa hoje'));
+    return barra;
+  }
+
+  function calendario(clienteId){
+    const box = el('div');
+    const ref = new Date(state.mesAgenda + '-01T00:00:00');
+    const hoje = hojeIso();
+
+    const topo = el('div',{class:'mes'});
+    const rotuloMes = ref.toLocaleDateString('pt-BR',{ month:'long', year:'numeric' });
+    topo.appendChild(el('span',{class:'nome'}, rotuloMes.charAt(0).toUpperCase() + rotuloMes.slice(1)));
+    const setas = el('div',{class:'setas'});
+    const anda = n => { const d = new Date(ref); d.setMonth(d.getMonth()+n);
+      state.mesAgenda = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); render(); };
+    setas.appendChild(el('button',{title:'mês anterior', onclick:()=>anda(-1)},'←'));
+    setas.appendChild(el('button',{class:'hoje', onclick:()=>{ state.mesAgenda = hoje.slice(0,7); render(); }},'hoje'));
+    setas.appendChild(el('button',{title:'próximo mês', onclick:()=>anda(1)},'→'));
+    topo.appendChild(setas);
+    box.appendChild(topo);
+
+    const cab = el('div',{class:'semana'});
+    ['seg','ter','qua','qui','sex','sáb','dom'].forEach(d => cab.appendChild(el('span',{},d)));
+    box.appendChild(cab);
+
+    // A grade começa na segunda-feira da semana do dia 1 e vai até completar
+    // semanas inteiras — senão o mês fica torto e a leitura se perde.
+    const primeiro = new Date(ref.getFullYear(), ref.getMonth(), 1);
+    const desloca = (primeiro.getDay() + 6) % 7;   // 0 = segunda
+    const inicio = new Date(primeiro); inicio.setDate(1 - desloca);
+    const ultimo = new Date(ref.getFullYear(), ref.getMonth()+1, 0);
+    const total = desloca + ultimo.getDate();
+    const celulas = Math.ceil(total / 7) * 7;
+
+    const todas = tarefasVisiveis(clienteId);
+    const grade = el('div',{class:'grade'});
+    for(let i = 0; i < celulas; i++){
+      const d = new Date(inicio); d.setDate(inicio.getDate() + i);
+      const chave = iso(d);
+      const fora = d.getMonth() !== ref.getMonth();
+      const cel = el('div',{class:'dia'+(fora?' fora':'')+(chave===hoje?' hoje':''), 'data-dia':chave});
+
+      const n = el('div',{class:'n'});
+      n.appendChild(el('span',{}, String(d.getDate())));
+      const doDia = todas.filter(t => t.data === chave);
+      const abertas = doDia.filter(t => t.estado === 'pendente' || t.estado === 'fazendo').length;
+      if(abertas) n.appendChild(el('em',{}, String(abertas)));
+      cel.appendChild(n);
+
+      doDia.slice(0,3).forEach(t => cel.appendChild(cartaoTarefa(t, true)));
+      if(doDia.length > 3) cel.appendChild(el('span',{class:'mais'}, '+' + (doDia.length - 3)));
+
+      cel.addEventListener('dblclick', ()=>novaTarefa(chave, clienteId || undefined));
+      cel.addEventListener('dragover', e=>{ e.preventDefault(); cel.classList.add('alvo'); });
+      cel.addEventListener('dragleave', ()=> cel.classList.remove('alvo'));
+      cel.addEventListener('drop', async e=>{
+        e.preventDefault(); cel.classList.remove('alvo');
+        const id = e.dataTransfer.getData('text/plain');
+        const t = state.tarefas.find(x => x.id === id);
+        if(t) await moverTarefa(t, chave);
+      });
+      grade.appendChild(cel);
+    }
+    box.appendChild(grade);
+    box.appendChild(el('p',{class:'dica', style:'margin-top:12px'},
+      'Dois cliques num dia criam uma tarefa nele. O número no canto é quanto falta fazer naquele dia.'));
+    return box;
+  }
+
+  function cartaoTarefa(t, curto){
+    const c = el('div',{class:'tar '+t.estado, draggable:'true', tabindex:'0', title:t.titulo});
+    c.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('text/plain', t.id); e.dataTransfer.effectAllowed='move';
+      c.classList.add('arrastando');
+    });
+    c.addEventListener('dragend', ()=> c.classList.remove('arrastando'));
+    c.appendChild(el('span',{class:'ini '+classePessoa(t.responsavel)}, inicial(t.responsavel)));
+    c.appendChild(el('span',{class:'t'}, esc(t.titulo)));
+    c.addEventListener('click', ()=>girarEstado(t));
+    c.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); girarEstado(t); } });
+    return c;
+  }
+
+  function listaDias(clienteId){
+    const box = el('div');
+    const hoje = hojeIso();
+    const todas = tarefasVisiveis(clienteId).slice()
+      .sort((a,b)=> a.data.localeCompare(b.data) || String(a.hora||'').localeCompare(String(b.hora||'')));
+
+    if(!todas.length){
+      const v = el('div',{class:'vazio'});
+      v.appendChild(el('strong',{},'Nenhuma tarefa'));
+      v.appendChild(el('span',{},'Use "+ tarefa hoje", ou dê dois cliques num dia do calendário.'));
+      box.appendChild(v);
+      return box;
+    }
+
+    const porDia = {};
+    todas.forEach(t => { (porDia[t.data] = porDia[t.data] || []).push(t); });
+    Object.keys(porDia).sort().forEach(dia=>{
+      const d = new Date(dia + 'T00:00:00');
+      const g = el('div',{class:'dia-lista'+(dia===hoje?' e-hoje':'')});
+      const cab = el('div',{class:'cab'});
+      cab.appendChild(el('b',{}, d.toLocaleDateString('pt-BR',{ weekday:'long', day:'numeric', month:'long' })));
+      if(dia === hoje) cab.appendChild(el('span',{},'hoje'));
+      else if(dia < hoje) cab.appendChild(el('span',{style:'color:var(--al)'}, emDias(diasAte(dia))));
+      else cab.appendChild(el('span',{}, emDias(diasAte(dia))));
+      g.appendChild(cab);
+
+      porDia[dia].forEach(t=>{
+        const l = el('div',{class:'linha-tar '+t.estado});
+        l.appendChild(el('button',{class:'marca '+t.estado, title:'mudar estado',
+          onclick:()=>girarEstado(t)}, t.estado === 'concluido' ? '✓' : (t.estado === 'fazendo' ? '•' : '')));
+        const corpo = el('div',{class:'corpo'});
+        corpo.appendChild(el('div',{class:'tit'}, esc(t.titulo)));
+        const sub = el('div',{class:'sub'});
+        sub.appendChild(el('span',{class:'ini '+classePessoa(t.responsavel)}, inicial(t.responsavel)));
+        sub.appendChild(el('span',{}, esc(pessoa(t.responsavel))));
+        const cli = t.cliente_id && state.clientes.find(c => c.id === t.cliente_id);
+        if(cli) sub.appendChild(el('span',{}, '· ' + esc(cli.nome)));
+        else if(clienteId === undefined) sub.appendChild(el('span',{},'· interno'));
+        if(t.hora) sub.appendChild(el('span',{}, '· ' + String(t.hora).slice(0,5)));
+        if(t.detalhe) sub.appendChild(el('span',{}, '· ' + esc(t.detalhe)));
+        corpo.appendChild(sub);
+        l.appendChild(corpo);
+        l.appendChild(el('button',{class:'apagar', style:'background:none;border:none;color:var(--fraco)',
+          title:'remover', onclick:async()=>{
+            if(await apagar('tarefas', t.id)){ await carregarTudo(); render(); }
+          }},'×'));
+        g.appendChild(l);
+      });
+      box.appendChild(g);
+    });
+    return box;
+  }
+
+  // Dentro da ficha do cliente: a mesma agenda, só o que é dele.
+  function abaAgendaCliente(c){
+    const box = el('div');
+    const minhas = state.tarefas.filter(t => t.cliente_id === c.id);
+    const hoje = hojeIso();
+    if(minhas.length){
+      box.appendChild(placar([
+        { rotulo:'Abertas', valor:minhas.filter(t=>t.estado==='pendente'||t.estado==='fazendo').length, destaca:true },
+        { rotulo:'Atrasadas', valor:minhas.filter(t=>t.data<hoje&&(t.estado==='pendente'||t.estado==='fazendo')).length, esconderSeZero:true },
+        { rotulo:'Feitas', valor:minhas.filter(t=>t.estado==='concluido').length },
+      ]));
+    }
+    box.appendChild(barraAgenda(c.id));
+    box.appendChild(state.visaoAgenda === 'calendario' ? calendario(c.id) : listaDias(c.id));
+    return box;
+  }
+
+  // ---------- listas ----------
+
+  const ESTADOS_ITEM = [
+    ['aberto','Pendente'], ['fazendo','Em andamento'], ['concluido','Concluído'], ['arquivado','Arquivado'],
+  ];
+  const corItem = { aberto:'espera', fazendo:'andamento', concluido:'ok', arquivado:'neutro' };
+
+  function listaAtual(){
+    return state.listas.find(l => l.id === state.listaAberta) || state.listas[0] || null;
+  }
+
+  function telaListas(){
+    const m = el('main');
+    const cabeca = el('div',{class:'bloco'});
+    cabeca.appendChild(el('p',{class:'rot laranja'},'Arquivo'));
+    cabeca.appendChild(el('h1',{class:'page'},'Listas'));
+    cabeca.appendChild(el('p',{class:'intro'},
+      'Onde mora tudo o que precisa ficar guardado: contratos, fornecedores, senhas de equipamento, o que vier. '
+      + 'Cada item tem estado e as tags que você quiser.'));
+    m.appendChild(cabeca);
+
+    const bloco = el('div',{class:'bloco'});
+    const abas = el('div',{class:'abas-lista'});
+    state.listas.forEach(l=>{
+      abas.appendChild(el('button',{class:'tab', 'aria-selected':String(listaAtual() && listaAtual().id === l.id),
+        onclick:()=>{ state.listaAberta = l.id; render(); }}, esc(l.nome)));
+    });
+    abas.appendChild(el('button',{class:'tab', style:'border-style:dashed', onclick:novaLista},'+ nova lista'));
+    bloco.appendChild(abas);
+
+    const L = listaAtual();
+    if(!L){
+      bloco.appendChild(el('div',{class:'vazio'},'Nenhuma lista ainda. Crie a primeira acima.'));
+      m.appendChild(bloco);
+      return m;
+    }
+
+    if(L.descricao) bloco.appendChild(el('p',{class:'intro', style:'margin-top:0'}, esc(L.descricao)));
+
+    const barra = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px'});
+    const visao = el('div',{class:'visao'});
+    [['lista','Lista'],['kanban','Kanban']].forEach(([k,rot])=>{
+      visao.appendChild(el('button',{'aria-selected':String(state.visaoLista===k),
+        onclick:()=>{ state.visaoLista = k; render(); }}, rot));
+    });
+    barra.appendChild(visao);
+    barra.appendChild(el('button',{class:'btn ghost small', onclick:()=>novoItemLista(L.id)},'+ item'));
+    if(state.listas.length > 1){
+      barra.appendChild(el('button',{class:'btn ghost small', onclick:async()=>{
+        if(!confirm('Apagar a lista "' + L.nome + '" e tudo dentro dela?')) return;
+        if(await apagar('listas', L.id)){ state.listaAberta = null; await carregarTudo(); render(); }
+      }},'apagar lista'));
+    }
+    bloco.appendChild(barra);
+
+    const itens = state.listaItens.filter(i => i.lista_id === L.id);
+    bloco.appendChild(state.visaoLista === 'kanban' ? kanbanLista(L, itens) : listaSimples(L, itens));
+    m.appendChild(bloco);
+    return m;
+  }
+
+  function listaSimples(L, itens){
+    const box = el('div');
+    if(!itens.length){
+      const v = el('div',{class:'vazio'});
+      v.appendChild(el('strong',{},'Lista vazia'));
+      v.appendChild(el('span',{},'Use "+ item" pra começar.'));
+      box.appendChild(v);
+      return box;
+    }
+    const peso = { aberto:0, fazendo:1, concluido:2, arquivado:3 };
+    itens.slice().sort((a,b)=> peso[a.estado]-peso[b.estado] || String(a.titulo).localeCompare(String(b.titulo)))
+      .forEach(i => box.appendChild(cartaoItem(i)));
+    return box;
+  }
+
+  function kanbanLista(L, itens){
+    const box = el('div',{class:'kanban'});
+    ESTADOS_ITEM.forEach(([chave, rot])=>{
+      const col = el('div',{class:'coluna', 'data-estado':chave});
+      const desses = itens.filter(i => i.estado === chave);
+      const cab = el('div',{class:'cab'});
+      cab.appendChild(el('span',{class:'titulo'}, rot));
+      cab.appendChild(el('span',{class:'conta'}, String(desses.length)));
+      col.appendChild(cab);
+      const pilha = el('div',{class:'pilha'});
+      desses.forEach(i => pilha.appendChild(cartaoItem(i, true)));
+      if(!desses.length) pilha.appendChild(el('p',{class:'mini', style:'color:#A9A29A;padding:4px 2px'},'vazio'));
+      col.appendChild(pilha);
+      col.addEventListener('dragover', e=>{ e.preventDefault(); col.classList.add('alvo'); });
+      col.addEventListener('dragleave', ()=> col.classList.remove('alvo'));
+      col.addEventListener('drop', async e=>{
+        e.preventDefault(); col.classList.remove('alvo');
+        const id = e.dataTransfer.getData('text/plain');
+        const it = state.listaItens.find(x => x.id === id);
+        if(it && it.estado !== chave){
+          it.estado = chave; render();
+          await sb.from('lista_itens').update({ estado:chave }).eq('id', it.id);
+          await carregarTudo(); render();
+        }
+      });
+      box.appendChild(col);
+    });
+    return box;
+  }
+
+  function cartaoItem(i, compacto){
+    const c = el('div',{class:'item-l '+i.estado});
+    if(compacto){ c.setAttribute('draggable','true'); c.style.cursor='grab'; c.style.marginBottom='0';
+      c.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', i.id); });
+    }
+    const corpo = el('div',{class:'corpo'});
+    corpo.appendChild(el('div',{class:'tit'}, esc(i.titulo)));
+    if(i.detalhe) corpo.appendChild(el('div',{class:'det'}, esc(i.detalhe)));
+
+    const meta = el('div',{class:'meta'});
+    const sel = el('select',{style:'font-size:0.74rem;padding:3px 8px;border:1px solid var(--linha);border-radius:100px;background:var(--sup2)'});
+    ESTADOS_ITEM.forEach(([v,rot])=>{
+      const o = el('option',{value:v}, rot);
+      if(i.estado===v) o.setAttribute('selected','selected');
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', async ()=>{
+      i.estado = sel.value; render();
+      await sb.from('lista_itens').update({ estado:sel.value }).eq('id', i.id);
+      await carregarTudo(); render();
+    });
+    meta.appendChild(sel);
+
+    if(i.valor != null) meta.appendChild(el('span',{class:'cifra-l'}, esc(dinheiro(i.valor))));
+    const cli = i.cliente_id && state.clientes.find(x => x.id === i.cliente_id);
+    if(cli) meta.appendChild(el('span',{class:'tag'}, esc(cli.nome)));
+    if(i.data_fim){
+      const d = diasAte(i.data_fim);
+      const t = el('span',{class:'tag'}, 'termina ' + soData(i.data_fim) + (d !== null && d <= 30 ? ' · ' + emDias(d) : ''));
+      if(d !== null && d <= 30) t.style.borderColor = 'var(--al-b)', t.style.color = 'var(--al)';
+      meta.appendChild(t);
+    }
+    (i.tags || []).forEach(tg=>{
+      const t = el('span',{class:'tag'}, esc(tg));
+      t.appendChild(el('button',{title:'tirar tag', onclick:()=>tirarTag(i, tg)},'×'));
+      meta.appendChild(t);
+    });
+    meta.appendChild(el('button',{class:'tag add', onclick:()=>porTag(i)},'+ tag'));
+    corpo.appendChild(meta);
+    c.appendChild(corpo);
+
+    c.appendChild(el('button',{style:'background:none;border:none;color:var(--fraco);font-size:1rem',
+      title:'remover', onclick:async()=>{
+        if(await apagar('lista_itens', i.id)){ await carregarTudo(); render(); }
+      }},'×'));
+    return c;
+  }
+
+  async function porTag(i){
+    const tg = prompt('Tag (ex.: renovar, urgente, assinado):');
+    if(!tg || !tg.trim()) return;
+    const novas = (i.tags || []).concat([tg.trim()]);
+    const { error } = await sb.from('lista_itens').update({ tags:novas }).eq('id', i.id);
+    if(error){ toast('Não deu: ' + error.message); return; }
+    await carregarTudo(); render();
+  }
+
+  async function tirarTag(i, tg){
+    const novas = (i.tags || []).filter(x => x !== tg);
+    const { error } = await sb.from('lista_itens').update({ tags:novas }).eq('id', i.id);
+    if(error){ toast('Não deu: ' + error.message); return; }
+    await carregarTudo(); render();
+  }
+
+  async function novaLista(){
+    const nome = prompt('Nome da lista (ex.: Fornecedores, Equipamentos, Ideias):');
+    if(!nome || !nome.trim()) return;
+    const { data, error } = await sb.from('listas')
+      .insert({ nome:nome.trim(), ordem:state.listas.length }).select('id').single();
+    if(error){ toast('Não deu: ' + error.message); return; }
+    state.listaAberta = data.id;
+    await carregarTudo(); render();
+  }
+
+  async function novoItemLista(listaId){
+    const titulo = prompt('O que você quer guardar?');
+    if(!titulo || !titulo.trim()) return;
+    const { error } = await sb.from('lista_itens').insert({ lista_id:listaId, titulo:titulo.trim() });
+    if(error){ toast('Não deu: ' + error.message); return; }
+    await carregarTudo(); render();
   }
 
   // ---------- captação ----------
@@ -1381,9 +2015,9 @@
     const m = el('main');
     const cabeca = el('div',{class:'bloco'});
     cabeca.appendChild(el('p',{class:'rot laranja'},'Captação'));
-    cabeca.appendChild(el('h1',{class:'page'},'Lista'));
+    cabeca.appendChild(el('h1',{class:'page'},'Planilha'));
     cabeca.appendChild(el('p',{class:'intro'},
-      'A mesma gente do funil, em planilha. Clique numa célula e escreva: salva sozinho ao sair dela. '
+      'A mesma gente do funil, em grade. Clique numa célula e escreva: salva sozinho ao sair dela. '
       + 'Dá pra colar direto do Excel e baixar em CSV.'));
     m.appendChild(cabeca);
 
@@ -1802,6 +2436,7 @@
     const dentro = el('div');
     dentro.appendChild(explicacaoAba(state.aba));
     if(state.aba==='respostas') dentro.appendChild(abaRespostas());
+    if(state.aba==='agenda') dentro.appendChild(abaAgendaCliente(c));
     if(state.aba==='pagina') dentro.appendChild(abaPagina(c));
     if(state.aba==='acessos') dentro.appendChild(abaAcessos(c));
     if(state.aba==='metas') dentro.appendChild(abaMetas(c));
@@ -3414,7 +4049,7 @@
           state.vista = { tipo:'cliente', id:r.id };
           state.aba = (r.aba && ABAS.some(a => a[0] === r.aba)) ? r.aba : 'respostas';
           carregarDetalhe(r.id).then(render);
-        } else if(r.tipo === 'inbox' || r.tipo === 'novo' || r.tipo === 'funil' || r.tipo === 'lista'){
+        } else if(['inbox','novo','funil','lista','agenda','listas'].includes(r.tipo)){
           state.vista = { tipo:r.tipo };
         } else {
           state.vista = { tipo:'agora' };
