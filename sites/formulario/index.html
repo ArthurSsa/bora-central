@@ -71,18 +71,6 @@
   }
   .stepcount .dot{ width:7px; height:7px; background:var(--orange); display:inline-block; }
 
-  .progressbar-outer{
-    position:relative; z-index:2;
-    width:100%; max-width:660px; margin:14px auto 0; padding:0 20px;
-  }
-  .progressbar{
-    height:8px; background:#E6E0D6; border-radius:100px; position:relative; overflow:hidden;
-  }
-  .progressbar .fill{
-    position:absolute; left:0; top:0; height:100%; width:0%; border-radius:100px;
-    background:linear-gradient(90deg,#FF8A3C,var(--orange));
-    transition:width .5s cubic-bezier(.4,0,.2,1);
-  }
 
   main{
     position:relative; z-index:2;
@@ -103,13 +91,29 @@
     position:relative;
   }
   /* A tarja laranja no topo é o que sobrou do contorno duro: mesma assinatura,
-     sem o peso. */
-  .card::before{
-    content:''; position:absolute; left:0; right:0; top:0; height:5px;
-    border-radius:20px 20px 0 0;
-    background:linear-gradient(90deg,var(--orange),#FF8A3C);
+     sem o peso. E ela é a barra de progresso — antes eram duas barras laranjas
+     de 620px a 40px uma da outra, com tons diferentes (a de cima tinha degradê
+     começando em #FF8A3C, a de baixo era #FF5E00 chapado). Duas linhas iguais
+     não é assinatura, é engano. Uma linha só, que também informa onde você está.
+     O overflow:hidden é o que corta o preenchimento no canto arredondado — com
+     border-radius de 20px numa faixa de 5px, o navegador achata a curva e
+     sobra uma ponta reta escapando do cartão. */
+  /* O truque do canto: a tarja tem exatamente o retângulo e o raio do cartão,
+     e só depois é recortada nos 5px de cima. Se ela fosse uma caixa de 5px com
+     raio 20, o navegador achataria a curva pra caber na altura e a ponta
+     laranja escaparia por cima do canto do cartão — que era o degrau visível
+     no canto de cima à esquerda. */
+  .tarja{
+    position:absolute; inset:0; overflow:hidden; pointer-events:none;
+    border-radius:20px; background:var(--hair);
+    -webkit-clip-path:inset(0 0 calc(100% - 5px) 0);
+            clip-path:inset(0 0 calc(100% - 5px) 0);
   }
-  .card.dark::before{ background:var(--orange); }
+  .card.dark .tarja{ background:rgba(255,255,255,.15); }
+  .tarja i{
+    display:block; height:5px; width:0%; background:var(--orange);
+    transition:width .5s cubic-bezier(.4,0,.2,1);
+  }
   .card.dark{
     background:linear-gradient(135deg,#241F1A,#0A0A0A);
     color:var(--white);
@@ -287,12 +291,9 @@
   <span class="stepcount"><span class="dot"></span><span id="stepcount">Antes de começar</span></span>
 </div>
 
-<div class="progressbar-outer">
-  <div class="progressbar"><div class="fill" id="progressFill"></div></div>
-</div>
-
 <main>
   <div class="card dark" id="card">
+    <div class="tarja" aria-hidden="true"><i id="progressFill"></i></div>
 
     <section class="step active" data-step="0">
       <svg class="badge" aria-hidden="true" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -512,7 +513,9 @@
 
   function updateProgress(){
     const pct = Math.round((Math.min(currentStep, sections.length) / sections.length) * 100);
-    progressFill.style.width = pct + '%';
+    // Um naco mínimo de laranja em todo passo: no primeiro, com 0%, o cartão
+    // ficaria sem a tarja da marca, que é o que ele tem de identidade.
+    progressFill.style.width = Math.max(pct, 7) + '%';
 
     sections.forEach((sec, idx) => {
       const secAnswered = sec.questions.filter(q => {
