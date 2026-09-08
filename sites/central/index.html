@@ -773,6 +773,19 @@
   .aviso-conf.grave b{ color:var(--al); }
   .aviso-conf.aviso b{ color:var(--es); }
 
+  .sugest{ display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--linha2); }
+  .sugest:first-of-type{ border-top:none; }
+  .sugest .corpo{ flex:1 1 auto; min-width:0; }
+  .sugest .frase{ margin:0; font-size:0.9rem; line-height:1.45; }
+  .sugest .de{
+    margin:3px 0 0; font-family:var(--dado); font-size:0.58rem; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--fraco);
+  }
+  .prompt-cru{
+    margin:12px 0 0; padding:14px; background:var(--sup2); border:1px solid var(--linha);
+    border-radius:10px; font-family:var(--dado); font-size:0.72rem; line-height:1.55;
+    color:var(--tinta); white-space:pre-wrap; max-height:340px; overflow:auto;
+  }
   .pe-editor{
     display:flex; gap:9px; align-items:center; flex-wrap:wrap;
     margin-top:24px; padding-top:18px; border-top:1px solid var(--linha);
@@ -1318,7 +1331,7 @@
     buscaCliente:'',
     tudo:{ acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] },
     economia:null, funilEventos:[], mesEconomia:null,
-    pecas:[], estudio:null,
+    pecas:[], estudio:null, respostas:[],
   };
 
   const app = document.getElementById('app');
@@ -1429,7 +1442,7 @@
     // no dia em que forem, isso vira uma view no banco, não mais selects aqui.
     const [cli, inbox, ac, me, ba, ma, co, ho, op, ta, li, it, pf, ec, fe, pc] = await Promise.all([
       sb.from('clientes').select('*').order('nome'),
-      sb.from('onboarding_respostas').select('*').is('cliente_id', null).order('recebido_em', { ascending:false }),
+      sb.from('onboarding_respostas').select('*').order('recebido_em', { ascending:false }),
       sb.from('acessos').select('*'),
       sb.from('metas').select('*'),
       sb.from('baselines').select('*'),
@@ -1447,7 +1460,8 @@
     ]);
     if(cli.error) state.erro = cli.error.message;
     state.clientes = cli.data || [];
-    state.inbox = inbox.data || [];
+    state.respostas = inbox.data || [];
+    state.inbox = state.respostas.filter(r => !r.cliente_id);
     state.tudo = {
       acessos: ac.data || [], metas: me.data || [], baselines: ba.data || [],
       marcos: ma.data || [], conformidade: co.data || [], horas: ho.data || [],
@@ -4048,12 +4062,13 @@
 
   function coresDoDeck(deck){
     const cor = deck.cor || '#FF5E00';
-    if(deck.preset === 'tinta') return { fundo:'#141210', tinta:'#F5F2EC', apoio:'#9A938B', destaque:cor };
+    const c2 = deck.cor2 || cor;
+    if(deck.preset === 'tinta') return { fundo:'#141210', tinta:'#F5F2EC', apoio:'#9A938B', destaque:cor, faixa:c2 };
     if(deck.preset === 'cliente'){
       const t = tintaSobre(cor);
-      return { fundo:cor, tinta:t, apoio: misturar(t, cor, 0.35), destaque:t };
+      return { fundo:cor, tinta:t, apoio: misturar(t, cor, 0.35), destaque:t, faixa:t };
     }
-    return { fundo:'#F5F2EC', tinta:'#141210', apoio:'#6E675F', destaque:cor };
+    return { fundo:'#F5F2EC', tinta:'#141210', apoio:'#6E675F', destaque:cor, faixa:c2 };
   }
 
   // ---------- conformidade do texto ----------
@@ -4185,22 +4200,28 @@
     const c = coresDoDeck(deck);
     g.fillStyle = c.fundo; g.fillRect(0, 0, L, A);
 
-    const m = 92;                       // margem
+    const m = deck.margem === 'compacta' ? 66 : 92;    // margem
     const larg = L - m*2;
     const total = (deck.slides || []).length;
+    const al = slide.alinha || deck.alinha || 'esq';
+    const centro = al === 'centro';
+    const x = centro ? L/2 : m;
+    g.textAlign = centro ? 'center' : 'left';
 
     // Faixa de identidade no topo. Repetida em todos os slides: é a repetição
     // visual que faz o conjunto parecer profissional.
-    g.fillStyle = c.destaque;
-    g.fillRect(m, m, 108, 8);
+    if(deck.faixa !== false){
+      g.fillStyle = c.faixa;
+      g.fillRect(centro ? (L-108)/2 : m, m, 108, 8);
+    }
 
     // Numeração, sempre no mesmo canto
-    if(total > 1){
+    if(total > 1 && deck.numerar !== false){
       g.fillStyle = c.apoio;
       g.font = '700 26px ' + FONTE_D;
       g.textAlign = 'right';
       g.fillText(String(i+1).padStart(2,'0') + '/' + String(total).padStart(2,'0'), L - m, m + 12);
-      g.textAlign = 'left';
+      g.textAlign = centro ? 'center' : 'left';
     }
 
     const baseAssin = A - m;
@@ -4247,7 +4268,7 @@
     pedacos.forEach(pc=>{
       g.font = pc.peso + ' ' + pc.tam + 'px ' + pc.fonte;
       g.fillStyle = pc.cor;
-      pc.linhas.forEach(l => { g.fillText(l, m, y + pc.tam); y += pc.lh; });
+      pc.linhas.forEach(l => { g.fillText(l, x, y + pc.tam); y += pc.lh; });
       y += pc.depois;
     });
 
@@ -4256,7 +4277,7 @@
     if(deck.assinatura){
       g.fillStyle = c.apoio;
       g.font = '400 24px ' + FONTE_D;
-      g.fillText(String(deck.assinatura).slice(0, 64), m, baseAssin);
+      g.fillText(String(deck.assinatura).slice(0, 64), x, baseAssin);
     }
     g.restore();
     return cv;
@@ -4339,6 +4360,309 @@
     }).filter(Boolean).join('\n\n');
   }
 
+  // ---------- a marca de cada cliente ----------
+
+  // Toda peça começa com o jeito daquele cliente já aplicado. Sem isto, cada
+  // carrossel sai um pouco diferente do anterior — e é justamente a repetição
+  // visual que faz um perfil parecer profissional sem parecer publicidade.
+  const MARCA_PADRAO = {
+    cor2:'', preset:'papel', formato:'4:5', alinha:'esq', margem:'folgada',
+    numerar:true, faixa:true,
+    tom:'', evitar:'', chamada:'', hashtags:'', publico:'',
+  };
+  function marcaDe(c){
+    return Object.assign({}, MARCA_PADRAO, (c && c.marca) || {});
+  }
+  async function salvarMarca(c, campos){
+    const nova = Object.assign({}, marcaDe(c), campos);
+    const { error } = await sb.from('clientes').update({ marca:nova }).eq('id', c.id);
+    if(error){ toast('Não deu: ' + error.message); return false; }
+    c.marca = nova;
+    return true;
+  }
+
+  // ---------- o que o formulário dele já respondeu ----------
+
+  const respostasDe = id => {
+    const r = (state.respostas || []).find(x => x.cliente_id === id);
+    return (r && r.respostas) || null;
+  };
+
+  // Frases inteiras, do jeito que a pessoa escreveu. É de propósito: a melhor
+  // linha de abertura que um cliente tem quase sempre já está dita por ele na
+  // resposta do formulário, e reescrever costuma piorar.
+  function frasesDe(texto){
+    return String(texto || '')
+      .split(/(?<=[.!?…])\s+|\n+/)
+      .map(x => x.trim().replace(/^["“”'\-–—\s]+|["“”'\s]+$/g,''))
+      .filter(x => x.length >= 24 && x.length <= 190);
+  }
+
+  // Cada sugestão diz de qual pergunta veio. Sem a origem, vira palpite; com
+  // ela, dá pra conferir se está sendo bem usada.
+  const FONTES_SUGESTAO = [
+    { chave:'motivo_comeco',       oq:'gancho',  rot:'O que fez começar' },
+    { chave:'gosta_mais',          oq:'gancho',  rot:'O que mais gosta' },
+    { chave:'elogio_frequente',    oq:'tema',    rot:'O elogio que sempre recebem' },
+    { chave:'diferencial',         oq:'tema',    rot:'O diferencial' },
+    { chave:'entrega_orgulho',     oq:'tema',    rot:'A entrega de que se orgulham' },
+    { chave:'faz_procurar',        oq:'objecao', rot:'O que faz procurarem' },
+    { chave:'pesa_cansa',          oq:'objecao', rot:'O que pesa no dia a dia' },
+    { chave:'cliente_ideal',       oq:'publico', rot:'O cliente ideal' },
+    { chave:'descricao_outros',    oq:'tom',     rot:'Como descrevem o jeito deles' },
+    { chave:'referencia_inspiracao', oq:'tom',   rot:'A referência que inspira' },
+    { chave:'sonho_maior',         oq:'gancho',  rot:'O sonho por trás' },
+    { chave:'espaco_livre',        oq:'gancho',  rot:'O que quiseram contar' },
+  ];
+  const PERGUNTA = chave => {
+    let achou = '';
+    SECOES.forEach(s => s.perguntas.forEach(([k, p]) => { if(k === chave) achou = p; }));
+    return achou;
+  };
+
+  function sugestoesDe(cliente, oQue){
+    const r = respostasDe(cliente && cliente.id);
+    if(!r) return [];
+    const fora = [];
+    FONTES_SUGESTAO.filter(f => !oQue || f.oq === oQue).forEach(f=>{
+      frasesDe(r[f.chave]).slice(0,2).forEach(fr=>{
+        if(!fora.some(x => x.frase === fr)) fora.push({ frase:fr, de:f.rot, chave:f.chave, oq:f.oq });
+      });
+    });
+    return fora;
+  }
+
+  // O painel de sugestões. Aparece em toda ferramenta do estúdio quando há um
+  // cliente escolhido e ele já respondeu o formulário.
+  function blocoSugestoes(cliente, oQue, usar){
+    const box = el('div',{class:'bloco-conf'});
+    box.appendChild(el('p',{class:'rot'},'Do formulário dele'));
+    if(!cliente){
+      box.appendChild(el('p',{class:'dica', style:'margin:8px 0 0'},
+        'Escolha um cliente aí em cima e as respostas dele viram sugestão aqui.'));
+      return box;
+    }
+    const sug = sugestoesDe(cliente, oQue);
+    if(!sug.length){
+      box.appendChild(el('p',{class:'dica', style:'margin:8px 0 0'},
+        respostasDe(cliente.id)
+          ? 'Ele respondeu o formulário, mas as respostas úteis pra este tipo de peça vieram curtas demais.'
+          : 'Este cliente ainda não tem formulário respondido ligado à ficha dele.'));
+      return box;
+    }
+    box.appendChild(el('p',{class:'dica', style:'margin:8px 0 14px'},
+      'Frases que eles mesmos escreveram. Usar a palavra do cliente soa melhor que reescrever — '
+      + 'e é a única prova social que não depende de depoimento.'));
+    sug.slice(0,8).forEach(s=>{
+      const l = el('div',{class:'sugest'});
+      const c = el('div',{class:'corpo'});
+      c.appendChild(el('p',{class:'frase'}, '“' + esc(s.frase) + '”'));
+      c.appendChild(el('p',{class:'de'}, esc(s.de)));
+      l.appendChild(c);
+      if(usar) l.appendChild(el('button',{class:'btn ghost small', onclick:()=>usar(s)},'usar'));
+      l.appendChild(el('button',{class:'linkbtn', onclick:async()=>{
+        try { await navigator.clipboard.writeText(s.frase); toast('Copiado.'); }
+        catch(e){ toast('O navegador não deixou copiar.'); }
+      }},'copiar'));
+      box.appendChild(l);
+    });
+    return box;
+  }
+
+  // ---------- o prompt ----------
+
+  // Não há modelo de linguagem dentro da Central, e a chave não pode morar numa
+  // página estática. O que dá pra fazer sem chave nenhuma é montar o pedido
+  // inteiro — quem é o cliente, como ele fala, o que a profissão dele proíbe,
+  // e em que formato a resposta precisa voltar — pra colar em qualquer IA e
+  // trazer o resultado de volta pelo botão "Colar a resposta".
+  function promptDaPeca(peca, cliente){
+    const m = marcaDe(cliente);
+    const r = respostasDe(cliente && cliente.id) || {};
+    const L = [];
+    L.push('Você vai escrever conteúdo para redes sociais de um cliente de uma agência.');
+    L.push('Responda em português do Brasil, no formato pedido no fim. Sem introdução e sem comentário.');
+    L.push('');
+    L.push('## QUEM É O CLIENTE');
+    if(cliente) L.push('Nome: ' + cliente.nome + (cliente.vertical ? ' — ' + cliente.vertical : ''));
+    ['o_que_faz','cliente_ideal','faz_procurar','diferencial','elogio_frequente',
+     'descricao_outros','sonho_maior','referencia_inspiracao'].forEach(k=>{
+      const v = String(r[k] || '').trim();
+      if(v) L.push('- ' + PERGUNTA(k) + '\n  ' + v.replace(/\n+/g,' '));
+    });
+    if(m.publico) L.push('- Público, como a agência resumiu: ' + m.publico);
+    L.push('');
+    L.push('## COMO ELE FALA');
+    L.push(m.tom ? m.tom : 'Tom: direto, sem jargão, sem frase motivacional. Escreva como quem explica pra um conhecido.');
+    if(m.evitar) L.push('NÃO use, em hipótese alguma: ' + m.evitar);
+    L.push('');
+
+    const conselho = conselhoDe(cliente);
+    L.push('## REGRAS QUE NÃO PODEM SER QUEBRADAS');
+    L.push('- Nada de promessa de prazo ("em 30 dias"), número de resultado ("10kg") ou garantia.');
+    L.push('- Nada de afirmação sem base técnica ("queima gordura localizada"), cura ou milagre.');
+    L.push('- Nada de comparação depreciativa com concorrente.');
+    if(conselho){
+      L.push('- Profissão com conselho (' + conselho + '): tudo que for afirmado precisa de base técnica '
+        + 'defensável. A assinatura com nome e registro entra na arte, você não precisa escrevê-la.');
+    }
+    L.push('');
+
+    L.push('## O QUE EU PRECISO');
+    if(peca.tipo === 'carrossel'){
+      const d = peca.dados;
+      L.push('Um carrossel de ' + d.slides.length + ' slides para Instagram.');
+      L.push('Slide 1 é a capa (título curto e forte, no máximo 8 palavras). '
+        + 'O último é o fecho, com uma chamada' + (m.chamada ? ' na linha de "' + m.chamada + '"' : '') + '.');
+      L.push('Os do meio trazem um ponto cada, com título de até 5 palavras e texto de até 35 palavras.');
+      const jaTem = d.slides.map((s,i)=> (s.titulo||s.texto) ? ('Slide ' + (i+1) + ': ' + (s.titulo||'') + ' ' + (s.texto||'')).trim() : null).filter(Boolean);
+      if(jaTem.length){ L.push(''); L.push('O que já está escrito, para melhorar em vez de recomeçar:');
+        jaTem.forEach(x => L.push('  ' + x)); }
+      L.push('');
+      L.push('## FORMATO DA RESPOSTA (exatamente assim, sem nada além disso)');
+      for(let i = 1; i <= d.slides.length; i++){
+        L.push('SLIDE ' + i);
+        L.push('Titulo: ...');
+        L.push('Texto: ...');
+        L.push('');
+      }
+    } else if(peca.tipo === 'roteiro'){
+      const f = formatoRoteiro(peca.dados.formato);
+      L.push('Um roteiro de vídeo curto no formato "' + f.nome + '": ' + f.d);
+      L.push('Alvo de ' + f.seg + ' segundos falados — cerca de ' + Math.round(f.seg * 2.6) + ' palavras no total.');
+      if(peca.dados.tema) L.push('Tema: ' + peca.dados.tema);
+      const jaTem = f.partes.map(([rot], i)=>{
+        const v = (peca.dados.partes || [])[i];
+        return v && v.trim() ? rot + ': ' + v.trim() : null; }).filter(Boolean);
+      if(jaTem.length){ L.push(''); L.push('O que já está escrito, para melhorar em vez de recomeçar:');
+        jaTem.forEach(x => L.push('  ' + x)); }
+      L.push('');
+      L.push('## FORMATO DA RESPOSTA (exatamente assim, sem nada além disso)');
+      f.partes.forEach(([rot]) => { L.push(rot.toUpperCase() + ': ...'); });
+    } else {
+      L.push('Uma legenda de Instagram.');
+      L.push('O gancho é a primeira linha e precisa caber em 125 caracteres — é o que aparece antes do "mais".');
+      L.push('O corpo tem no máximo 4 parágrafos curtos.');
+      if(m.chamada) L.push('A chamada final deve ser na linha de: ' + m.chamada);
+      L.push('Cinco hashtags, específicas, sem as genéricas de milhões de posts.');
+      if(m.hashtags) L.push('Hashtags que ele já usa: ' + m.hashtags);
+      L.push('');
+      L.push('## FORMATO DA RESPOSTA (exatamente assim, sem nada além disso)');
+      L.push('GANCHO: ...');
+      L.push('CORPO: ...');
+      L.push('CHAMADA: ...');
+      L.push('HASHTAGS: ...');
+    }
+
+    const sug = sugestoesDe(cliente).slice(0,6);
+    if(sug.length){
+      L.push('');
+      L.push('## FRASES DELES, PARA APROVEITAR O TOM (não copie literalmente todas)');
+      sug.forEach(s => L.push('- "' + s.frase + '" (' + s.de + ')'));
+    }
+    return L.join('\n');
+  }
+
+  // A volta. O que a IA devolveu entra nos campos certos, e não num textão que
+  // alguém teria que recortar à mão — que é onde esse tipo de ida e volta morre.
+  function lerResposta(texto, peca){
+    const t = String(texto || '').replace(/\r/g,'');
+    const semAcento = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
+    if(peca.tipo === 'carrossel'){
+      const blocos = t.split(/^\s*SLIDE\s*\d+\s*$/mi).slice(1);
+      if(!blocos.length) return 0;
+      let n = 0;
+      blocos.forEach((b, i)=>{
+        if(i >= peca.dados.slides.length){
+          peca.dados.slides.push({ tipo:'conteudo', titulo:'', texto:'' });
+        }
+        const linhas = b.split('\n').map(x=>x.trim()).filter(Boolean);
+        let tit = '', txt = [];
+        linhas.forEach(l=>{
+          const c = semAcento(l);
+          if(/^TITULO\s*:/.test(c)) tit = l.replace(/^[^:]*:\s*/,'');
+          else if(/^TEXTO\s*:/.test(c)) txt.push(l.replace(/^[^:]*:\s*/,''));
+          else if(tit || txt.length) txt.push(l);
+          else tit = l;
+        });
+        peca.dados.slides[i].titulo = tit;
+        peca.dados.slides[i].texto = txt.join('\n');
+        n++;
+      });
+      return n;
+    }
+    // Um varredor só para roteiro e legenda: acha cada rótulo seguido de ':' no
+    // texto sem acento, e pega até o próximo rótulo conhecido. É mais burro que
+    // uma expressão regular esperta, e por isso não quebra com a resposta que
+    // vem com uma linha a mais no meio.
+    const fatiar = (rotulos)=>{
+      const alvo = semAcento(t);
+      const pos = rotulos.map(r=>({ r, i: alvo.indexOf(semAcento(r) + ':') })).filter(x => x.i >= 0);
+      return pos.map(x=>{
+        const fim = pos.reduce((f,y)=> (y.i > x.i && y.i < f) ? y.i : f, t.length);
+        return { rotulo:x.r, valor: t.slice(x.i, fim).replace(/^[^:]*:\s*/,'').trim() };
+      });
+    };
+
+    if(peca.tipo === 'roteiro'){
+      const f = formatoRoteiro(peca.dados.formato);
+      const nomes = f.partes.map(([rot]) => rot);
+      const achados = fatiar(nomes);
+      if(!achados.length) return 0;
+      peca.dados.partes = peca.dados.partes || [];
+      let n = 0;
+      achados.forEach(a=>{
+        const i = nomes.indexOf(a.rotulo);
+        if(i >= 0 && a.valor){ peca.dados.partes[i] = a.valor; n++; }
+      });
+      return n;
+    }
+
+    const mapa = { GANCHO:'gancho', CORPO:'corpo', CHAMADA:'chamada', HASHTAGS:'hashtags' };
+    const achados = fatiar(Object.keys(mapa));
+    let n = 0;
+    achados.forEach(a=>{ if(a.valor){ peca.dados[mapa[a.rotulo]] = a.valor; n++; } });
+    return n;
+  }
+
+  function blocoPrompt(peca, cliente, depoisDeColar){
+    const box = el('div',{class:'bloco-conf'});
+    box.appendChild(el('p',{class:'rot'},'Pedir pra uma IA'));
+    box.appendChild(el('p',{class:'dica', style:'margin:8px 0 14px'},
+      'A Central monta o pedido inteiro — quem é o cliente pelas respostas do formulário, como ele fala, '
+      + 'o que a profissão dele proíbe e em que formato a resposta precisa voltar. '
+      + 'Copie, cole em qualquer IA, e traga a resposta de volta aqui embaixo.'));
+
+    const acoes = el('div',{style:'display:flex;gap:9px;flex-wrap:wrap;align-items:center'});
+    acoes.appendChild(el('button',{class:'btn ghost small', onclick:async()=>{
+      const p = promptDaPeca(peca, cliente);
+      try { await navigator.clipboard.writeText(p); toast('Prompt copiado — ' + p.length + ' caracteres.'); }
+      catch(e){ toast('O navegador não deixou copiar. Abra "ver o prompt" e copie à mão.'); }
+    }},'Copiar o prompt'));
+    const ver = el('details',{class:'expl', style:'width:100%'});
+    ver.appendChild(el('summary',{},'ver o prompt'));
+    const pre = el('pre',{class:'prompt-cru'});
+    ver.addEventListener('toggle', ()=>{ if(ver.open) pre.textContent = promptDaPeca(peca, cliente); });
+    ver.appendChild(pre);
+    box.appendChild(acoes);
+    box.appendChild(ver);
+
+    const colar = el('div',{class:'campo-longo', style:'margin-top:14px'});
+    colar.appendChild(el('span',{},'Colar a resposta'));
+    const ta = el('textarea',{rows:'4', placeholder:'Cole aqui o que a IA respondeu, no formato que o prompt pediu.'});
+    colar.appendChild(ta);
+    const aplicar = el('button',{class:'btn small', style:'margin-top:10px', onclick:()=>{
+      const n = lerResposta(ta.value, peca);
+      if(!n){ toast('Não reconheci o formato. Confira se a resposta veio como o prompt pediu.'); return; }
+      ta.value = '';
+      toast(n + (n === 1 ? ' campo preenchido.' : ' campos preenchidos.'));
+      if(depoisDeColar) depoisDeColar();
+    }},'Preencher com a resposta');
+    colar.appendChild(aplicar);
+    box.appendChild(colar);
+    return box;
+  }
+
   // ---------- a tela ----------
 
   function assinaturaDe(c){
@@ -4351,12 +4675,17 @@
 
   function pecaNova(tipo, clienteId){
     const c = clienteId && state.clientes.find(x => x.id === clienteId);
+    const m = marcaDe(c);
     if(tipo === 'roteiro') return { tipo, titulo:'', cliente_id:clienteId || null,
       dados:{ formato:'corrige', tema:'', partes:[] } };
     if(tipo === 'legenda') return { tipo, titulo:'', cliente_id:clienteId || null,
-      dados:{ gancho:'', corpo:'', chamada:'', hashtags:'' } };
+      dados:{ gancho:'', corpo:'', chamada:m.chamada || '', hashtags:m.hashtags || '' } };
+    // Tudo o que a marca dele define já vem aplicado: é isso que faz a peça
+    // deste mês sair igual à do mês passado sem ninguém reconfigurar nada.
     return { tipo:'carrossel', titulo:'', cliente_id:clienteId || null,
-      dados:{ formato:'4:5', preset:'papel', cor:(c && c.cor) || null, assinatura:assinaturaDe(c),
+      dados:{ formato:m.formato, preset:m.preset, cor:(c && c.cor) || null, cor2:m.cor2 || '',
+        alinha:m.alinha, margem:m.margem, numerar:m.numerar !== false, faixa:m.faixa !== false,
+        assinatura:assinaturaDe(c),
         slides:[ { tipo:'capa', titulo:'', texto:'' },
                  { tipo:'conteudo', titulo:'', texto:'' },
                  { tipo:'fim', titulo:'', texto:'' } ] } };
@@ -4366,6 +4695,7 @@
     ['carrossel','Carrossel','Slides prontos pra postar, exportados em PNG'],
     ['roteiro','Roteiro','O que vai ser dito, na ordem, com o tempo estimado'],
     ['legenda','Legenda','Gancho, corpo, chamada e hashtags, com a contagem'],
+    ['marca','Marca','O jeito de cada cliente, aplicado sozinho em toda peça nova'],
   ];
 
   function telaEstudio(){
@@ -4397,6 +4727,7 @@
     cabeca.appendChild(fer);
     m.appendChild(cabeca);
 
+    if(E.ferramenta === 'marca'){ m.appendChild(telaMarca()); return m; }
     if(!E.peca){ m.appendChild(blocoPecasSalvas()); return m; }
     m.appendChild(E.peca.tipo === 'carrossel' ? editorCarrossel()
       : E.peca.tipo === 'roteiro' ? editorRoteiro() : editorLegenda());
@@ -4495,10 +4826,21 @@
     sel.addEventListener('change', ()=>{
       p.cliente_id = sel.value || null;
       const c = state.clientes.find(x => x.id === p.cliente_id);
-      if(p.tipo === 'carrossel' && c){
-        if(c.cor) p.dados.cor = c.cor;
-        const a = assinaturaDe(c);
-        if(a) p.dados.assinatura = a;
+      if(c){
+        const mc = marcaDe(c);
+        if(p.tipo === 'carrossel'){
+          if(c.cor) p.dados.cor = c.cor;
+          p.dados.cor2 = mc.cor2 || '';
+          p.dados.preset = mc.preset; p.dados.formato = mc.formato;
+          p.dados.alinha = mc.alinha; p.dados.margem = mc.margem;
+          p.dados.numerar = mc.numerar !== false; p.dados.faixa = mc.faixa !== false;
+          const a = assinaturaDe(c);
+          if(a) p.dados.assinatura = a;
+        }
+        if(p.tipo === 'legenda'){
+          if(!String(p.dados.chamada || '').trim() && mc.chamada) p.dados.chamada = mc.chamada;
+          if(!String(p.dados.hashtags || '').trim() && mc.hashtags) p.dados.hashtags = mc.hashtags;
+        }
       }
       render();
     });
@@ -4518,6 +4860,137 @@
       state.estudio.peca = null; render();
     }},'Voltar à lista'));
     box.appendChild(pe);
+  }
+
+  // ---------- a marca, por cliente ----------
+
+  function telaMarca(){
+    const E = state.estudio;
+    const box = el('div',{class:'bloco'});
+    box.appendChild(el('p',{class:'rot'},'Marca'));
+    box.appendChild(el('p',{class:'intro', style:'margin-bottom:18px'},
+      'O jeito de cada cliente, guardado uma vez. Toda peça nova dele já nasce assim — '
+      + 'e é a repetição, mais que qualquer arte isolada, que faz um perfil parecer profissional.'));
+
+    const escolha = el('div',{class:'visao', style:'margin-bottom:22px;flex-wrap:wrap'});
+    state.clientes.forEach(c=>{
+      escolha.appendChild(el('button',{'aria-selected':String(E.marcaDe === c.id),
+        onclick:()=>{ E.marcaDe = c.id; render(); }}, esc(c.nome)));
+    });
+    box.appendChild(escolha);
+
+    const c = state.clientes.find(x => x.id === E.marcaDe);
+    if(!c){
+      box.appendChild(el('p',{class:'dica'},'Escolha um cliente pra abrir a marca dele.'));
+      return box;
+    }
+    const m = marcaDe(c);
+    const grava = async campos => {
+      if(await salvarMarca(c, campos)){ toast('Salvo.'); pintarExemplo(); }
+    };
+
+    const grade = el('div',{class:'estudio'});
+    const lado = el('div',{class:'lado-editor'});
+    const previa = el('div',{class:'lado-previa'});
+    grade.appendChild(lado); grade.appendChild(previa);
+    box.appendChild(grade);
+
+    // Um exemplo de verdade, com o texto do próprio cliente quando houver:
+    // ver o resultado é o que faz alguém mexer nas opções com alguma intenção.
+    const cv = el('canvas',{class:'previa-cv'});
+    previa.appendChild(cv);
+    previa.appendChild(el('p',{class:'dica', style:'margin:10px 0 0;text-align:center'},
+      'Como uma capa dele vai sair'));
+    function pintarExemplo(){
+      const mm = marcaDe(c);
+      const sug = sugestoesDe(c)[0];
+      const deck = { formato:mm.formato, preset:mm.preset, cor:c.cor || '#FF5E00', cor2:mm.cor2,
+        alinha:mm.alinha, margem:mm.margem, numerar:mm.numerar !== false, faixa:mm.faixa !== false,
+        assinatura:assinaturaDe(c) || (c.nome_preferido || c.nome),
+        slides:[{}, {}, {}] };
+      desenharSlide(cv, { tipo:'capa',
+        titulo: sug ? sug.frase.slice(0,64) : 'Um título de exemplo aqui',
+        texto: mm.chamada || 'A linha de apoio da capa' }, deck, 0, 0.6);
+      cv.style.width = '100%';
+    }
+
+    const campoP = (rot, dentro, dica) => {
+      const l = el('div',{class:'campo-p'});
+      l.appendChild(el('span',{}, esc(rot)));
+      l.appendChild(dentro);
+      lado.appendChild(l);
+      if(dica) lado.appendChild(el('p',{class:'dica campo-dica'}, esc(dica)));
+    };
+    const escolher = (rot, campo, opcoes, dica) => {
+      const g = el('div',{class:'chips'});
+      opcoes.forEach(([k, nome])=>{
+        g.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(marcaDe(c)[campo] === k),
+          onclick:async()=>{ if(await grava({ [campo]:k })) render(); }}, esc(nome)));
+      });
+      campoP(rot, g, dica);
+    };
+    const ligar = (rot, campo, dica) => {
+      const g = el('div',{class:'chips'});
+      [[true,'Mostrar'],[false,'Esconder']].forEach(([k, nome])=>{
+        g.appendChild(el('button',{class:'chip-p', 'aria-pressed':String((marcaDe(c)[campo] !== false) === k),
+          onclick:async()=>{ if(await grava({ [campo]:k })) render(); }}, nome));
+      });
+      campoP(rot, g, dica);
+    };
+    const texto = (rot, campo, dica, longo) => {
+      if(longo){
+        const cx = el('div',{class:'campo-longo'});
+        cx.appendChild(el('span',{}, esc(rot)));
+        const t = el('textarea',{rows:'3', placeholder:dica || ''});
+        t.value = marcaDe(c)[campo] || '';
+        t.addEventListener('change', ()=>grava({ [campo]: t.value.trim() }));
+        cx.appendChild(t);
+        lado.appendChild(cx);
+        return;
+      }
+      const i = el('input',{type:'text', value:marcaDe(c)[campo] || '', placeholder:dica || ''});
+      i.addEventListener('change', ()=>grava({ [campo]: i.value.trim() }));
+      campoP(rot, i);
+    };
+
+    lado.appendChild(el('p',{class:'rot laranja', style:'margin-top:4px'},'Como a peça dele parece'));
+    const cor = el('input',{type:'color', value:c.cor || '#FF5E00', class:'cor-peca'});
+    cor.addEventListener('change', async ()=>{
+      const { error } = await sb.from('clientes').update({ cor:cor.value }).eq('id', c.id);
+      if(error){ toast('Não deu: ' + error.message); return; }
+      c.cor = cor.value; toast('Salvo.'); pintarExemplo();
+    });
+    campoP('Cor principal', cor, 'A cor da marca dele. Também aparece na ficha do cliente.');
+    const cor2 = el('input',{type:'color', value:m.cor2 || c.cor || '#FF5E00', class:'cor-peca'});
+    cor2.addEventListener('change', ()=>grava({ cor2:cor2.value }));
+    campoP('Cor da faixa', cor2, 'A faixinha do topo pode ser de outra cor. Deixe igual à principal se preferir.');
+    escolher('Visual padrão', 'preset', PRESETS_PECA.map(x=>[x[0], x[1]]));
+    escolher('Formato padrão', 'formato', FORMATOS_PECA.map(x=>[x[0], x[1]]));
+    escolher('Alinhamento', 'alinha', [['esq','À esquerda'],['centro','Centralizado']],
+      'À esquerda lê mais rápido; centralizado pesa mais na capa.');
+    escolher('Respiro', 'margem', [['folgada','Folgado'],['compacta','Compacto']],
+      'Folgado sobra ar em volta; compacto cabe mais texto.');
+    ligar('Faixa no topo', 'faixa');
+    ligar('Numeração', 'numerar', 'O "01/05" no canto. Só aparece quando o carrossel tem mais de um slide.');
+
+    lado.appendChild(el('p',{class:'rot laranja', style:'margin-top:26px'},'Como ele fala'));
+    texto('Tom de voz', 'tom',
+      'Ex.: direto, sem jargão, sem frase motivacional. Explica como quem conversa com um conhecido.', true);
+    texto('Nunca usar', 'evitar',
+      'Palavras, formatos e assuntos proibidos por eles. Ex.: frase motivacional sobre pôr do sol, dança de trend.', true);
+    texto('Público', 'publico', 'Uma linha sobre quem lê. Ex.: 30 a 50 anos, sedentários voltando a treinar.');
+    texto('Chamada padrão', 'chamada', 'Ex.: chama no direct que a gente olha o seu.');
+    texto('Hashtags de sempre', 'hashtags', '#fortaleza #treinoaoarlivre …');
+
+    pintarExemplo();
+
+    // As respostas do formulário viram sugestão pros dois campos de texto
+    // acima: tom e público saem quase prontos do que ele já escreveu.
+    box.appendChild(blocoSugestoes(c, 'tom', async s=>{
+      const atual = String(marcaDe(c).tom || '').trim();
+      if(await grava({ tom: atual ? atual + ' ' + s.frase : s.frase })) render();
+    }));
+    return box;
   }
 
   // ---------- carrossel ----------
@@ -4595,13 +5068,51 @@
           x.setAttribute('aria-pressed', String(PRESETS_PECA[i][0] === k))); }}, rot));
     });
     linhaOpc('Visual', gPre);
-    const cor = el('input',{type:'color', value:d.cor || '#FF5E00', class:'cor-peca'});
+    const cores = el('div',{style:'display:flex;gap:8px;align-items:center;flex-wrap:wrap'});
+    const cor = el('input',{type:'color', value:d.cor || '#FF5E00', class:'cor-peca', title:'cor principal'});
     cor.addEventListener('input', ()=>{ d.cor = cor.value; pintar(); });
-    linhaOpc('Cor', cor);
+    const cor2 = el('input',{type:'color', value:d.cor2 || d.cor || '#FF5E00', class:'cor-peca', title:'cor da faixa'});
+    cor2.addEventListener('input', ()=>{ d.cor2 = cor2.value; pintar(); });
+    cores.appendChild(cor);
+    cores.appendChild(el('span',{class:'dica', style:'margin:0'},'principal'));
+    cores.appendChild(cor2);
+    cores.appendChild(el('span',{class:'dica', style:'margin:0'},'faixa'));
+    linhaOpc('Cores', cores);
+
+    const gAl = el('div',{class:'chips'});
+    [['esq','À esquerda'],['centro','Centralizado']].forEach(([k, rot])=>{
+      gAl.appendChild(el('button',{class:'chip-p', 'aria-pressed':String((d.alinha||'esq') === k),
+        onclick:()=>{ d.alinha = k; render(); }}, rot));
+    });
+    linhaOpc('Alinhamento', gAl);
+
+    const gMar = el('div',{class:'chips'});
+    [['folgada','Folgado'],['compacta','Compacto']].forEach(([k, rot])=>{
+      gMar.appendChild(el('button',{class:'chip-p', 'aria-pressed':String((d.margem||'folgada') === k),
+        onclick:()=>{ d.margem = k; render(); }}, rot));
+    });
+    linhaOpc('Respiro', gMar);
+
+    const gEx = el('div',{class:'chips'});
+    [['faixa','Faixa'],['numerar','Numeração']].forEach(([campo, rot])=>{
+      gEx.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(d[campo] !== false),
+        onclick:()=>{ d[campo] = d[campo] === false; render(); }}, rot));
+    });
+    linhaOpc('Mostrar', gEx);
     const assin = el('input',{type:'text', value:d.assinatura || '',
       placeholder: conselhoDe(cliente) ? 'Nome · ' + conselhoDe(cliente) + ' 000000-G/CE' : 'Assinatura no rodapé'});
     assin.addEventListener('input', ()=>{ d.assinatura = assin.value; pintar(); });
     linhaOpc('Assinatura', assin);
+    if(cliente){
+      opcoes.appendChild(el('button',{class:'btn ghost small', style:'margin-top:10px;justify-self:start',
+        onclick:()=>{
+          const mc = marcaDe(cliente);
+          Object.assign(d, { preset:mc.preset, formato:mc.formato, alinha:mc.alinha, margem:mc.margem,
+            numerar:mc.numerar !== false, faixa:mc.faixa !== false, cor2:mc.cor2 || '',
+            cor: cliente.cor || d.cor, assinatura: assinaturaDe(cliente) || d.assinatura });
+          render(); toast('Voltou pro padrão de ' + cliente.nome + '.');
+        }}, 'Voltar ao padrão de ' + esc(cliente.nome)));
+    }
     if(conselhoDe(cliente)){
       opcoes.appendChild(el('p',{class:'dica campo-dica'},
         'Profissão com conselho: o registro ' + conselhoDe(cliente) + ' precisa aparecer na peça, não só na bio. '
@@ -4661,7 +5172,13 @@
     desenharLista();
     pintar();
 
-    // --- saída
+    // --- sugestões, IA e conferência
+    box.appendChild(blocoSugestoes(cliente, null, s2=>{
+      const al = d.slides[d.slideAtual] || d.slides[0];
+      if(!al.titulo) al.titulo = s2.frase; else al.texto = (al.texto ? al.texto + ' ' : '') + s2.frase;
+      desenharLista(); pintar();
+    }));
+    box.appendChild(blocoPrompt(p, cliente, ()=>{ desenharLista(); pintar(); }));
     box.appendChild(conf);
 
     const baixar = el('button',{class:'btn', onclick:async()=>{
@@ -4738,6 +5255,12 @@
       conf.querySelectorAll('.confere').forEach(n => n.remove());
       conf.appendChild(blocoConformidade(roteiroEmTexto(d), cliente, false).box);
     }
+    box.appendChild(blocoSugestoes(cliente, null, s2=>{
+      d.partes = d.partes || [];
+      d.partes[0] = d.partes[0] ? d.partes[0] + ' ' + s2.frase : s2.frase;
+      desenharPartes(); contar();
+    }));
+    box.appendChild(blocoPrompt(p, cliente, ()=>{ desenharPartes(); contar(); }));
     box.appendChild(conf);
     contar();
 
@@ -4808,6 +5331,11 @@
       box.appendChild(cx);
     });
     box.appendChild(conta);
+    box.appendChild(blocoSugestoes(cliente, null, s2=>{
+      d.gancho = d.gancho ? d.gancho + ' ' + s2.frase : s2.frase;
+      render();
+    }));
+    box.appendChild(blocoPrompt(p, cliente, render));
     box.appendChild(conf);
     medir();
 
@@ -7462,6 +7990,7 @@
     state.user = null; state.membro = false; state.clientes = []; state.inbox = [];
     state.tudo = { acessos:[], metas:[], baselines:[], marcos:[], conformidade:[], horas:[] };
     state.economia = null; state.funilEventos = []; state.pecas = []; state.estudio = null;
+    state.respostas = [];
     state.vista = { tipo:'agora' };
     state.linkEnviadoPara = null; state.modoLogin = 'link'; state.erro = null;
     render();
