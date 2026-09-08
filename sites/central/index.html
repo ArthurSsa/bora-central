@@ -6,7 +6,7 @@
 <title>Central Bora</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Anton&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
   /* ==================================================================
@@ -714,40 +714,25 @@
     display:block; margin:0 auto; max-width:100%; height:auto; border-radius:10px;
     box-shadow:var(--s2); background:var(--sup2);
   }
-  .setas-previa{ display:flex; gap:5px; flex-wrap:wrap; justify-content:center; margin-top:12px; }
-  .setas-previa .ponto{
-    width:26px; height:26px; border-radius:8px; border:1px solid var(--linha); background:var(--sup2);
-    font-family:var(--dado); font-size:0.62rem; color:var(--fraco); padding:0;
-  }
-  .setas-previa .ponto.on{ background:var(--tinta); border-color:var(--tinta); color:var(--papel); }
-
   .topo-editor{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   .topo-editor input{ flex:1 1 240px; min-width:0; }
-  .topo-editor input, .topo-editor select, .opcoes-peca input, .opcoes-peca select,
-  .slide-ed input, .slide-ed textarea{
+  .topo-editor input, .topo-editor select, .lado-prop input[type=text],
+  .lado-prop input[type=number]{
     background:var(--sup2); border:1px solid var(--linha); border-radius:9px;
     padding:9px 11px; font-family:var(--corpo); font-size:0.9rem; color:var(--tinta); width:100%;
   }
   .topo-editor select{ width:auto; flex:0 0 auto; }
   .topo-editor input:focus, .topo-editor select:focus,
-  .slide-ed input:focus, .slide-ed textarea:focus{ border-color:var(--laranja); background:var(--sup); }
+  .lado-prop input:focus{ border-color:var(--laranja); background:var(--sup); }
   .campo-largo{
     width:100%; margin:0 0 4px; background:var(--sup2); border:1px solid var(--linha);
     border-radius:9px; padding:11px 13px; color:var(--tinta);
   }
   .campo-largo:focus{ border-color:var(--laranja); background:var(--sup); }
-  .opcoes-peca{ display:grid; gap:4px; margin-bottom:20px; }
   .cor-peca{ width:56px !important; height:34px; padding:2px; }
-
-  .slides{ display:grid; gap:12px; }
-  .slide-ed{
-    border:1px solid var(--linha); border-radius:12px; padding:12px 14px; background:var(--sup);
-    display:grid; gap:8px;
-  }
-  .slide-ed.ativo{ border-color:var(--laranja); box-shadow:var(--s1); }
-  .slide-ed .cab{ display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
-  .slide-ed .cab .n{ font-family:var(--dado); font-size:0.66rem; color:var(--fraco); }
-  .slide-ed textarea{ resize:vertical; line-height:1.5; }
+  /* Sem cor escolhida ainda: o quadradinho não deve fingir que preto é a cor. */
+  .cor-peca.vazia{ opacity:.45; }
+  .linkbtn[disabled]{ opacity:.5; cursor:default; text-decoration:none; }
 
   .item-peca{ display:flex; gap:12px; align-items:center; padding:11px 0; border-top:1px solid var(--linha2); }
   .item-peca:first-of-type{ border-top:none; }
@@ -790,6 +775,87 @@
     display:flex; gap:9px; align-items:center; flex-wrap:wrap;
     margin-top:24px; padding-top:18px; border-top:1px solid var(--linha);
   }
+
+  /* ---------- o editor da peça ---------- */
+  /* A peça fica à esquerda e as opções do que estiver selecionado à direita.
+     Clicar num elemento é o que abre as opções dele: sem isso o editor vira
+     um formulário comprido em que ninguém acha o que quer mudar. */
+  .estudio-ed{ display:grid; grid-template-columns:minmax(0,1fr) minmax(min(330px,100%),0.62fr);
+    gap:24px; margin-top:20px; align-items:start; }
+  @media (max-width:960px){ .estudio-ed{ grid-template-columns:minmax(0,1fr); } }
+  .lado-palco{ min-width:0; }
+  .barra-el{ display:flex; gap:7px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .palco{
+    display:block; width:100%; height:auto; border-radius:12px; box-shadow:var(--s2);
+    background:var(--sup2); cursor:default; touch-action:none;
+  }
+  .palco:focus{ outline:2px solid var(--laranja); outline-offset:3px; }
+  .tira{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .mini{
+    position:relative; padding:0; width:56px; border:1px solid var(--linha); border-radius:8px;
+    background:var(--sup2); overflow:hidden; line-height:0; cursor:pointer;
+  }
+  .mini canvas{ display:block; width:100%; height:auto; }
+  .mini.on{ border-color:var(--laranja); box-shadow:var(--s1); }
+  .mini .n{
+    position:absolute; left:3px; bottom:3px; font-family:var(--dado); font-size:0.58rem;
+    line-height:1; padding:2px 4px; border-radius:4px; background:rgba(20,18,16,.72); color:#fff;
+  }
+  .mini.add{
+    width:38px; min-height:46px; display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; color:var(--fraco); line-height:1;
+  }
+  .lado-prop{
+    min-width:0; background:var(--sup2); border:1px solid var(--linha); border-radius:12px;
+    padding:14px 16px 18px; position:sticky; top:76px; max-height:calc(100vh - 96px); overflow:auto;
+  }
+  @media (max-width:960px){ .lado-prop{ position:static; max-height:none; } }
+  .lado-prop .campo-p{ grid-template-columns:minmax(0,1fr); gap:5px; align-items:start; }
+  .lado-prop .campo-p textarea{
+    background:var(--sup); border:1px solid var(--linha); border-radius:9px; padding:9px 11px;
+    font-family:var(--corpo); font-size:0.88rem; color:var(--tinta); width:100%; resize:vertical;
+  }
+  .lado-prop .campo-p textarea:focus{ border-color:var(--laranja); }
+  .num-lin{ display:flex; gap:9px; align-items:center; }
+  .num-lin input[type=range]{ flex:1 1 auto; min-width:0; accent-color:var(--laranja); }
+  .num-lin input[type=number]{ flex:0 0 68px; width:68px; }
+  .ordem-el{ display:flex; gap:7px; flex-wrap:wrap; margin-top:18px; padding-top:14px;
+    border-top:1px solid var(--linha2); }
+  .btn.perigo{ color:var(--al); border-color:var(--al); }
+
+  /* ---------- como fica no Instagram ---------- */
+  /* A peça sozinha engana. No feed ela vem com foto de perfil em cima, o "1/3"
+     no canto e a legenda cortada no "mais" — e é aí que se descobre que o
+     título ficou embaixo do ícone do carrossel. */
+  .insta{
+    max-width:390px; margin:0 auto; border:1px solid var(--linha); border-radius:14px;
+    background:var(--sup); overflow:hidden;
+  }
+  .insta .cab{ display:flex; gap:9px; align-items:center; padding:10px 12px; }
+  .insta .cab b{ font-size:0.86rem; }
+  .insta .cab .mais-i{ margin-left:auto; color:var(--fraco); letter-spacing:0.1em; }
+  .insta .av{
+    width:30px; height:30px; border-radius:50%; background:var(--laranja-forte); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:0.8rem; font-weight:700;
+  }
+  .insta .quadro{ position:relative; line-height:0; background:var(--sup2); }
+  .insta .quadro canvas{ display:block; width:100%; height:auto; }
+  .insta .conta-i{
+    position:absolute; top:10px; right:10px; padding:3px 9px; border-radius:12px;
+    background:rgba(20,18,16,.68); color:#fff; font-family:var(--dado); font-size:0.66rem; line-height:1.4;
+  }
+  .insta .acoes{ display:flex; gap:13px; align-items:center; padding:9px 12px 4px; font-size:1.05rem; }
+  .insta .acoes .cor{ color:var(--al); }
+  .insta .pontos-i{ display:flex; gap:4px; margin:0 auto; transform:translateX(-14px); }
+  .insta .pt{
+    width:6px; height:6px; padding:0; border-radius:50%; border:none;
+    background:var(--linha); cursor:pointer;
+  }
+  .insta .pt.on{ background:var(--laranja-forte); }
+  .insta .leg-i{ margin:0; padding:2px 12px 14px; font-size:0.84rem; line-height:1.45; }
+  .insta .leg-i b{ font-weight:600; }
+  .insta .mais-leg{ color:var(--fraco); }
 
   /* ---------- listas ---------- */
   .abas-lista{ display:flex; gap:5px; flex-wrap:wrap; margin-bottom:18px; }
@@ -1047,8 +1113,6 @@
   :root[data-tema="sistema"].escuro .barra-l .trilho i{ background:var(--laranja); }
   :root[data-tema="escuro"] .bloco.aviso-dado .intro,
   :root[data-tema="sistema"].escuro .bloco.aviso-dado .intro{ color:var(--es); }
-  :root[data-tema="escuro"] .setas-previa .ponto.on,
-  :root[data-tema="sistema"].escuro .setas-previa .ponto.on{ background:var(--tinta); color:#12100E; }
   :root[data-tema="escuro"] .painel-fundo,
   :root[data-tema="sistema"].escuro .painel-fundo{ background:rgba(0,0,0,.62); }
   :root[data-tema="escuro"] .ini.a,
@@ -1456,7 +1520,10 @@
       sb.from('perfil_bora').select('*').limit(1),
       sb.from('economia_bora').select('*').limit(1),
       sb.from('funil_eventos').select('*').order('em'),
-      sb.from('pecas').select('*').order('criado_em', { ascending:false }),
+      // Sem `dados`: a peça guarda imagem dentro dela, e a lista não precisa
+      // do desenho pra mostrar nome, cliente e quantos slides tem.
+      sb.from('pecas').select('id,cliente_id,tipo,titulo,criado_em,qtd_slides')
+        .order('criado_em', { ascending:false }),
     ]);
     if(cli.error) state.erro = cli.error.message;
     state.clientes = cli.data || [];
@@ -4031,9 +4098,22 @@
   // O que ele faz é sair do papel em branco: escolhe o formato, preenche o
   // esqueleto com o que a ficha do cliente já sabe, e deixa você reescrever.
 
+  // As cinco fontes que a peça pode usar. É uma lista fechada de propósito:
+  // fonte é o que mais rápido faz um perfil parecer amador, e escolher entre
+  // cinco que combinam entre si é melhor que escolher entre mil.
+  const FONTES = [
+    ['display', 'Space Grotesk', '"Space Grotesk","Segoe UI",sans-serif',   'Títulos. É a fonte da Bora.'],
+    ['corpo',   'Archivo',       '"Archivo","Helvetica Neue",Arial,sans-serif', 'Texto corrido, fácil de ler.'],
+    ['impacto', 'Anton',         '"Anton","Arial Narrow",Impact,sans-serif', 'Condensada e pesada, pra manchete curta.'],
+    ['serif',   'Playfair',      '"Playfair Display",Georgia,serif',         'Séria e clássica. Cai bem em direito, saúde, imóvel.'],
+    ['mono',    'Space Mono',    '"Space Mono","SFMono-Regular",Consolas,monospace', 'Dado, etiqueta, número.'],
+  ];
+  const famDe = k => (FONTES.find(f => f[0] === k) || FONTES[0])[2];
+
   const FORMATOS_PECA = [
     ['4:5', 'Retrato', 1080, 1350, 'O que ocupa mais tela no feed'],
     ['1:1', 'Quadrado', 1080, 1080, 'Clássico, cabe em qualquer lugar'],
+    ['9:16','Story',   1080, 1920, 'Story e reels'],
   ];
   const medidas = f => FORMATOS_PECA.find(x => x[0] === f) || FORMATOS_PECA[0];
 
@@ -4159,9 +4239,78 @@
 
   // ---------- desenho da peça ----------
 
-  const FONTE_T = '"Space Grotesk","Segoe UI",sans-serif';
-  const FONTE_C = '"Archivo","Helvetica Neue",Arial,sans-serif';
-  const FONTE_D = '"Space Mono","SFMono-Regular",Consolas,monospace';
+  // O slide virou uma pilha de elementos: cada texto, imagem e forma tem
+  // posição, tamanho e estilo próprios. Um desenhador só serve a prévia, a
+  // simulação do Instagram e o PNG que vocês baixam — mudar isso aqui muda os
+  // três de uma vez, que é a única maneira de o que se vê ser o que sai.
+  //
+  // Coordenadas são sempre as do slide (1080 de largura), nunca pixels de
+  // tela. A escala entra só na hora de pintar.
+
+  // ---------- o modelo de elementos ----------
+
+  let seqEl = 0;
+  const novoId = () => 'e' + (++seqEl) + '-' + Date.now().toString(36).slice(-4);
+
+  function elementoTexto(extra){
+    return Object.assign({
+      id:novoId(), tipo:'texto', papel:'livre', txt:'Texto novo',
+      x:92, y:400, w:896, fonte:'display', tam:72, peso:700, cor:null,
+      alinha:'esq', alt:1.14, caixa:'normal', realce:null, opac:1,
+    }, extra || {});
+  }
+  function elementoImagem(src, extra){
+    return Object.assign({
+      id:novoId(), tipo:'imagem', papel:'livre', src,
+      x:92, y:300, w:500, h:500, ajuste:'cobrir', raio:0, opac:1,
+    }, extra || {});
+  }
+  function elementoForma(extra){
+    return Object.assign({
+      id:novoId(), tipo:'forma', papel:'livre', forma:'retangulo',
+      x:92, y:600, w:300, h:14, cor:null, opac:1, raio:0,
+    }, extra || {});
+  }
+
+  // Um contexto 2d de rascunho, só pra medir texto fora da tela. Serve pra
+  // empilhar título e apoio sem que um caia por cima do outro.
+  let ctxRascunho = null;
+  const contextoDeMedida = () =>
+    ctxRascunho || (ctxRascunho = document.createElement('canvas').getContext('2d'));
+
+  // Peças antigas guardavam só título e texto por slide. Convertidas na
+  // abertura, sem perder nada: o que era título vira um elemento de texto, e os
+  // dois são empilhados de verdade — medindo a altura de cada um, porque um
+  // título de duas linhas com posição fixa cai em cima da linha de apoio.
+  function migrarSlide(s, deck){
+    if(s && Array.isArray(s.elementos)) return s;
+    s = s || {};
+    const [ , , L, A] = medidas(deck.formato);
+    const m = deck.margem === 'compacta' ? 66 : 92;
+    const capa = s.tipo === 'capa' || s.tipo === 'fim';
+    const al = deck.alinha === 'centro' ? 'centro' : 'esq';
+    const els = [];
+    if(s.titulo) els.push(elementoTexto({ papel:'titulo', txt:s.titulo, x:m, w:L - m*2, y:0,
+      tam: capa ? 96 : 62, fonte:'display', peso:700, alinha:al }));
+    if(s.texto) els.push(elementoTexto({ papel:'texto', txt:s.texto, x:m, w:L - m*2, y:0,
+      tam: capa ? 40 : 44, fonte:'corpo', peso:400, alinha:al }));
+    const g = contextoDeMedida();
+    const alturas = els.map(e => medirTexto(g, e).altura);
+    const vao = 30;
+    const total = alturas.reduce((h, x) => h + x, 0) + vao * Math.max(0, els.length - 1);
+    // Capa e fecho assentam embaixo, como cartaz, acima da assinatura; conteúdo
+    // fica no miolo, que é onde o polegar para quando o carrossel passa.
+    let y = capa ? (A - m - 84 - total) : Math.max(m + 150, (A - total) / 2);
+    els.forEach((e, i)=>{ e.y = Math.round(y); y += alturas[i] + vao; });
+    return { tipo:s.tipo || 'conteudo', fundo:{ cor:null, src:null, ajuste:'cobrir', escurecer:0 }, elementos:els };
+  }
+  function migrarDeck(d){
+    if(!d.slides) d.slides = [];
+    d.slides = d.slides.map(s => migrarSlide(s, d));
+    return d;
+  }
+
+  // ---------- texto no canvas ----------
 
   function quebrar(g, texto, larg){
     const linhas = [];
@@ -4177,19 +4326,61 @@
     return linhas;
   }
 
-  // Encolhe até caber. Sem isto, um título de doze palavras vaza pra fora do
-  // slide e só se descobre depois de exportar.
-  function ajustar(g, texto, larg, alt, fonte, peso, max, min){
-    for(let s = max; s >= min; s -= 2){
-      g.font = peso + ' ' + s + 'px ' + fonte;
-      const ls = quebrar(g, texto, larg);
-      if(ls.length * (s * 1.14) <= alt) return { tam:s, linhas:ls, lh:s * 1.14 };
-    }
-    g.font = peso + ' ' + min + 'px ' + fonte;
-    return { tam:min, linhas:quebrar(g, texto, larg), lh:min * 1.14 };
+  // Imagens ficam num cache por src: sem isto cada tecla digitada recarregaria
+  // a foto e a prévia piscaria.
+  const cacheImg = {};
+  function imagemDe(src, aoCarregar){
+    if(!src) return null;
+    if(cacheImg[src]) return cacheImg[src].completo ? cacheImg[src].img : null;
+    const img = new Image();
+    const reg = { img, completo:false };
+    cacheImg[src] = reg;
+    img.onload = ()=>{ reg.completo = true; if(aoCarregar) aoCarregar(); };
+    img.onerror = ()=>{ reg.completo = false; };
+    img.src = src;
+    return null;
   }
 
-  function desenharSlide(cv, slide, deck, i, escala){
+  // Desenha uma imagem cobrindo ou cabendo dentro da caixa, com canto
+  // arredondado opcional. Mesma conta usada na prévia e na exportação.
+  function pintarImagem(g, img, x, y, w, h, ajuste, raio){
+    g.save();
+    if(raio > 0){
+      const r = Math.min(raio, w/2, h/2);
+      g.beginPath();
+      g.moveTo(x+r, y);
+      g.arcTo(x+w, y, x+w, y+h, r);
+      g.arcTo(x+w, y+h, x, y+h, r);
+      g.arcTo(x, y+h, x, y, r);
+      g.arcTo(x, y, x+w, y, r);
+      g.closePath();
+      g.clip();
+    } else {
+      g.beginPath(); g.rect(x, y, w, h); g.clip();
+    }
+    const rc = img.width / img.height, rb = w / h;
+    let dw, dh;
+    if(ajuste === 'conter' ? rc > rb : rc < rb){ dw = w; dh = w / rc; }
+    else { dh = h; dw = h * rc; }
+    g.drawImage(img, x + (w - dw)/2, y + (h - dh)/2, dw, dh);
+    g.restore();
+  }
+
+  // Mede um elemento de texto sem pintar. Serve pro acerto de clique e pra
+  // moldura de seleção saberem onde o texto realmente está.
+  function medirTexto(g, e, c){
+    g.font = (e.caixa === 'alta' ? '' : '') + (e.peso || 400) + ' ' + e.tam + 'px ' + famDe(e.fonte);
+    const txt = e.caixa === 'alta' ? String(e.txt || '').toUpperCase() : String(e.txt || '');
+    const linhas = quebrar(g, txt, e.w);
+    const lh = e.tam * (e.alt || 1.14);
+    return { linhas, lh, altura: linhas.length * lh };
+  }
+
+  function desenharSlide(cv, slide, deck, i, escala, opts){
+    opts = opts || {};
+    // Peça antiga (título e texto por slide) é convertida na hora de desenhar,
+    // pra prévia da Marca e peça guardada em setembro continuarem abrindo.
+    slide = migrarSlide(slide || {}, deck);
     const [ , , L, A] = medidas(deck.formato);
     escala = escala || 1;
     cv.width = Math.round(L * escala);
@@ -4198,94 +4389,126 @@
     g.save();
     g.scale(escala, escala);
     const c = coresDoDeck(deck);
-    g.fillStyle = c.fundo; g.fillRect(0, 0, L, A);
+    const fundo = slide.fundo || {};
 
-    const m = deck.margem === 'compacta' ? 66 : 92;    // margem
-    const larg = L - m*2;
-    const total = (deck.slides || []).length;
-    const al = slide.alinha || deck.alinha || 'esq';
-    const centro = al === 'centro';
-    const x = centro ? L/2 : m;
-    g.textAlign = centro ? 'center' : 'left';
+    g.fillStyle = fundo.cor || c.fundo;
+    g.fillRect(0, 0, L, A);
+    if(fundo.src){
+      const img = imagemDe(fundo.src, opts.aoCarregar);
+      if(img) pintarImagem(g, img, 0, 0, L, A, fundo.ajuste || 'cobrir', 0);
+    }
+    if(fundo.escurecer){
+      g.fillStyle = 'rgba(0,0,0,' + Math.min(0.85, fundo.escurecer) + ')';
+      g.fillRect(0, 0, L, A);
+    }
 
-    // Faixa de identidade no topo. Repetida em todos os slides: é a repetição
-    // visual que faz o conjunto parecer profissional.
+    const m = deck.margem === 'compacta' ? 66 : 92;
+
+    // Faixa e numeração continuam automáticas e sempre no mesmo lugar: são
+    // assinatura, não decoração solta. O registro do conselho depende disso.
     if(deck.faixa !== false){
       g.fillStyle = c.faixa;
-      g.fillRect(centro ? (L-108)/2 : m, m, 108, 8);
+      g.fillRect(m, m, 108, 8);
     }
-
-    // Numeração, sempre no mesmo canto
+    const total = (deck.slides || []).length;
     if(total > 1 && deck.numerar !== false){
-      g.fillStyle = c.apoio;
-      g.font = '700 26px ' + FONTE_D;
+      g.fillStyle = fundo.src || fundo.escurecer ? '#FFFFFF' : c.apoio;
+      g.globalAlpha = fundo.src ? 0.85 : 1;
+      g.font = '700 26px ' + famDe('mono');
       g.textAlign = 'right';
       g.fillText(String(i+1).padStart(2,'0') + '/' + String(total).padStart(2,'0'), L - m, m + 12);
-      g.textAlign = centro ? 'center' : 'left';
+      g.textAlign = 'left';
+      g.globalAlpha = 1;
     }
 
-    const baseAssin = A - m;
-    const topo = m + 150;               // abaixo da faixa e da numeração
-    const base = baseAssin - 84;        // acima da assinatura, com respiro
-    const areaTexto = base - topo;
-
-    // Monta o bloco inteiro antes de escrever, pra saber a altura e poder
-    // posicionar. Sem isso todo slide fica com o texto empilhado no topo e
-    // dois terços de vazio embaixo — que foi o primeiro desenho e estava feio.
-    const pedacos = [];
-    if(slide.tipo === 'capa' || slide.tipo === 'fim'){
-      if(slide.titulo){
-        const t = ajustar(g, slide.titulo, larg, areaTexto * 0.66, FONTE_T, '700', 104, 38);
-        pedacos.push(Object.assign({}, t, { cor:c.tinta, fonte:FONTE_T, peso:'700', depois:26 }));
+    (slide.elementos || []).forEach(e=>{
+      g.save();
+      g.globalAlpha = e.opac == null ? 1 : e.opac;
+      if(e.tipo === 'imagem'){
+        const img = imagemDe(e.src, opts.aoCarregar);
+        if(img) pintarImagem(g, img, e.x, e.y, e.w, e.h, e.ajuste || 'cobrir', e.raio || 0);
+        else { g.fillStyle = 'rgba(128,128,128,.18)'; g.fillRect(e.x, e.y, e.w, e.h); }
+        e._caixa = { x:e.x, y:e.y, w:e.w, h:e.h };
+      } else if(e.tipo === 'forma'){
+        g.fillStyle = e.cor || c.destaque;
+        if(e.forma === 'circulo'){
+          g.beginPath();
+          g.ellipse(e.x + e.w/2, e.y + e.h/2, e.w/2, e.h/2, 0, 0, Math.PI*2);
+          g.fill();
+        } else if(e.raio){
+          const r = Math.min(e.raio, e.w/2, e.h/2);
+          g.beginPath();
+          g.moveTo(e.x+r, e.y);
+          g.arcTo(e.x+e.w, e.y, e.x+e.w, e.y+e.h, r);
+          g.arcTo(e.x+e.w, e.y+e.h, e.x, e.y+e.h, r);
+          g.arcTo(e.x, e.y+e.h, e.x, e.y, r);
+          g.arcTo(e.x, e.y, e.x+e.w, e.y, r);
+          g.closePath(); g.fill();
+        } else {
+          g.fillRect(e.x, e.y, e.w, e.h);
+        }
+        e._caixa = { x:e.x, y:e.y, w:e.w, h:e.h };
+      } else {
+        const med = medirTexto(g, e, c);
+        const cor = e.cor || (fundo.src || fundo.escurecer ? '#FFFFFF' : (e.papel === 'texto' ? c.apoio : c.tinta));
+        const xTexto = e.alinha === 'centro' ? e.x + e.w/2 : (e.alinha === 'dir' ? e.x + e.w : e.x);
+        g.textAlign = e.alinha === 'centro' ? 'center' : (e.alinha === 'dir' ? 'right' : 'left');
+        // Realce: a tarja atrás do texto, linha a linha, como se fosse
+        // marca-texto. Ela acompanha a largura de cada linha e não a da caixa.
+        if(e.realce){
+          g.fillStyle = e.realce;
+          med.linhas.forEach((l, k)=>{
+            const larg = g.measureText(l).width;
+            const lx = e.alinha === 'centro' ? xTexto - larg/2 : (e.alinha === 'dir' ? xTexto - larg : xTexto);
+            g.fillRect(lx - 12, e.y + k*med.lh + e.tam*0.16, larg + 24, e.tam * 1.02);
+          });
+        }
+        g.fillStyle = cor;
+        med.linhas.forEach((l, k)=>{ g.fillText(l, xTexto, e.y + k*med.lh + e.tam); });
+        e._caixa = { x:e.x, y:e.y, w:e.w, h:Math.max(e.tam, med.altura) };
+        g.textAlign = 'left';
       }
-      if(slide.texto){
-        const usado = pedacos.reduce((h,x)=> h + x.linhas.length*x.lh + x.depois, 0);
-        const s2 = ajustar(g, slide.texto, larg, Math.max(60, areaTexto - usado), FONTE_C, '400', 44, 24);
-        pedacos.push(Object.assign({}, s2, { cor:c.apoio, fonte:FONTE_C, peso:'400', depois:0 }));
-      }
-    } else {
-      if(slide.titulo){
-        const t = ajustar(g, slide.titulo, larg, areaTexto * 0.38, FONTE_T, '700', 76, 32);
-        pedacos.push(Object.assign({}, t, { cor:c.tinta, fonte:FONTE_T, peso:'700', depois:24 }));
-      }
-      if(slide.texto){
-        const usado = pedacos.reduce((h,x)=> h + x.linhas.length*x.lh + x.depois, 0);
-        const s2 = ajustar(g, slide.texto, larg, Math.max(60, areaTexto - usado), FONTE_C, '400',
-          slide.titulo ? 52 : 72, 26);
-        pedacos.push(Object.assign({}, s2, { cor: slide.titulo ? c.apoio : c.tinta,
-          fonte: slide.titulo ? FONTE_C : FONTE_T, peso: slide.titulo ? '400' : '700', depois:0 }));
-      }
-    }
-
-    const altBloco = pedacos.reduce((h,x)=> h + x.linhas.length*x.lh + x.depois, 0);
-    // Capa e fecho assentam embaixo, como cartaz; conteúdo fica centrado no
-    // miolo, que é onde o polegar para quando o carrossel passa.
-    let y = (slide.tipo === 'capa' || slide.tipo === 'fim')
-      ? base - altBloco
-      : topo + Math.max(0, (areaTexto - altBloco) / 2);
-    y = Math.max(topo, y);
-
-    pedacos.forEach(pc=>{
-      g.font = pc.peso + ' ' + pc.tam + 'px ' + pc.fonte;
-      g.fillStyle = pc.cor;
-      pc.linhas.forEach(l => { g.fillText(l, x, y + pc.tam); y += pc.lh; });
-      y += pc.depois;
+      g.restore();
     });
 
-    // Assinatura. Fica em todo slide, mesma posição, de propósito: é assim que
-    // a regra de registro profissional deixa de depender de alguém lembrar.
+    // Assinatura: sempre no mesmo canto, sempre presente. É o que faz a regra
+    // de registro profissional não depender de ninguém lembrar dela.
     if(deck.assinatura){
-      g.fillStyle = c.apoio;
-      g.font = '400 24px ' + FONTE_D;
-      g.fillText(String(deck.assinatura).slice(0, 64), x, baseAssin);
+      g.fillStyle = fundo.src || fundo.escurecer ? 'rgba(255,255,255,.85)' : c.apoio;
+      g.font = '400 24px ' + famDe('mono');
+      g.fillText(String(deck.assinatura).slice(0, 64), m, A - m);
+    }
+
+    // Moldura de seleção. Só na tela, nunca no arquivo exportado.
+    if(opts.selecionado){
+      const sel = (slide.elementos || []).find(x => x.id === opts.selecionado);
+      if(sel && sel._caixa){
+        // Espessura constante na tela: a moldura tem que se ver igual na
+        // miniatura de 11% e no palco de 80%.
+        g.strokeStyle = '#FF5E00';
+        g.lineWidth = 3 / escala;
+        g.setLineDash([11 / escala, 8 / escala]);
+        g.strokeRect(sel._caixa.x - 8, sel._caixa.y - 8, sel._caixa.w + 16, sel._caixa.h + 16);
+        g.setLineDash([]);
+      }
     }
     g.restore();
     return cv;
   }
 
-  // Uma peça sai como um PNG por slide, que é como o Instagram recebe carrossel.
+  // Qual elemento está debaixo do dedo. De cima pra baixo: o que está por
+  // último foi desenhado por cima, então ganha o clique.
+  function elementoEm(slide, x, y){
+    const els = slide.elementos || [];
+    for(let i = els.length - 1; i >= 0; i--){
+      const b = els[i]._caixa;
+      if(!b) continue;
+      if(x >= b.x - 8 && x <= b.x + b.w + 8 && y >= b.y - 8 && y <= b.y + b.h + 8) return els[i];
+    }
+    return null;
+  }
+
   async function baixarSlides(deck, nome){
-    const [ , , L ] = medidas(deck.formato);
     if(document.fonts && document.fonts.ready) await document.fonts.ready;
     const slides = deck.slides || [];
     for(let i = 0; i < slides.length; i++){
@@ -4298,8 +4521,36 @@
         + '-' + String(i+1).padStart(2,'0') + '.png';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(url), 4000);
-      await new Promise(r => setTimeout(r, 180));   // navegador engasga com downloads em rajada
+      await new Promise(r => setTimeout(r, 180));
     }
+  }
+
+  // ---------- imagens ----------
+
+  // A foto entra reduzida. Uma foto de celular tem 4MB e vai parar dentro da
+  // peça, que é uma linha do banco: sem encolher, a Central ficaria lenta em
+  // duas semanas de uso. 1400px no lado maior é mais que os 1080 do slide.
+  function lerImagem(arquivo, aoPronto){
+    if(!/^image\//.test(arquivo.type)){ toast('Isso não é uma imagem.'); return; }
+    const fr = new FileReader();
+    fr.onload = ()=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const lim = 1400;
+        const esc = Math.min(1, lim / Math.max(img.width, img.height));
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * esc);
+        cv.height = Math.round(img.height * esc);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        let url = cv.toDataURL('image/jpeg', 0.78);
+        if(url.length > 1200000) url = cv.toDataURL('image/jpeg', 0.6);
+        if(url.length > 1600000){ toast('Essa imagem é pesada demais mesmo depois de reduzir.'); return; }
+        aoPronto(url, cv.width, cv.height);
+      };
+      img.onerror = ()=>toast('Não consegui abrir essa imagem.');
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(arquivo);
   }
 
   // ---------- roteiros ----------
@@ -4435,7 +4686,7 @@
   // O painel de sugestões. Aparece em toda ferramenta do estúdio quando há um
   // cliente escolhido e ele já respondeu o formulário.
   function blocoSugestoes(cliente, oQue, usar){
-    const box = el('div',{class:'bloco-conf'});
+    const box = el('div',{class:'bloco-conf sugestoes'});
     box.appendChild(el('p',{class:'rot'},'Do formulário dele'));
     if(!cliente){
       box.appendChild(el('p',{class:'dica', style:'margin:8px 0 0'},
@@ -4515,7 +4766,11 @@
       L.push('Slide 1 é a capa (título curto e forte, no máximo 8 palavras). '
         + 'O último é o fecho, com uma chamada' + (m.chamada ? ' na linha de "' + m.chamada + '"' : '') + '.');
       L.push('Os do meio trazem um ponto cada, com título de até 5 palavras e texto de até 35 palavras.');
-      const jaTem = d.slides.map((s,i)=> (s.titulo||s.texto) ? ('Slide ' + (i+1) + ': ' + (s.titulo||'') + ' ' + (s.texto||'')).trim() : null).filter(Boolean);
+      const jaTem = d.slides.map((s, i)=>{
+        const t = (s.elementos || []).filter(x => x.tipo === 'texto')
+          .map(x => String(x.txt || '').trim()).filter(Boolean).join(' — ');
+        return t ? 'Slide ' + (i+1) + ': ' + t : null;
+      }).filter(Boolean);
       if(jaTem.length){ L.push(''); L.push('O que já está escrito, para melhorar em vez de recomeçar:');
         jaTem.forEach(x => L.push('  ' + x)); }
       L.push('');
@@ -4571,10 +4826,30 @@
     if(peca.tipo === 'carrossel'){
       const blocos = t.split(/^\s*SLIDE\s*\d+\s*$/mi).slice(1);
       if(!blocos.length) return 0;
+      const d = migrarDeck(peca.dados);
+      const [ , , L, A] = medidas(d.formato);
+      const mg = d.margem === 'compacta' ? 66 : 92;
+      // A resposta preenche os elementos de texto que já existem, na ordem em
+      // que estão no slide. Só cria elemento novo quando não há onde escrever —
+      // assim o que você já posicionou e coloriu à mão continua onde estava.
+      const ondeEscrever = (slide, papel, ordem, baixo)=>{
+        const txts = (slide.elementos || []).filter(x => x.tipo === 'texto');
+        const porPapel = txts.find(x => x.papel === papel);
+        if(porPapel) return porPapel;
+        if(txts[ordem]) return txts[ordem];
+        const novo = elementoTexto({ papel, x:mg, w:L - mg*2,
+          y: baixo ? A - mg - 84 - (papel === 'titulo' ? 300 : 120) : mg + (papel === 'titulo' ? 260 : 420),
+          tam: papel === 'titulo' ? (baixo ? 96 : 62) : (baixo ? 40 : 44),
+          fonte: papel === 'titulo' ? 'display' : 'corpo', peso: papel === 'titulo' ? 700 : 400,
+          alinha: d.alinha === 'centro' ? 'centro' : 'esq' });
+        (slide.elementos = slide.elementos || []).push(novo);
+        return novo;
+      };
       let n = 0;
       blocos.forEach((b, i)=>{
-        if(i >= peca.dados.slides.length){
-          peca.dados.slides.push({ tipo:'conteudo', titulo:'', texto:'' });
+        if(i >= d.slides.length){
+          d.slides.push({ tipo:'conteudo', fundo:{ cor:null, src:null, ajuste:'cobrir', escurecer:0 },
+            elementos:[] });
         }
         const linhas = b.split('\n').map(x=>x.trim()).filter(Boolean);
         let tit = '', txt = [];
@@ -4585,8 +4860,10 @@
           else if(tit || txt.length) txt.push(l);
           else tit = l;
         });
-        peca.dados.slides[i].titulo = tit;
-        peca.dados.slides[i].texto = txt.join('\n');
+        const s = d.slides[i];
+        const baixo = s.tipo === 'capa' || s.tipo === 'fim';
+        if(tit) ondeEscrever(s, 'titulo', 0, baixo).txt = tit;
+        if(txt.length) ondeEscrever(s, 'texto', 1, baixo).txt = txt.join('\n');
         n++;
       });
       return n;
@@ -4626,7 +4903,7 @@
   }
 
   function blocoPrompt(peca, cliente, depoisDeColar){
-    const box = el('div',{class:'bloco-conf'});
+    const box = el('div',{class:'bloco-conf prompt-ia'});
     box.appendChild(el('p',{class:'rot'},'Pedir pra uma IA'));
     box.appendChild(el('p',{class:'dica', style:'margin:8px 0 14px'},
       'A Central monta o pedido inteiro — quem é o cliente pelas respostas do formulário, como ele fala, '
@@ -4647,7 +4924,7 @@
     box.appendChild(acoes);
     box.appendChild(ver);
 
-    const colar = el('div',{class:'campo-longo', style:'margin-top:14px'});
+    const colar = el('div',{class:'campo-longo colar-resposta', style:'margin-top:14px'});
     colar.appendChild(el('span',{},'Colar a resposta'));
     const ta = el('textarea',{rows:'4', placeholder:'Cole aqui o que a IA respondeu, no formato que o prompt pediu.'});
     colar.appendChild(ta);
@@ -4682,13 +4959,17 @@
       dados:{ gancho:'', corpo:'', chamada:m.chamada || '', hashtags:m.hashtags || '' } };
     // Tudo o que a marca dele define já vem aplicado: é isso que faz a peça
     // deste mês sair igual à do mês passado sem ninguém reconfigurar nada.
-    return { tipo:'carrossel', titulo:'', cliente_id:clienteId || null,
-      dados:{ formato:m.formato, preset:m.preset, cor:(c && c.cor) || null, cor2:m.cor2 || '',
-        alinha:m.alinha, margem:m.margem, numerar:m.numerar !== false, faixa:m.faixa !== false,
-        assinatura:assinaturaDe(c),
-        slides:[ { tipo:'capa', titulo:'', texto:'' },
-                 { tipo:'conteudo', titulo:'', texto:'' },
-                 { tipo:'fim', titulo:'', texto:'' } ] } };
+    // Os três slides nascem com texto de rascunho em vez de vazios — uma tela
+    // preta sem nada pra clicar não ensina ninguém que o editor é de clicar.
+    const dados = { formato:m.formato, preset:m.preset, cor:(c && c.cor) || null, cor2:m.cor2 || '',
+      alinha:m.alinha, margem:m.margem, numerar:m.numerar !== false, faixa:m.faixa !== false,
+      assinatura:assinaturaDe(c), legenda:'', slides:[] };
+    dados.slides = [
+      { tipo:'capa',     titulo:'O título da capa',  texto:'A linha de apoio' },
+      { tipo:'conteudo', titulo:'O primeiro ponto',  texto:'O que você quer explicar aqui.' },
+      { tipo:'fim',      titulo:'O fecho',           texto:m.chamada || 'Chama no direct.' },
+    ].map(s => migrarSlide(s, dados));
+    return { tipo:'carrossel', titulo:'', cliente_id:clienteId || null, dados };
   }
 
   const FERRAMENTAS = [
@@ -4735,6 +5016,16 @@
     return m;
   }
 
+  // O desenho da peça só vem quando ela é aberta ou duplicada. É o outro lado
+  // da lista sem `dados`: uma peça com quatro fotos dentro pesa, e abrir a
+  // Central não pode custar o download de todas elas.
+  async function dadosDaPeca(id){
+    const { data, error } = await sb.from('pecas').select('id,dados').eq('id', id);
+    if(error){ toast('Não deu pra abrir: ' + error.message); return null; }
+    const linha = (data || []).find(x => x.id === id) || (data || [])[0];
+    return JSON.parse(JSON.stringify((linha && linha.dados) || {}));
+  }
+
   function blocoPecasSalvas(){
     const E = state.estudio;
     const box = el('div',{class:'bloco'});
@@ -4764,22 +5055,28 @@
     minhas.forEach(p=>{
       const c = p.cliente_id && state.clientes.find(x => x.id === p.cliente_id);
       const l = el('div',{class:'item-peca'});
-      const b = el('button',{class:'corpo', onclick:()=>{
-        E.peca = { id:p.id, tipo:p.tipo, titulo:p.titulo, cliente_id:p.cliente_id,
-          dados: JSON.parse(JSON.stringify(p.dados || {})) };
+      const b = el('button',{class:'corpo', onclick:async(ev)=>{
+        const alvo = ev.currentTarget;
+        alvo.disabled = true;
+        const dados = await dadosDaPeca(p.id);
+        alvo.disabled = false;
+        if(!dados) return;
+        E.peca = { id:p.id, tipo:p.tipo, titulo:p.titulo, cliente_id:p.cliente_id, dados };
         render();
       }});
       b.appendChild(el('div',{class:'tit'}, esc(p.titulo || 'Sem nome')));
       const sub = [];
       if(c) sub.push(c.nome);
-      if(p.tipo === 'carrossel') sub.push(((p.dados||{}).slides||[]).length + ' slides');
+      if(p.tipo === 'carrossel') sub.push((p.qtd_slides || 0) + ' slides');
       if(p.tipo === 'roteiro') sub.push(formatoRoteiro((p.dados||{}).formato).nome);
       sub.push(soData(p.criado_em));
       b.appendChild(el('div',{class:'sub'}, esc(sub.join(' · '))));
       l.appendChild(b);
       l.appendChild(el('button',{class:'linkbtn', onclick:async()=>{
+        const dados = await dadosDaPeca(p.id);
+        if(!dados) return;
         const { error } = await sb.from('pecas').insert({ cliente_id:p.cliente_id, tipo:p.tipo,
-          titulo:(p.titulo || 'Sem nome') + ' (cópia)', dados:p.dados });
+          titulo:(p.titulo || 'Sem nome') + ' (cópia)', dados });
         if(error){ toast('Não deu: ' + error.message); return; }
         await carregarTudo(); render(); toast('Duplicada.');
       }},'duplicar'));
@@ -4791,12 +5088,25 @@
     return box;
   }
 
+  // O desenho anota a caixa de cada elemento na própria peça (o `_caixa` que o
+  // acerto de clique usa). Isso é conta de tela, não conteúdo: sai antes de ir
+  // pro banco, senão a linha engorda a cada redesenho.
+  function semRascunho(v){
+    if(Array.isArray(v)) return v.map(semRascunho);
+    if(v && typeof v === 'object'){
+      const o = {};
+      Object.keys(v).forEach(k => { if(k[0] !== '_') o[k] = semRascunho(v[k]); });
+      return o;
+    }
+    return v;
+  }
+
   // Guardar é o mesmo para os três: a peça é sempre {titulo, cliente_id, dados}.
   async function salvarPeca(depois){
     const E = state.estudio, p = E.peca;
     const titulo = String(p.titulo || '').trim();
     if(!titulo){ toast('Dê um nome pra peça antes de guardar.'); return false; }
-    const linha = { cliente_id:p.cliente_id || null, tipo:p.tipo, titulo, dados:p.dados };
+    const linha = { cliente_id:p.cliente_id || null, tipo:p.tipo, titulo, dados:semRascunho(p.dados) };
     if(p.id){
       const { error } = await sb.from('pecas').update(linha).eq('id', p.id);
       if(error){ toast('Não deu: ' + error.message); return false; }
@@ -4995,31 +5305,379 @@
 
   // ---------- carrossel ----------
 
+  // O editor. Clicar num elemento na peça abre as opções dele — é isso que
+  // separa "formulário que gera imagem" de "lugar onde se faz a peça".
   function editorCarrossel(){
-    const E = state.estudio, p = E.peca, d = p.dados;
+    const E = state.estudio, p = E.peca;
+    const d = migrarDeck(p.dados);
     const cliente = p.cliente_id && state.clientes.find(x => x.id === p.cliente_id);
+    if(d.slideAtual == null) d.slideAtual = 0;
     const box = el('div',{class:'bloco'});
     cabecaEditor(box);
 
-    const grade = el('div',{class:'estudio'});
-    const lado = el('div',{class:'lado-editor'});
-    const previa = el('div',{class:'lado-previa'});
-    grade.appendChild(lado);
-    grade.appendChild(previa);
+    const grade = el('div',{class:'estudio-ed'});
+    const ladoPalco = el('div',{class:'lado-palco'});
+    const ladoProp = el('div',{class:'lado-prop'});
+    grade.appendChild(ladoPalco);
+    grade.appendChild(ladoProp);
     box.appendChild(grade);
 
-    // --- prévia
-    const cv = el('canvas',{class:'previa-cv'});
-    const legenda = el('p',{class:'dica', style:'margin:10px 0 0;text-align:center'});
-    const setas = el('div',{class:'setas-previa'});
-    if(d.slideAtual == null) d.slideAtual = 0;
+    const cv = el('canvas',{class:'palco', tabindex:'0',
+      'aria-label':'A peça. Clique num elemento pra abrir as opções dele.'});
+    const slideAgora = () => d.slides[Math.max(0, Math.min(d.slides.length-1, d.slideAtual))];
+    const selecionado = () => (slideAgora().elementos || []).find(x => x.id === d.sel) || null;
 
-    // A conferência mora aqui em cima porque roda junto com a prévia: quem
-    // digita "em 30 dias" precisa ver o aviso na hora, não no clique de
-    // exportar. O bloco só é encaixado na tela lá embaixo.
+    let pintarInsta = ()=>{};
+    function pintar(){
+      d.slideAtual = Math.max(0, Math.min(d.slides.length - 1, d.slideAtual));
+      desenharSlide(cv, slideAgora(), d, d.slideAtual, 0.8, { selecionado:d.sel, aoCarregar:pintar });
+      cv.style.width = '100%';
+      pintarTira();
+      pintarInsta();
+      conferir();
+    }
+    function repintarTudo(){ desenharProp(); pintar(); }
+
+    // --- barra de elementos
+    const barra = el('div',{class:'barra-el'});
+    const addTexto = el('button',{class:'btn ghost small', onclick:()=>{
+      const [ , , L, A] = medidas(d.formato);
+      const e = elementoTexto({ x:92, y:Math.round(A*0.35), w:L-184, txt:'Escreva aqui' });
+      slideAgora().elementos.push(e); d.sel = e.id; repintarTudo();
+    }},'+ texto');
+    const arqImg = el('input',{type:'file', accept:'image/*', style:'display:none'});
+    arqImg.addEventListener('change', ()=>{
+      const f = arqImg.files && arqImg.files[0];
+      if(!f) return;
+      lerImagem(f, (url, w, h)=>{
+        const [ , , L, A] = medidas(d.formato);
+        const larg = Math.round(L * 0.62);
+        const e = elementoImagem(url, { x:Math.round((L-larg)/2), y:Math.round(A*0.18),
+          w:larg, h:Math.round(larg * h / w), raio:18 });
+        slideAgora().elementos.push(e); d.sel = e.id; repintarTudo();
+      });
+      arqImg.value = '';
+    });
+    const addImg = el('button',{class:'btn ghost small', onclick:()=>arqImg.click()},'+ imagem');
+    const addForma = el('button',{class:'btn ghost small', onclick:()=>{
+      const [ , , L, A] = medidas(d.formato);
+      const e = elementoForma({ x:92, y:Math.round(A*0.62), w:Math.round(L*0.3), h:14 });
+      slideAgora().elementos.push(e); d.sel = e.id; repintarTudo();
+    }},'+ forma');
+    const arqFundo = el('input',{type:'file', accept:'image/*', style:'display:none'});
+    arqFundo.addEventListener('change', ()=>{
+      const f = arqFundo.files && arqFundo.files[0];
+      if(!f) return;
+      lerImagem(f, url=>{
+        const s = slideAgora();
+        s.fundo = Object.assign({ cor:null, ajuste:'cobrir', escurecer:0.45 }, s.fundo, { src:url });
+        d.sel = null; repintarTudo();
+      });
+      arqFundo.value = '';
+    });
+    const addFundo = el('button',{class:'btn ghost small', onclick:()=>arqFundo.click()},'foto de fundo');
+    [addTexto, addImg, addForma, addFundo].forEach(b => barra.appendChild(b));
+    barra.appendChild(arqImg); barra.appendChild(arqFundo);
+    barra.appendChild(el('span',{style:'flex:1'}));
+    barra.appendChild(el('span',{class:'dica', style:'margin:0'},'Clique num elemento pra editar. Arraste pra mover.'));
+    ladoPalco.appendChild(barra);
+    ladoPalco.appendChild(cv);
+
+    // --- clicar, arrastar, teclado
+    const paraSlide = ev => {
+      const [ , , L ] = medidas(d.formato);
+      const r = cv.getBoundingClientRect();
+      return { x: (ev.clientX - r.left) / r.width * L, y: (ev.clientY - r.top) / r.width * L };
+    };
+    let arrastando = null;
+    cv.addEventListener('pointerdown', ev=>{
+      const pt = paraSlide(ev);
+      const achado = elementoEm(slideAgora(), pt.x, pt.y);
+      d.sel = achado ? achado.id : null;
+      if(achado){
+        arrastando = { id:achado.id, dx:pt.x - achado.x, dy:pt.y - achado.y, mexeu:false };
+        cv.setPointerCapture(ev.pointerId);
+      }
+      repintarTudo();
+      cv.focus();
+    });
+    cv.addEventListener('pointermove', ev=>{
+      if(!arrastando) return;
+      const e = (slideAgora().elementos || []).find(x => x.id === arrastando.id);
+      if(!e) return;
+      const pt = paraSlide(ev);
+      e.x = Math.round(pt.x - arrastando.dx);
+      e.y = Math.round(pt.y - arrastando.dy);
+      arrastando.mexeu = true;
+      pintar();
+    });
+    const soltar = ()=>{ arrastando = null; };
+    cv.addEventListener('pointerup', soltar);
+    cv.addEventListener('pointercancel', soltar);
+    cv.addEventListener('dblclick', ()=>{
+      const campo = ladoProp.querySelector('.prop-texto textarea');
+      if(campo){ campo.focus(); campo.select(); }
+    });
+    cv.addEventListener('keydown', ev=>{
+      const e = selecionado();
+      if(!e) return;
+      const passo = ev.shiftKey ? 20 : 4;
+      if(ev.key === 'Delete' || ev.key === 'Backspace'){
+        ev.preventDefault();
+        slideAgora().elementos = slideAgora().elementos.filter(x => x.id !== e.id);
+        d.sel = null; repintarTudo(); return;
+      }
+      const mapa = { ArrowLeft:[-passo,0], ArrowRight:[passo,0], ArrowUp:[0,-passo], ArrowDown:[0,passo] };
+      if(mapa[ev.key]){ ev.preventDefault(); e.x += mapa[ev.key][0]; e.y += mapa[ev.key][1]; pintar(); }
+    });
+
+    // --- tira de slides
+    const tira = el('div',{class:'tira'});
+    ladoPalco.appendChild(tira);
+    function pintarTira(){
+      tira.innerHTML = '';
+      d.slides.forEach((s, i)=>{
+        const b = el('button',{class:'mini' + (i === d.slideAtual ? ' on' : ''),
+          'aria-label':'Slide ' + (i+1), onclick:()=>{ d.slideAtual = i; d.sel = null; repintarTudo(); }});
+        const mc = el('canvas');
+        desenharSlide(mc, s, d, i, 0.11, { aoCarregar:pintar });
+        b.appendChild(mc);
+        b.appendChild(el('span',{class:'n'}, String(i+1)));
+        tira.appendChild(b);
+      });
+      const mais = el('button',{class:'mini add', onclick:()=>{
+        if(d.slides.length >= 10){ toast('Dez slides é o limite do Instagram.'); return; }
+        d.slides.splice(d.slideAtual + 1, 0,
+          { tipo:'conteudo', fundo:{ cor:null, src:null, ajuste:'cobrir', escurecer:0 }, elementos:[] });
+        d.slideAtual += 1; d.sel = null; repintarTudo();
+      }},'+');
+      tira.appendChild(mais);
+      if(d.slides.length > 1){
+        tira.appendChild(el('button',{class:'mini add', title:'remover este slide', onclick:()=>{
+          d.slides.splice(d.slideAtual, 1);
+          d.slideAtual = Math.max(0, d.slideAtual - 1); d.sel = null; repintarTudo();
+        }},'−'));
+      }
+    }
+
+    // --- painel de propriedades
+    function desenharProp(){
+      ladoProp.innerHTML = '';
+      const e = selecionado();
+      ladoProp.appendChild(el('p',{class:'rot laranja'},
+        e ? (e.tipo === 'texto' ? 'Texto selecionado'
+           : e.tipo === 'imagem' ? 'Imagem selecionada' : 'Forma selecionada')
+          : 'Nada selecionado'));
+      if(!e){
+        ladoProp.appendChild(propFundo());
+        ladoProp.appendChild(propDeck());
+        return;
+      }
+      ladoProp.appendChild(e.tipo === 'texto' ? propTexto(e)
+        : e.tipo === 'imagem' ? propImagem(e) : propForma(e));
+      ladoProp.appendChild(propOrdem(e));
+    }
+
+    // --- controles reaproveitados
+    const linhaP = (rot, dentro, dica) => {
+      const l = el('div',{class:'campo-p'});
+      l.appendChild(el('span',{}, esc(rot)));
+      l.appendChild(dentro);
+      if(dica){ const d2 = el('p',{class:'dica campo-dica'}, esc(dica)); l.appendChild(d2); }
+      return l;
+    };
+    const ctrlChips = (opcoes, valor, aoTrocar) => {
+      const g = el('div',{class:'chips'});
+      opcoes.forEach(([k, rot, ajuda])=>{
+        g.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(valor() === k), title:ajuda || rot,
+          onclick:()=>{ aoTrocar(k); repintarTudo(); }}, esc(rot)));
+      });
+      return g;
+    };
+    const ctrlNum = (valor, aoTrocar, min, max, passo) => {
+      const cx = el('div',{class:'num-lin'});
+      const r = el('input',{type:'range', min:String(min), max:String(max), step:String(passo||1), value:String(valor())});
+      const n = el('input',{type:'number', min:String(min), max:String(max), step:String(passo||1), value:String(valor())});
+      r.addEventListener('input', ()=>{ n.value = r.value; aoTrocar(Number(r.value)); pintar(); });
+      n.addEventListener('change', ()=>{ r.value = n.value; aoTrocar(Number(n.value)); pintar(); });
+      cx.appendChild(r); cx.appendChild(n);
+      return cx;
+    };
+    // `limpar` é o texto do botão que devolve o valor ao padrão. Cada controle
+    // diz o que "sem cor" significa nele: no texto é a cor do tema, no realce é
+    // não ter tarja nenhuma. Um rótulo genérico aqui ensinaria errado.
+    const ctrlCor = (valor, aoTrocar, limpar) => {
+      const cx = el('div',{style:'display:flex;gap:8px;align-items:center'});
+      const posto = valor();
+      const i = el('input',{type:'color', class:'cor-peca' + (posto ? '' : ' vazia'),
+        value: posto || '#141210'});
+      i.addEventListener('input', ()=>{ aoTrocar(i.value); repintarTudo(); });
+      cx.appendChild(i);
+      if(limpar) cx.appendChild(el('button',{class:'linkbtn', disabled: posto ? null : 'disabled',
+        onclick:()=>{ aoTrocar(null); repintarTudo(); }}, esc(limpar)));
+      return cx;
+    };
+
+    function propTexto(e){
+      const cx = el('div',{class:'prop-texto'});
+      const ta = el('textarea',{rows:'3', placeholder:'O que este texto diz'});
+      ta.value = e.txt || '';
+      ta.addEventListener('input', ()=>{ e.txt = ta.value; pintar(); });
+      cx.appendChild(linhaP('Conteúdo', ta));
+      cx.appendChild(linhaP('Fonte', ctrlChips(FONTES.map(f=>[f[0], f[1], f[3]]), ()=>e.fonte, v=>e.fonte=v)));
+      cx.appendChild(linhaP('Tamanho', ctrlNum(()=>e.tam, v=>e.tam=v, 16, 200, 2)));
+      cx.appendChild(linhaP('Peso', ctrlChips([[400,'Normal'],[600,'Meio'],[700,'Grosso']],
+        ()=>Number(e.peso), v=>e.peso=v)));
+      cx.appendChild(linhaP('Cor', ctrlCor(()=>e.cor, v=>e.cor=v, 'voltar à cor do tema')));
+      cx.appendChild(linhaP('Realce atrás', ctrlCor(()=>e.realce, v=>e.realce=v, 'tirar o realce'),
+        'A tarja colorida atrás da linha, como marca-texto.'));
+      cx.appendChild(linhaP('Alinhamento', ctrlChips([['esq','Esquerda'],['centro','Centro'],['dir','Direita']],
+        ()=>e.alinha, v=>e.alinha=v)));
+      cx.appendChild(linhaP('Caixa', ctrlChips([['normal','Como escrito'],['alta','TUDO MAIÚSCULO']],
+        ()=>e.caixa || 'normal', v=>e.caixa=v)));
+      cx.appendChild(linhaP('Largura da caixa', ctrlNum(()=>e.w, v=>e.w=v, 100, 1080, 10),
+        'Onde o texto quebra a linha.'));
+      cx.appendChild(linhaP('Entrelinha', ctrlNum(()=>Math.round((e.alt||1.14)*100), v=>e.alt=v/100, 90, 200, 2)));
+      cx.appendChild(linhaP('Opacidade', ctrlNum(()=>Math.round((e.opac==null?1:e.opac)*100), v=>e.opac=v/100, 10, 100, 5)));
+      return cx;
+    }
+
+    function propImagem(e){
+      const cx = el('div');
+      const troca = el('input',{type:'file', accept:'image/*', style:'display:none'});
+      troca.addEventListener('change', ()=>{
+        const f = troca.files && troca.files[0]; if(!f) return;
+        lerImagem(f, (url, w, h)=>{ e.src = url; e.h = Math.round(e.w * h / w); repintarTudo(); });
+        troca.value = '';
+      });
+      const acoes = el('div',{style:'display:flex;gap:8px;flex-wrap:wrap'});
+      acoes.appendChild(el('button',{class:'btn ghost small', onclick:()=>troca.click()},'trocar a imagem'));
+      acoes.appendChild(el('button',{class:'btn ghost small', onclick:()=>{
+        const s = slideAgora();
+        s.fundo = Object.assign({ ajuste:'cobrir', escurecer:0.45 }, s.fundo, { src:e.src });
+        s.elementos = s.elementos.filter(x => x.id !== e.id);
+        d.sel = null; repintarTudo();
+      }},'virar fundo do slide'));
+      cx.appendChild(acoes);
+      cx.appendChild(troca);
+      cx.appendChild(linhaP('Preenchimento', ctrlChips([['cobrir','Cobrir'],['conter','Caber inteira']],
+        ()=>e.ajuste || 'cobrir', v=>e.ajuste=v)));
+      cx.appendChild(linhaP('Largura', ctrlNum(()=>e.w, v=>e.w=v, 60, 1080, 10)));
+      cx.appendChild(linhaP('Altura', ctrlNum(()=>e.h, v=>e.h=v, 60, 1920, 10)));
+      cx.appendChild(linhaP('Cantos', ctrlNum(()=>e.raio || 0, v=>e.raio=v, 0, 300, 4)));
+      cx.appendChild(linhaP('Opacidade', ctrlNum(()=>Math.round((e.opac==null?1:e.opac)*100), v=>e.opac=v/100, 10, 100, 5)));
+      return cx;
+    }
+
+    function propForma(e){
+      const cx = el('div');
+      cx.appendChild(linhaP('Forma', ctrlChips([['retangulo','Retângulo'],['circulo','Círculo']],
+        ()=>e.forma, v=>e.forma=v)));
+      cx.appendChild(linhaP('Cor', ctrlCor(()=>e.cor, v=>e.cor=v, 'voltar à cor do tema')));
+      cx.appendChild(linhaP('Largura', ctrlNum(()=>e.w, v=>e.w=v, 8, 1080, 4)));
+      cx.appendChild(linhaP('Altura', ctrlNum(()=>e.h, v=>e.h=v, 4, 1920, 4)));
+      cx.appendChild(linhaP('Cantos', ctrlNum(()=>e.raio || 0, v=>e.raio=v, 0, 200, 2)));
+      cx.appendChild(linhaP('Opacidade', ctrlNum(()=>Math.round((e.opac==null?1:e.opac)*100), v=>e.opac=v/100, 10, 100, 5)));
+      return cx;
+    }
+
+    function propOrdem(e){
+      const cx = el('div',{class:'ordem-el'});
+      const els = () => slideAgora().elementos;
+      const mover = passo => {
+        const l = els(); const i = l.findIndex(x => x.id === e.id);
+        const j = Math.max(0, Math.min(l.length-1, i + passo));
+        if(i === j) return;
+        l.splice(j, 0, l.splice(i, 1)[0]); repintarTudo();
+      };
+      cx.appendChild(el('button',{class:'btn ghost small', onclick:()=>mover(1)},'trazer pra frente'));
+      cx.appendChild(el('button',{class:'btn ghost small', onclick:()=>mover(-1)},'mandar pra trás'));
+      cx.appendChild(el('button',{class:'btn ghost small', onclick:()=>{
+        const copia = Object.assign({}, e, { id:novoId(), x:e.x + 24, y:e.y + 24 });
+        els().push(copia); d.sel = copia.id; repintarTudo();
+      }},'duplicar'));
+      cx.appendChild(el('button',{class:'btn ghost small perigo', onclick:()=>{
+        slideAgora().elementos = els().filter(x => x.id !== e.id);
+        d.sel = null; repintarTudo();
+      }},'remover'));
+      return cx;
+    }
+
+    function propFundo(){
+      const s = slideAgora();
+      s.fundo = s.fundo || { cor:null, src:null, ajuste:'cobrir', escurecer:0 };
+      const f = s.fundo;
+      const cx = el('div');
+      cx.appendChild(el('p',{class:'dica', style:'margin:0 0 12px'},
+        'Clique em qualquer coisa na peça pra editar aquele elemento. Sem nada selecionado, você mexe no fundo deste slide e no visual do carrossel inteiro.'));
+      cx.appendChild(linhaP('Cor do fundo', ctrlCor(()=>f.cor, v=>f.cor=v, 'voltar ao fundo do tema')));
+      if(f.src){
+        const acoes = el('div',{style:'display:flex;gap:8px;flex-wrap:wrap'});
+        acoes.appendChild(el('button',{class:'btn ghost small',
+          onclick:()=>{ f.src = null; repintarTudo(); }},'tirar a foto de fundo'));
+        cx.appendChild(acoes);
+        cx.appendChild(linhaP('Preenchimento', ctrlChips([['cobrir','Cobrir'],['conter','Caber inteira']],
+          ()=>f.ajuste || 'cobrir', v=>f.ajuste=v)));
+        cx.appendChild(linhaP('Escurecer', ctrlNum(()=>Math.round((f.escurecer||0)*100), v=>f.escurecer=v/100, 0, 85, 5),
+          'Foto clara come o texto branco. Escurecer é o que devolve a leitura.'));
+      }
+      return cx;
+    }
+
+    function propDeck(){
+      const cx = el('div',{style:'margin-top:20px;padding-top:16px;border-top:1px solid var(--linha2)'});
+      cx.appendChild(el('p',{class:'rot'},'O carrossel inteiro'));
+      cx.appendChild(linhaP('Formato', ctrlChips(FORMATOS_PECA.map(f=>[f[0], f[1] + ' ' + f[2] + '×' + f[3], f[4]]),
+        ()=>d.formato, v=>d.formato=v)));
+      cx.appendChild(linhaP('Visual', ctrlChips(PRESETS_PECA.map(x=>[x[0], x[1], x[2]]),
+        ()=>d.preset, v=>d.preset=v)));
+      cx.appendChild(linhaP('Cor principal', ctrlCor(()=>d.cor, v=>d.cor=v)));
+      cx.appendChild(linhaP('Cor da faixa', ctrlCor(()=>d.cor2 || d.cor, v=>d.cor2=v)));
+      cx.appendChild(linhaP('Respiro', ctrlChips([['folgada','Folgado'],['compacta','Compacto']],
+        ()=>d.margem || 'folgada', v=>d.margem=v)));
+      // Faixa e numeração são dois interruptores independentes, não uma
+      // escolha entre um e outro: cada botão marca o próprio estado.
+      const marcados = el('div',{class:'chips'});
+      [['faixa','Faixa'],['numerar','Numeração']].forEach(([k, rot])=>{
+        marcados.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(d[k] !== false),
+          onclick:()=>{ d[k] = d[k] === false; repintarTudo(); }}, rot));
+      });
+      cx.appendChild(linhaP('Mostrar', marcados));
+      const assin = el('input',{type:'text', value:d.assinatura || '',
+        placeholder: conselhoDe(cliente) ? 'Nome · ' + conselhoDe(cliente) + ' 000000-G/CE' : 'Assinatura no rodapé'});
+      assin.addEventListener('input', ()=>{ d.assinatura = assin.value; pintar(); });
+      cx.appendChild(linhaP('Assinatura', assin,
+        conselhoDe(cliente) ? 'Profissão com conselho: o registro precisa aparecer na peça, não só na bio.' : ''));
+      if(cliente) cx.appendChild(el('button',{class:'btn ghost small', style:'margin-top:12px',
+        onclick:()=>{
+          const mc = marcaDe(cliente);
+          Object.assign(d, { preset:mc.preset, formato:mc.formato, margem:mc.margem,
+            numerar:mc.numerar !== false, faixa:mc.faixa !== false, cor2:mc.cor2 || '',
+            cor: cliente.cor || d.cor, assinatura: assinaturaDe(cliente) || d.assinatura });
+          repintarTudo(); toast('Voltou pro padrão de ' + cliente.nome + '.');
+        }}, 'Voltar ao padrão de ' + esc(cliente.nome)));
+      return cx;
+    }
+
+    // --- legenda do post e simulação do Instagram
+    const legCx = el('div',{class:'campo-longo legenda-post', style:'margin-top:24px'});
+    legCx.appendChild(el('span',{},'Legenda do post'));
+    const legTa = el('textarea',{rows:'3', placeholder:'O que vai escrito embaixo da peça, no feed.'});
+    legTa.value = d.legenda || '';
+    legTa.addEventListener('input', ()=>{ d.legenda = legTa.value; pintarInsta(); });
+    legCx.appendChild(legTa);
+    box.appendChild(legCx);
+
+    const insta = blocoInstagram(d, cliente, ()=>d.legenda);
+    pintarInsta = insta.pintar;
+    box.appendChild(insta.box);
+
+    // --- sugestões, prompt e conferência
+    const textoTodo = () => d.slides.map(s =>
+      (s.elementos || []).filter(x => x.tipo === 'texto').map(x => x.txt).join(' ')).join('\n')
+      + '\n' + (d.legenda || '');
     const conf = el('div',{class:'bloco-conf'});
     conf.appendChild(el('p',{class:'rot'},'Conferência'));
-    const textoTodo = () => d.slides.map(x => (x.titulo||'') + ' ' + (x.texto||'')).join('\n');
     function conferir(){
       conf.querySelectorAll('.confere').forEach(n => n.remove());
       const r = blocoConformidade(textoTodo(), cliente, d.assinatura);
@@ -5027,175 +5685,110 @@
       return r.achados;
     }
 
-    function pintar(){
-      d.slideAtual = Math.max(0, Math.min(d.slides.length - 1, d.slideAtual));
-      // Desenhado com folga e exibido em 100% da coluna: assim a prévia é
-      // nítida em tela retina e continua sendo o mesmo desenho da exportação.
-      desenharSlide(cv, d.slides[d.slideAtual] || {}, d, d.slideAtual, 0.6);
-      cv.style.width = '100%';
-      legenda.textContent = 'Slide ' + (d.slideAtual+1) + ' de ' + d.slides.length
-        + ' · ' + medidas(d.formato)[2] + '×' + medidas(d.formato)[3];
-      setas.innerHTML = '';
-      d.slides.forEach((s, i)=>{
-        setas.appendChild(el('button',{class:'ponto' + (i === d.slideAtual ? ' on' : ''),
-          'aria-label':'Ver o slide ' + (i+1),
-          onclick:()=>{ d.slideAtual = i; pintar(); }}, String(i+1)));
-      });
-      conferir();
-    }
-    previa.appendChild(cv);
-    previa.appendChild(legenda);
-    previa.appendChild(setas);
-
-    // --- formato, preset, cor, assinatura
-    const opcoes = el('div',{class:'opcoes-peca'});
-    const linhaOpc = (rot, dentro) => {
-      const l = el('div',{class:'campo-p'});
-      l.appendChild(el('span',{}, esc(rot)));
-      l.appendChild(dentro);
-      opcoes.appendChild(l);
-    };
-    const gForm = el('div',{class:'chips'});
-    FORMATOS_PECA.forEach(([k, rot, L, A, ajuda])=>{
-      gForm.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(d.formato === k), title:ajuda,
-        onclick:()=>{ d.formato = k; render(); }}, rot + ' ' + L + '×' + A));
-    });
-    linhaOpc('Formato', gForm);
-    const gPre = el('div',{class:'chips'});
-    PRESETS_PECA.forEach(([k, rot, ajuda])=>{
-      gPre.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(d.preset === k), title:ajuda,
-        onclick:()=>{ d.preset = k; pintar(); gPre.querySelectorAll('.chip-p').forEach((x,i)=>
-          x.setAttribute('aria-pressed', String(PRESETS_PECA[i][0] === k))); }}, rot));
-    });
-    linhaOpc('Visual', gPre);
-    const cores = el('div',{style:'display:flex;gap:8px;align-items:center;flex-wrap:wrap'});
-    const cor = el('input',{type:'color', value:d.cor || '#FF5E00', class:'cor-peca', title:'cor principal'});
-    cor.addEventListener('input', ()=>{ d.cor = cor.value; pintar(); });
-    const cor2 = el('input',{type:'color', value:d.cor2 || d.cor || '#FF5E00', class:'cor-peca', title:'cor da faixa'});
-    cor2.addEventListener('input', ()=>{ d.cor2 = cor2.value; pintar(); });
-    cores.appendChild(cor);
-    cores.appendChild(el('span',{class:'dica', style:'margin:0'},'principal'));
-    cores.appendChild(cor2);
-    cores.appendChild(el('span',{class:'dica', style:'margin:0'},'faixa'));
-    linhaOpc('Cores', cores);
-
-    const gAl = el('div',{class:'chips'});
-    [['esq','À esquerda'],['centro','Centralizado']].forEach(([k, rot])=>{
-      gAl.appendChild(el('button',{class:'chip-p', 'aria-pressed':String((d.alinha||'esq') === k),
-        onclick:()=>{ d.alinha = k; render(); }}, rot));
-    });
-    linhaOpc('Alinhamento', gAl);
-
-    const gMar = el('div',{class:'chips'});
-    [['folgada','Folgado'],['compacta','Compacto']].forEach(([k, rot])=>{
-      gMar.appendChild(el('button',{class:'chip-p', 'aria-pressed':String((d.margem||'folgada') === k),
-        onclick:()=>{ d.margem = k; render(); }}, rot));
-    });
-    linhaOpc('Respiro', gMar);
-
-    const gEx = el('div',{class:'chips'});
-    [['faixa','Faixa'],['numerar','Numeração']].forEach(([campo, rot])=>{
-      gEx.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(d[campo] !== false),
-        onclick:()=>{ d[campo] = d[campo] === false; render(); }}, rot));
-    });
-    linhaOpc('Mostrar', gEx);
-    const assin = el('input',{type:'text', value:d.assinatura || '',
-      placeholder: conselhoDe(cliente) ? 'Nome · ' + conselhoDe(cliente) + ' 000000-G/CE' : 'Assinatura no rodapé'});
-    assin.addEventListener('input', ()=>{ d.assinatura = assin.value; pintar(); });
-    linhaOpc('Assinatura', assin);
-    if(cliente){
-      opcoes.appendChild(el('button',{class:'btn ghost small', style:'margin-top:10px;justify-self:start',
-        onclick:()=>{
-          const mc = marcaDe(cliente);
-          Object.assign(d, { preset:mc.preset, formato:mc.formato, alinha:mc.alinha, margem:mc.margem,
-            numerar:mc.numerar !== false, faixa:mc.faixa !== false, cor2:mc.cor2 || '',
-            cor: cliente.cor || d.cor, assinatura: assinaturaDe(cliente) || d.assinatura });
-          render(); toast('Voltou pro padrão de ' + cliente.nome + '.');
-        }}, 'Voltar ao padrão de ' + esc(cliente.nome)));
-    }
-    if(conselhoDe(cliente)){
-      opcoes.appendChild(el('p',{class:'dica campo-dica'},
-        'Profissão com conselho: o registro ' + conselhoDe(cliente) + ' precisa aparecer na peça, não só na bio. '
-        + (assinaturaDe(cliente) ? 'Veio da ficha do cliente.'
-          : 'Preencha "registro profissional" na ficha dele e ele entra sozinho nas próximas.')));
-    }
-    lado.appendChild(opcoes);
-
-    // --- slides
-    const lista = el('div',{class:'slides'});
-    lado.appendChild(lista);
-    function desenharLista(){
-      lista.innerHTML = '';
-      d.slides.forEach((s, i)=>{
-        const cx = el('div',{class:'slide-ed' + (i === d.slideAtual ? ' ativo' : '')});
-        const cab = el('div',{class:'cab'});
-        cab.appendChild(el('span',{class:'n'}, String(i+1).padStart(2,'0')));
-        const tipos = el('div',{class:'chips'});
-        [['capa','Capa'],['conteudo','Conteúdo'],['fim','Fecho']].forEach(([k, rot])=>{
-          tipos.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(s.tipo === k),
-            onclick:()=>{ s.tipo = k; d.slideAtual = i; desenharLista(); pintar(); }}, rot));
-        });
-        cab.appendChild(tipos);
-        const mover = el('div',{style:'margin-left:auto;display:flex;gap:2px'});
-        mover.appendChild(el('button',{class:'linkbtn', 'aria-label':'Subir o slide ' + (i+1), disabled:i===0?'':null,
-          onclick:()=>{ if(i===0) return; const x=d.slides[i-1]; d.slides[i-1]=d.slides[i]; d.slides[i]=x;
-            d.slideAtual=i-1; desenharLista(); pintar(); }},'↑'));
-        mover.appendChild(el('button',{class:'linkbtn', 'aria-label':'Descer o slide ' + (i+1),
-          onclick:()=>{ if(i>=d.slides.length-1) return; const x=d.slides[i+1]; d.slides[i+1]=d.slides[i]; d.slides[i]=x;
-            d.slideAtual=i+1; desenharLista(); pintar(); }},'↓'));
-        mover.appendChild(el('button',{class:'linkbtn', 'aria-label':'Remover o slide ' + (i+1),
-          onclick:()=>{ if(d.slides.length<=1){ toast('Um carrossel precisa de pelo menos um slide.'); return; }
-            d.slides.splice(i,1); if(d.slideAtual>=d.slides.length) d.slideAtual=d.slides.length-1;
-            desenharLista(); pintar(); }},'×'));
-        cab.appendChild(mover);
-        cx.appendChild(cab);
-
-        const t = el('input',{type:'text', value:s.titulo || '', placeholder:'Título do slide'});
-        t.addEventListener('input', ()=>{ s.titulo = t.value; d.slideAtual = i; pintar(); });
-        t.addEventListener('focus', ()=>{ d.slideAtual = i; pintar(); });
-        cx.appendChild(t);
-        const x = el('textarea',{rows:'3', placeholder:'Texto do slide (opcional)'});
-        x.value = s.texto || '';
-        x.addEventListener('input', ()=>{ s.texto = x.value; d.slideAtual = i; pintar(); });
-        x.addEventListener('focus', ()=>{ d.slideAtual = i; pintar(); });
-        cx.appendChild(x);
-        lista.appendChild(cx);
-      });
-      const add = el('button',{class:'btn ghost small', onclick:()=>{
-        if(d.slides.length >= 10){ toast('Dez slides é o limite do Instagram.'); return; }
-        d.slides.splice(d.slides.length - (d.slides[d.slides.length-1].tipo === 'fim' ? 1 : 0), 0,
-          { tipo:'conteudo', titulo:'', texto:'' });
-        desenharLista(); pintar();
-      }},'+ slide');
-      lista.appendChild(add);
-    }
-    desenharLista();
-    pintar();
-
-    // --- sugestões, IA e conferência
     box.appendChild(blocoSugestoes(cliente, null, s2=>{
-      const al = d.slides[d.slideAtual] || d.slides[0];
-      if(!al.titulo) al.titulo = s2.frase; else al.texto = (al.texto ? al.texto + ' ' : '') + s2.frase;
-      desenharLista(); pintar();
+      const e = selecionado();
+      if(e && e.tipo === 'texto'){ e.txt = s2.frase; }
+      else {
+        const [ , , L, A] = medidas(d.formato);
+        const novo = elementoTexto({ x:92, y:Math.round(A*0.4), w:L-184, txt:s2.frase, tam:64 });
+        slideAgora().elementos.push(novo); d.sel = novo.id;
+      }
+      repintarTudo();
     }));
-    box.appendChild(blocoPrompt(p, cliente, ()=>{ desenharLista(); pintar(); }));
+    box.appendChild(blocoPrompt(p, cliente, ()=>repintarTudo()));
     box.appendChild(conf);
 
     const baixar = el('button',{class:'btn', onclick:async()=>{
-      const achados = conferir();
-      const graves = achados.filter(a => a.nivel === 'grave');
+      const graves = conferir().filter(a => a.nivel === 'grave');
       if(graves.length){
         toast('Confira os avisos graves antes de exportar.');
         conf.scrollIntoView({ block:'center' });
         return;
       }
-      baixar.disabled = true;
-      baixar.textContent = 'Exportando…';
+      const antes = d.sel; d.sel = null;
+      baixar.disabled = true; baixar.textContent = 'Exportando…';
       try { await baixarSlides(d, p.titulo || 'carrossel'); }
-      finally { baixar.disabled = false; baixar.textContent = 'Baixar os ' + d.slides.length + ' PNG'; }
+      finally { baixar.disabled = false; baixar.textContent = 'Baixar os ' + d.slides.length + ' PNG';
+        d.sel = antes; pintar(); }
     }}, 'Baixar os ' + d.slides.length + ' PNG');
     peEditor(box, [baixar]);
+
+    desenharProp();
+    setTimeout(pintar, 0);
     return box;
+  }
+
+  // ---------- como fica no Instagram ----------
+
+  // A peça sozinha engana: no feed ela aparece com a foto do perfil em cima, o
+  // "1/3" no canto, a legenda cortada no "mais" e o polegar passando. Ver isso
+  // antes de publicar é o que evita descobrir depois que o título ficou embaixo
+  // do ícone do carrossel.
+  function blocoInstagram(deck, cliente, legendaDe){
+    const box = el('div',{class:'bloco-conf'});
+    box.appendChild(el('p',{class:'rot'},'Como fica no Instagram'));
+    box.appendChild(el('p',{class:'dica', style:'margin:8px 0 16px'},
+      'Simulação do feed, com o mesmo desenho que vai ser exportado. '
+      + 'A legenda corta no "mais" depois de 125 caracteres, como no aplicativo. '
+      + 'O "1/3" cinza no canto é do Instagram, não seu: se a sua numeração bater nele, '
+      + 'é aqui que dá pra ver antes de publicar.'));
+
+    // O arroba só entra quando existe arroba de verdade guardado na ficha.
+    // "@Rafa e Letícia" não é um perfil, e escrever assim ensina errado.
+    const arroba = String((cliente && cliente.instagram) || '').trim().replace(/^@/,'');
+    const nome = arroba || String((cliente && cliente.nome) || 'seu cliente').trim();
+    const fone = el('div',{class:'insta'});
+    const topo = el('div',{class:'cab'});
+    const av = el('span',{class:'av'});
+    av.textContent = nome.slice(0,1).toUpperCase();
+    if(cliente && cliente.cor) av.style.background = cliente.cor;
+    topo.appendChild(av);
+    topo.appendChild(el('b',{}, esc(arroba ? '@' + arroba : nome)));
+    topo.appendChild(el('span',{class:'mais-i'},'⋯'));
+    fone.appendChild(topo);
+
+    const quadro = el('div',{class:'quadro'});
+    const cv = el('canvas',{class:'insta-cv'});
+    const conta = el('span',{class:'conta-i'});
+    quadro.appendChild(cv);
+    quadro.appendChild(conta);
+    fone.appendChild(quadro);
+
+    const acoes = el('div',{class:'acoes'});
+    acoes.innerHTML = '<span class="cor">♥</span><span>💬</span><span>➤</span>';
+    const pontos = el('div',{class:'pontos-i'});
+    acoes.appendChild(pontos);
+    fone.appendChild(acoes);
+
+    const legenda = el('p',{class:'leg-i'});
+    fone.appendChild(legenda);
+    box.appendChild(fone);
+
+    let atual = 0;
+    function pintar(){
+      const n = (deck.slides || []).length;
+      atual = Math.max(0, Math.min(n - 1, atual));
+      desenharSlide(cv, deck.slides[atual] || {}, deck, atual, 0.42, { aoCarregar:pintar });
+      cv.style.width = '100%';
+      conta.textContent = (atual + 1) + '/' + n;
+      conta.hidden = n < 2;
+      pontos.innerHTML = '';
+      if(n > 1) deck.slides.forEach((s, i)=>{
+        pontos.appendChild(el('button',{class:'pt' + (i === atual ? ' on' : ''),
+          'aria-label':'Ver o slide ' + (i+1), onclick:()=>{ atual = i; pintar(); }}));
+      });
+      const txt = String((legendaDe && legendaDe()) || '').trim();
+      legenda.innerHTML = '';
+      if(!txt){
+        legenda.appendChild(el('i',{class:'dica'},'Sem legenda ainda.'));
+      } else {
+        legenda.appendChild(el('b',{}, esc(arroba ? '@' + arroba : nome) + ' '));
+        legenda.appendChild(document.createTextNode(txt.slice(0,125)));
+        if(txt.length > 125) legenda.appendChild(el('span',{class:'mais-leg'},'… mais'));
+      }
+    }
+    pintar();
+    return { box, pintar };
   }
 
   // ---------- roteiro ----------
