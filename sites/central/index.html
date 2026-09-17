@@ -747,6 +747,16 @@
   .relogio.longo{ background:var(--es-f); color:var(--es); }
 
   .bloco-conf{ margin-top:24px; padding-top:18px; border-top:1px solid var(--linha2); }
+  .bloco-conf.dobra > summary{
+    cursor:pointer; list-style:none; display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+  }
+  .bloco-conf.dobra > summary::-webkit-details-marker{ display:none; }
+  .bloco-conf.dobra > summary::before{
+    content:'▸'; color:var(--fraco); font-size:0.8rem; line-height:1;
+  }
+  .bloco-conf.dobra[open] > summary::before{ content:'▾'; }
+  .resumo-conf{ font-size:0.82rem; color:var(--fraco); }
+  .resumo-conf.trava{ color:var(--al); font-weight:600; }
   .confere{ display:grid; gap:8px; margin-top:10px; }
   .aviso-conf{
     margin:0; font-size:0.85rem; line-height:1.5; padding:10px 13px; border-radius:9px;
@@ -755,6 +765,25 @@
   .aviso-conf.grave{ background:var(--al-f); border-left-color:var(--al); }
   .aviso-conf.aviso{ background:var(--es-f); border-left-color:var(--es); }
   .aviso-conf b{ font-family:var(--display); }
+  /* O artigo citado. É ele que separa ferramenta de chute — fica em destaque
+     de propósito, porque é o que a pessoa copia pra defesa. */
+  .aviso-conf .norma{
+    font-family:var(--dado); font-size:0.72rem; letter-spacing:0.02em;
+    color:var(--fraco); display:inline-block; margin-right:6px;
+  }
+  .aviso-conf.grave .norma{ color:var(--al); }
+  .pac{
+    background:var(--sup2); border:1px solid var(--linha); border-radius:11px;
+    padding:13px 15px; margin-top:10px;
+  }
+  .pac a{ color:var(--laranja-forte); }
+  .confirme{ margin-top:6px; }
+  .item-confirme{
+    display:flex; gap:10px; align-items:flex-start; padding:8px 0;
+    border-top:1px solid var(--linha2); font-size:0.87rem; line-height:1.45; cursor:pointer;
+  }
+  .item-confirme:first-of-type{ border-top:none; }
+  .item-confirme input{ margin-top:3px; flex:0 0 auto; accent-color:var(--laranja); }
   .aviso-conf.grave b{ color:var(--al); }
   .aviso-conf.aviso b{ color:var(--es); }
 
@@ -816,11 +845,56 @@
     font-family:var(--corpo); font-size:0.88rem; color:var(--tinta); width:100%; resize:vertical;
   }
   .lado-prop .campo-p textarea:focus{ border-color:var(--laranja); }
+  /* O display:flex da classe vence o [hidden] do navegador, então some de
+     verdade só com esta linha. Sem ela o aviso fica na tela depois de resolvido. */
+  .aviso-palco[hidden]{ display:none !important; }
+  .aviso-palco{
+    display:flex; gap:11px; align-items:center; flex-wrap:wrap;
+    margin-top:11px; padding:9px 13px; border-radius:9px;
+    background:var(--es-f); color:var(--tinta); font-size:0.85rem;
+    border-left:3px solid var(--es);
+  }
+  /* Mesma razão do .aviso-palco: o display da classe vence o [hidden]. */
+  .aviso-deck[hidden]{ display:none !important; }
+  .aviso-deck{
+    display:grid; gap:7px; margin-top:12px; padding:11px 13px; border-radius:9px;
+    background:var(--sup); border:1px solid var(--linha); font-size:0.85rem;
+  }
+  .aviso-deck .rot{ margin:0; }
+  .lin-deck{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .lin-deck > span{ flex:1 1 220px; min-width:0; color:var(--tinta); }
+
   .num-lin{ display:flex; gap:9px; align-items:center; }
   .num-lin input[type=range]{ flex:1 1 auto; min-width:0; accent-color:var(--laranja); }
   .num-lin input[type=number]{ flex:0 0 68px; width:68px; }
+  .pos-el{ margin-top:16px; padding-top:12px; border-top:1px solid var(--linha2); }
   .ordem-el{ display:flex; gap:7px; flex-wrap:wrap; margin-top:18px; padding-top:14px;
     border-top:1px solid var(--linha2); }
+
+  /* As cores que a peça já tem, à mão. Escolher no quadradinho do sistema é
+     como uma peça sai com um azul que não é o azul do cliente. */
+  .cor-cx{ display:grid; gap:8px; }
+  .paleta{ display:flex; gap:5px; flex-wrap:wrap; }
+  .amostra{
+    width:22px; height:22px; padding:0; border-radius:6px; cursor:pointer;
+    border:1px solid var(--linha); box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);
+  }
+  .amostra.on{ box-shadow:0 0 0 2px var(--laranja); }
+
+  /* Os arranjos: escolhe-se pela figura, não pelo nome. */
+  .arranjos{ display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr)); gap:8px; }
+  .arranjo{
+    padding:0; border:1px solid var(--linha); border-radius:8px; background:var(--sup);
+    overflow:hidden; cursor:pointer; display:grid; gap:0; line-height:0; text-align:center;
+  }
+  .arranjo canvas{ display:block; width:100%; height:auto; }
+  .arranjo .nome{
+    display:block; padding:4px 3px 5px; font-size:0.58rem; line-height:1.25;
+    color:var(--fraco); font-family:var(--dado);
+  }
+  .arranjo:hover{ border-color:var(--tinta); }
+  .arranjo.on{ border-color:var(--laranja); box-shadow:var(--s1); }
+  .arranjo.on .nome{ color:var(--laranja-forte); }
   .btn.perigo{ color:var(--al); border-color:var(--al); }
 
   /* ---------- como fica no Instagram ---------- */
@@ -4118,123 +4192,570 @@
   const medidas = f => FORMATOS_PECA.find(x => x[0] === f) || FORMATOS_PECA[0];
 
   const PRESETS_PECA = [
-    ['papel',  'Papel',  'Fundo claro, texto escuro'],
-    ['tinta',  'Tinta',  'Fundo escuro, texto claro'],
-    ['cliente','Cor do cliente', 'Usa a cor guardada na ficha dele'],
+    ['papel',  'Papel',  'Fundo claro neutro, texto escuro'],
+    ['tinta',  'Tinta',  'Fundo escuro neutro, texto claro'],
+    ['nevoa',  'Névoa',  'Claro, mas tingido com a cor do cliente — parece dele sem gritar'],
+    ['breu',   'Breu',   'Escuro tingido com a cor do cliente'],
+    ['cliente','Cor cheia', 'A cor do cliente ocupando o fundo inteiro'],
   ];
 
-  // Contraste é decidido aqui, não no olho: texto escuro ou claro conforme a
-  // luminância do fundo. Uma peça bonita e ilegível não serve.
-  function tintaSobre(fundo){
-    const h = String(fundo || '#FFFFFF').replace('#','');
-    const n = h.length === 3 ? h.split('').map(x=>x+x).join('') : h;
-    const [r,g,b] = [0,2,4].map(i => parseInt(n.slice(i,i+2),16) / 255)
-      .map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
-    const L = 0.2126*r + 0.7152*g + 0.0722*b;
-    return L > 0.42 ? '#141210' : '#FFFFFF';
+  // ---------- cor ----------
+
+  // Por que OKLab e não HSL. Em HSL, clarear um verde e clarear um azul pelo
+  // mesmo tanto dá resultados de brilho bem diferentes, e a matiz escorrega no
+  // caminho — é assim que sai aquele tom "sujo" que denuncia paleta feita no
+  // olho. OKLab é feito pra que passos iguais pareçam iguais, e é a diferença
+  // entre uma escada de tons que combina e uma que quase combina.
+
+  const srgbParaLinear = v => v <= 0.04045 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
+  const linearParaSrgb = v => v <= 0.0031308 ? v*12.92 : 1.055*Math.pow(v, 1/2.4) - 0.055;
+
+  function hexParaRgb(hex){
+    const h = String(hex || '#000000').replace('#','');
+    const n = h.length === 3 ? h.split('').map(x=>x+x).join('') : h.slice(0,6);
+    return [0,2,4].map(i => parseInt(n.slice(i,i+2),16) / 255);
   }
+  const rgbParaHex = rgb => '#' + rgb
+    .map(v => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2,'0')).join('');
+
+  function paraOklab(hex){
+    const [r,g,b] = hexParaRgb(hex).map(srgbParaLinear);
+    const l = Math.cbrt(0.4122214708*r + 0.5363325363*g + 0.0514459929*b);
+    const m = Math.cbrt(0.2119034982*r + 0.6806995451*g + 0.1073969566*b);
+    const s = Math.cbrt(0.0883024619*r + 0.2817188376*g + 0.6299787005*b);
+    return [
+      0.2104542553*l + 0.7936177850*m - 0.0040720468*s,
+      1.9779984951*l - 2.4285922050*m + 0.4505937099*s,
+      0.0259040371*l + 0.7827717662*m - 0.8086757660*s,
+    ];
+  }
+  function deOklab(lab){
+    const [L,a,b] = lab;
+    const l = Math.pow(L + 0.3963377774*a + 0.2158037573*b, 3);
+    const m = Math.pow(L - 0.1055613458*a - 0.0638541728*b, 3);
+    const s = Math.pow(L - 0.0894841775*a - 1.2914855480*b, 3);
+    return rgbParaHex([
+      +4.0767416621*l - 3.3077115913*m + 0.2309699292*s,
+      -1.2684380046*l + 2.6097574011*m - 0.3413193965*s,
+      -0.0041960863*l - 0.7034186147*m + 1.7076147010*s,
+    ].map(linearParaSrgb));
+  }
+
+  // Luminância relativa da WCAG, que é outra conta — serve pro contraste, não
+  // pra escolher tom.
+  function luz(hex){
+    const [r,g,b] = hexParaRgb(hex).map(srgbParaLinear);
+    return 0.2126*r + 0.7152*g + 0.0722*b;
+  }
+  function contraste(a, b){
+    const [x,y] = [luz(a), luz(b)];
+    return (Math.max(x,y) + 0.05) / (Math.min(x,y) + 0.05);
+  }
+
+  // A escada: mesma matiz, croma amansado nas pontas. Sem amansar, o tom bem
+  // claro fica fluorescente e o bem escuro fica lama.
+  function escadaDe(cor){
+    const [ , a, b] = paraOklab(cor);
+    const croma = Math.sqrt(a*a + b*b) || 0.0001;
+    const ang = Math.atan2(b, a);
+    const passo = (L, k) => {
+      const c = croma * k;
+      return deOklab([L, Math.cos(ang) * c, Math.sin(ang) * c]);
+    };
+    return {
+      nevoa:  passo(0.965, 0.22),
+      claro:  passo(0.905, 0.38),
+      suave:  passo(0.78,  0.62),
+      base:   cor,
+      forte:  passo(0.52,  1.0),
+      fundo:  passo(0.30,  0.78),
+      breu:   passo(0.19,  0.55),
+    };
+  }
+
+  // A cor de texto que se lê em cima de um fundo, escolhida por conta e não por
+  // chute. Tenta os dois sentidos — clarear e escurecer — porque em cima de um
+  // laranja médio o preto dá 7:1 e o branco dá 3:1, e olhar só para um lado é
+  // como se escolhe branco sobre laranja e se descobre depois que não lê.
+  function tintaPara(fundo, cor, alvo){
+    alvo = alvo || 4.5;
+    const [ , a, b] = paraOklab(cor || fundo);
+    const croma = Math.sqrt(a*a + b*b) || 0.0001;
+    const ang = Math.atan2(b, a);
+    const naMatiz = (L, k) => deOklab([L, Math.cos(ang)*croma*k, Math.sin(ang)*croma*k]);
+    let melhor = null, melhorRazao = 0;
+    // Do mais próximo do fundo para o mais distante, nos dois sentidos — e
+    // "próximo do fundo" é a claridade do fundo mesmo, não um ponto fixo no
+    // meio da escala. Saindo de um ponto fixo, 7:1 e 4,5:1 caíam na mesma
+    // volta e devolviam a mesma cor: o apoio saía igual ao texto principal, e
+    // apoio que não parece apoio não hierarquiza nada — o slide vira um bloco só.
+    const Lf = paraOklab(fundo)[0];
+    for(let i = 1; i <= 34; i++){
+      [Lf - i*0.018, Lf + i*0.018].forEach(L=>{
+        if(L < 0.02 || L > 0.995) return;
+        const t = naMatiz(L, L < 0.5 ? 0.55 : 0.42);
+        const r = contraste(t, fundo);
+        if(r > melhorRazao){ melhorRazao = r; melhor = t; }
+      });
+      if(melhorRazao >= alvo) return melhor;
+    }
+    // A matiz não deu conta: cai no puro que render mais.
+    const preto = contraste('#141210', fundo), branco = contraste('#FFFFFF', fundo);
+    if(Math.max(preto, branco) > melhorRazao) return preto >= branco ? '#141210' : '#FFFFFF';
+    return melhor || '#141210';
+  }
+
+  // Compatibilidade: o resto do arquivo ainda chama estes dois.
+  const tintaSobre = fundo => luz(fundo) > 0.42 ? '#141210' : '#FFFFFF';
   const misturar = (a, b, t) => {
-    const p = s => { const h = s.replace('#',''); const n = h.length===3 ? h.split('').map(x=>x+x).join('') : h;
-      return [0,2,4].map(i => parseInt(n.slice(i,i+2),16)); };
-    const [x,y] = [p(a), p(b)];
-    return '#' + [0,1,2].map(i => Math.round(x[i]*(1-t) + y[i]*t).toString(16).padStart(2,'0')).join('');
+    const [x, y] = [hexParaRgb(a), hexParaRgb(b)];
+    return rgbParaHex([0,1,2].map(i => x[i]*(1-t) + y[i]*t));
   };
 
+  // O visual do carrossel. Fundo escolhido pelo preset; texto e apoio
+  // CALCULADOS pra bater o contraste em cima dele, em vez de fixados na mão —
+  // é o que faz a cor do cliente poder ser qualquer uma sem quebrar a leitura.
   function coresDoDeck(deck){
     const cor = deck.cor || '#FF5E00';
     const c2 = deck.cor2 || cor;
-    if(deck.preset === 'tinta') return { fundo:'#141210', tinta:'#F5F2EC', apoio:'#9A938B', destaque:cor, faixa:c2 };
-    if(deck.preset === 'cliente'){
-      const t = tintaSobre(cor);
-      return { fundo:cor, tinta:t, apoio: misturar(t, cor, 0.35), destaque:t, faixa:t };
-    }
-    return { fundo:'#F5F2EC', tinta:'#141210', apoio:'#6E675F', destaque:cor, faixa:c2 };
+    const e = escadaDe(cor);
+    const monta = fundo => {
+      const destaque = contraste(cor, fundo) >= 3 ? cor : tintaPara(fundo, cor, 3.2);
+      return {
+        fundo,
+        tinta:  tintaPara(fundo, cor, 7),     // texto principal, com folga
+        apoio:  tintaPara(fundo, cor, 4.5),   // apoio, no mínimo da norma
+        destaque,
+        faixa:  contraste(c2, fundo) >= 2 ? c2 : destaque,
+        escada: e,
+        breu:   e.breu,   // ponta escura da marca, usada no duotone da foto
+      };
+    };
+    if(deck.preset === 'tinta')   return monta('#141210');
+    if(deck.preset === 'nevoa')   return monta(e.nevoa);
+    if(deck.preset === 'breu')    return monta(e.breu);
+    if(deck.preset === 'cliente') return monta(cor);
+    return monta('#F5F2EC');
   }
 
   // ---------- conformidade do texto ----------
 
-  // Profissões com conselho: o registro tem que aparecer na peça. Em educação
-  // física isso é o Art. 4º da Resolução CONFEF 508/2023, e o Bloco C anotou
-  // que é "a regra mais dura e a mais ignorada do mercado". Se está guardado na
-  // ficha, o estúdio assina sozinho — e se não está, avisa antes de exportar.
-  const REGULADAS = [
-    ['educação física','CREF'], ['educacao fisica','CREF'], ['personal','CREF'],
-    ['nutri','CRN'], ['odonto','CRO'], ['dentist','CRO'],
-    ['medic','CRM'], ['psic','CRP'], ['advoc','OAB'], ['direito','OAB'],
+  // O que esta parte é, e o que ela não é.
+  //
+  // Ela NÃO aprova peça. Não existe "está conforme" em lugar nenhum daqui, e
+  // isso não é modéstia: quem diz "aprovado" assume a responsabilidade de um
+  // parecer, e uma expressão regular não tem como assumir. O que ela faz é
+  // separar três coisas que o mercado mistura:
+  //
+  //   verificável  — o padrão no texto JÁ É a infração. A máquina decide.
+  //   indício      — o padrão aparece, mas a licitude depende de um fato que
+  //                  está fora do texto. A máquina mostra a condição; quem
+  //                  decide é a pessoa.
+  //   confirme     — nenhuma máquina alcança. Vira pergunta objetiva, e a
+  //                  resposta fica guardada com a peça.
+  //
+  // Todo aviso cita o artigo. É o que separa ferramenta de chute — e é o que,
+  // numa representação no conselho, vira prova de diligência.
+
+  // Regras que valem pra qualquer cliente, com conselho ou sem. São de Código
+  // de Defesa do Consumidor e de publicidade enganosa, não de conselho.
+  const REGRAS_BASE = [
+    { id:'prazo', nivel:'grave', re:/\bem\s+(apenas\s+)?\d+\s*(dias?|semanas?|mes(es)?|sess(ão|ões|oes))\b/i,
+      oq:'promete prazo de resultado',
+      norma:'CDC, art. 37 (publicidade enganosa)',
+      porq:'Prazo de resultado é promessa que o anunciante não controla. É o exemplo mais direto de publicidade enganosa.' },
+    { id:'numero', nivel:'grave', re:/\b\d+\s*(kg|quilos?|cm|cent[íi]metros?|pontos?)\b/i,
+      oq:'promete número de resultado',
+      norma:'CDC, art. 37',
+      porq:'Número prometido é promessa de resultado mesmo sem a palavra "garantia".' },
+    { id:'garantia', nivel:'grave', re:/\b(garant(imos|ido|ida|idos|idas|ia\s+de\s+(resultado|[êe]xito|sorriso))|resultado\s+garantido|100\s*%\s*(de\s*)?(sucesso|garantid|[êe]xito))\b/i,
+      oq:'promete resultado garantido',
+      norma:'CDC, art. 37',
+      porq:'Resultado garantido é afirmação sem lastro, e em profissão regulamentada costuma ser falta ética por si só.' },
+    { id:'cura', nivel:'grave', re:/\b(cura|curar|curamos|tratamento\s+definitivo|milagr\w+|\bsem\s+risco\b)\b/i,
+      oq:'fala em cura, milagre ou ausência de risco',
+      norma:'CDC, art. 37',
+      porq:'São termos que exigem lastro que uma peça de rede social não tem.' },
+    { id:'comparacao', nivel:'aviso', re:/\b(o\s+melhor|a\s+melhor|melhor\s+que|mais\s+barato\s+que|o\s+mais\s+barato|n[ºo°]\s*1\b|#1\b|\bl[íi]der\s+em\b)\b/i,
+      oq:'compara ou se autoproclama superior',
+      norma:'CDC, art. 37 §1º, e norma do conselho quando houver',
+      porq:'Superlativo sem prova é enganoso, e quase todo conselho profissional veda autoengrandecimento e comparação.' },
   ];
-  function conselhoDe(c){
-    const v = String((c && c.vertical) || '').toLowerCase();
-    const achou = REGULADAS.find(([chave]) => v.includes(chave));
-    return achou ? achou[1] : null;
+
+  // Cada pacote diz a norma que aplica, quando foi conferida e por quem. A data
+  // é obrigatória e aparece na tela: regra desatualizada é pior que regra
+  // nenhuma, porque cria confiança falsa.
+  const PACOTES_REGRA = [
+    {
+      id:'odonto', nome:'Odontologia', conselho:'CRO',
+      casa:['odonto','dentist','dental','ortodont','implantod','endodont','periodont','harmoniza[çc][ãa]o orofacial'],
+      conferido_em:'2026-09-16', revisado_por:null,
+      normas:[
+        ['Código de Ética Odontológica — Res. CFO-118/2012, com a redação dada pela Res. CFO-271/2025',
+         'https://website.cfo.org.br/codigos/'],
+        ['Res. CFO-196/2019 — selfies e imagens de diagnóstico e conclusão',
+         'https://sistemas.cfo.org.br/visualizar/atos/RESOLU%C3%87%C3%83O/SEC/2019/196'],
+        ['Res. CFO-230/2020, art. 2º — procedimentos não odontológicos',
+         'https://sistemas.cfo.org.br/visualizar/atos/RESOLU%C3%87%C3%83O/SEC/2020/230'],
+        ['Lei 5.081/1966, art. 7º', 'https://www.planalto.gov.br/ccivil_03/leis/l5081.htm'],
+      ],
+      nota:'Cuidado com duas armadilhas. A Res. CFO-271/2025 tirou "desconto" do art. 20, VIII '
+        + 'em cumprimento a decisão do CADE — mas o art. 44, I e o art. 7º "g" da Lei 5.081/66 '
+        + 'continuam vigentes, e resolução não revoga lei federal: preço e desconto seguem sendo '
+        + 'risco. E o PDF do Código de Ética publicado no site do CFO ainda traz a redação antiga.',
+      regras:[
+        { id:'od-preco', nivel:'grave', re:/(R\$\s*\d|\b\d+\s*reais\b|a\s+partir\s+de\s+R?\$)/i,
+          oq:'divulga preço',
+          norma:'CEO art. 44, I e Lei 5.081/1966, art. 7º, "g"',
+          porq:'A lei veda anunciar preços e modalidades de pagamento que signifiquem competição desleal. '
+            + 'O CADE derrubou a restrição a descontos, mas não tocou nesses dois dispositivos.' },
+        { id:'od-parcela', nivel:'grave', re:/(\b\d+\s*x\s*(de|sem\s+juros)|parcel(a|ado|amos|amento)|sem\s+juros|\bboleto\b|\bpix\b)/i,
+          oq:'divulga forma de pagamento',
+          norma:'CEO art. 44, I e Lei 5.081/1966, art. 7º, "g"',
+          porq:'Modalidade de pagamento entra na mesma vedação do preço.' },
+        { id:'od-gratis', nivel:'grave', re:/(\bgr[áa]tis\b|gratuit[oa]|sem\s+compromisso|avalia[çc][ãa]o\s+gratuita|primeira\s+consulta\s+gr)/i,
+          oq:'oferece serviço ou avaliação gratuita',
+          norma:'CEO art. 20, I e IX',
+          porq:'Vedado oferecer serviços gratuitos a quem possa remunerá-los, e divulgar consultas ou diagnósticos gratuitos.' },
+        { id:'od-sorteio', nivel:'grave', re:/(\bsorteio\b|\bsorteand|\bconcurso\b|\bbrinde\b|\bpr[êe]mio\b|vale[\s-]?presente|gift\s?card)/i,
+          oq:'usa sorteio, concurso, brinde ou prêmio',
+          norma:'CEO art. 20, II e VIII (redação da Res. CFO-271/2025) e art. 44, X',
+          porq:'A Res. 271/2025 incluiu "sorteios" expressamente na vedação do art. 20, VIII.' },
+        { id:'od-indica', nivel:'grave', re:/(indique\s+(um\s+)?amig|indica[çc][ãa]o\s+premiada|ganhe\b.{0,24}indica|em\s+troca\s+de)/i,
+          oq:'oferece vantagem por indicação',
+          norma:'CEO art. 20, III e art. 44, IX',
+          porq:'Vedado dar gratificação por encaminhamento de paciente e promover troca de favores.' },
+        { id:'od-popular', nivel:'grave', re:/((odontologia|cl[íi]nica|dentista|consult[óo]rio|pre[çc]o|valor)\s+popular|popular\s+(em|na|no)\b)/i,
+          oq:'usa a expressão "popular"',
+          norma:'CEO art. 44, VII',
+          porq:'O artigo cita a expressão "popular" nominalmente como caracterização de concorrência desleal.' },
+        { id:'od-durante', nivel:'grave', re:/(bastidor|durante\s+o\s+procedimento|time[\s-]?lapse|\bao\s+vivo\s+da\s+cadeira)/i,
+          oq:'mostra o transcurso do procedimento',
+          norma:'Res. CFO-196/2019, art. 3º',
+          porq:'A divulgação de imagem ou vídeo do transcurso do procedimento é proibida fora de publicação científica.' },
+        { id:'od-naoodonto', nivel:'grave',
+          re:/(micropigmenta[çc][ãa]o|maquiagem\s+definitiva|design\s+de\s+sobrancelha|remo[çc][ãa]o\s+de\s+tatuagem|rejuvenescimento\s+de\s+(colo|m[ãa]os)|calv[íi]cie)/i,
+          oq:'anuncia procedimento não odontológico',
+          norma:'Res. CFO-230/2020, art. 2º',
+          porq:'A resolução lista esses procedimentos como alheios à formação em Odontologia.' },
+        { id:'od-falapreco', nivel:'indicio', re:/\b(pre[çc]o|valor\s+do\s+tratamento|quanto\s+custa|investimento)\b/i,
+          oq:'fala em preço sem anunciar valor',
+          norma:'CEO art. 44, I e Lei 5.081/1966, art. 7º, "g"',
+          condicao:'Explicar como se forma o custo de um tratamento é conteúdo. Anunciar valor, desconto ou '
+            + 'forma de pagamento é o que a norma veda. A diferença está em haver ou não um número e uma oferta.',
+          porq:'Aqui a máquina só viu a palavra; quem decide se virou anúncio de preço é você.' },
+        { id:'od-exclusivo', nivel:'aviso', re:/\b(t[ée]cnica|tecnologia|aparelho|equipamento)\b.{0,30}\b(exclusiv|[úu]nic|in[ée]dit|pioneir|revolucion)/i,
+          oq:'anuncia técnica ou equipamento como exclusivo',
+          norma:'CEO art. 44, III',
+          porq:'Só se pode anunciar técnica comprovada cientificamente e equipamento com registro validado.' },
+        // --- indícios
+        { id:'od-antesdepois', nivel:'indicio', re:/(antes\s+e\s+depois|#antesedepois|\bantes\b.{0,18}\bdepois\b)/i,
+          oq:'usa antes e depois',
+          norma:'Res. CFO-196/2019, arts. 2º, 3º e 4º',
+          condicao:'Só é lícito com todas estas: imagem do diagnóstico e da CONCLUSÃO (nunca do durante); '
+            + 'publicada pelo próprio dentista que executou; com TCLE assinado antes; com nome e número de inscrição na peça; '
+            + 'e sem promessa de resultado, sensacionalismo ou autopromoção.',
+          porq:'Publicar fora dessas condições é infração de MANIFESTA GRAVIDADE pelo art. 5º da mesma resolução, '
+            + 'o que pula a gradação de penas e pode ir direto a pena severa.' },
+        { id:'od-selfie', nivel:'indicio', re:/(selfie|\bcom\s+a\s+paciente\b|\bcom\s+o\s+paciente\b)/i,
+          oq:'mostra paciente na peça',
+          norma:'Res. CFO-196/2019, art. 1º e § 1º',
+          condicao:'Precisa de TCLE prévio, e a imagem não pode permitir identificar equipamentos, instrumentais, '
+            + 'materiais ou tecidos biológicos.',
+          porq:'A selfie com paciente é permitida, mas o § 1º proíbe o que aparece atrás dela.' },
+        { id:'od-depoimento', nivel:'indicio', re:/(depoimento|\bavalia[çc][ãa]o\s+d[eo]\s+paciente|\breview\b|\bdeu\s+super\s+certo\b)/i,
+          oq:'usa depoimento de paciente',
+          norma:'Lei 5.081/1966, art. 7º, "f" e CEO art. 44, VI',
+          condicao:'A lei veda "divulgar benefícios recebidos de clientes". Relato educativo sem apelo comercial é '
+            + 'outra coisa; depoimento elogioso em peça de venda tende a ser infração.',
+          porq:'A diferença está no propósito da peça, que nenhum programa julga.' },
+        { id:'od-especialista', nivel:'indicio', re:/\b(especialistas?\s+em|sou\s+especialista|especializad[oa]s?\s+em)\b/i,
+          oq:'anuncia especialidade',
+          norma:'CEO arts. 24 e 44, II',
+          condicao:'Só pode quem tem a especialidade inscrita no CRO da jurisdição — o certificado do curso não basta. '
+            + 'E a Lei 5.081/66, art. 7º, "c" limita a duas especialidades.',
+          porq:'A ferramenta não tem como conferir o registro; quem confere é você.' },
+      ],
+      confirme:[
+        'Existe TCLE assinado do paciente (ou do representante legal) autorizando ESTA publicação, antes de publicar?',
+        'O TCLE cobre este canal específico (Instagram, site, anúncio pago)?',
+        'Quem publica é o próprio dentista que executou o procedimento? (caso clínico de terceiro é vedado — Res. 196/2019, art. 4º)',
+        'A foto "depois" é da conclusão do tratamento, e não de uma etapa intermediária?',
+        'A especialidade anunciada está inscrita no CRO da jurisdição?',
+        'O responsável técnico foi informado por escrito sobre a peça? (CEO art. 33)',
+        'A peça soa como esclarecimento ao público, ou como captação comercial?',
+      ],
+    },
+
+    {
+      id:'edfisica', nome:'Educação física', conselho:'CREF',
+      casa:['educa[çc][ãa]o f[íi]sica','personal','treinador','academia','pilates','crossfit','treino funcional'],
+      conferido_em:'2026-09-16', revisado_por:null,
+      normas:[
+        ['Resolução CONFEF nº 508/2023 — Código de Ética dos Profissionais de Educação Física', ''],
+      ],
+      nota:'A 508/2023 substituiu a 307/2015. Boa parte do que circula na internet ainda cita a 307 — '
+        + 'se alguém trouxer análise baseada nela, está desatualizada.',
+      regras:[
+        { id:'ef-semtecnica', nivel:'grave',
+          re:/(queim\w+|elimin\w+|secar?|perde?r?)\s+(a\s+)?gordura\s+localizada/i,
+          oq:'afirma queima de gordura localizada',
+          norma:'CONFEF 508/2023, art. 5º, XVII',
+          porq:'É afirmação sem base técnica defensável, e o artigo veda conteúdo tecnicamente infundado '
+            + 'que possa trazer dano ao beneficiário e à profissão.' },
+        { id:'ef-aviltamento', nivel:'aviso', re:/(\bmais\s+barato\b|\bmenor\s+pre[çc]o\b|metade\s+do\s+pre[çc]o|\bpromo[çc][ãa]o\b)/i,
+          oq:'usa preço como argumento contra concorrente',
+          norma:'CONFEF 508/2023, art. 10, § 2º',
+          porq:'Vedado disputar serviços mediante aviltamento de honorários ou concorrência desleal.' },
+        { id:'ef-depoimento', nivel:'indicio', re:/(antes\s+e\s+depois|#antesedepois|depoimento|\baluno\s+relata\b)/i,
+          oq:'usa antes e depois ou depoimento de aluno',
+          norma:'CONFEF 508/2023, art. 5º, XVII, e CDC',
+          condicao:'O Código não tem artigo que proíba o formato. Fica lícito com autorização de imagem, '
+            + 'contexto honesto, e sem nenhuma promessa de prazo, número ou garantia junto.',
+          porq:'A pesquisa do Bloco C é explícita: o que viola com folga é "emagreça 10kg em 30 dias", não o formato em si.' },
+      ],
+      confirme:[
+        'Existe autorização de imagem assinada do aluno que aparece na peça?',
+        'O registro no CREF está ativo na jurisdição onde a peça circula?',
+        'O que é afirmado tem base técnica que você conseguiria defender por escrito ao conselho?',
+      ],
+    },
+
+    {
+      id:'direito', nome:'Advocacia', conselho:'OAB',
+      casa:['advoc','advogad','direito','jur[íi]dic','escrit[óo]rio de advocacia'],
+      conferido_em:'2026-09-16', revisado_por:null,
+      normas:[
+        ['Provimento CFOAB nº 205/2021 — publicidade e marketing jurídico',
+         'https://www.oab.org.br/leisnormas/legislacao/provimentos/205-2021'],
+        ['Código de Ética e Disciplina da OAB — Resolução CFOAB 02/2015',
+         'https://www.oab.org.br/leisnormas/legislacao/resolucoes/02-2015'],
+        ['Lei 8.906/1994 — Estatuto da Advocacia', 'https://www.planalto.gov.br/ccivil_03/leis/l8906.htm'],
+      ],
+      nota:'O Provimento 205/2021 continua vigente (conferido em 16/09/2026). A OAB anunciou em 08/12/2025 '
+        + 'que a atualização está em "fase final", descrita por ela como ajuste e não reforma — mas nada foi '
+        + 'publicado. Quando sair, estas regras precisam ser reconferidas artigo por artigo.',
+      regras:[
+        { id:'oab-cta', nivel:'grave',
+          re:/(contrate\s+(nossos?|meus?)|me\s+contrate|procure\s+seus\s+direitos\s+aqui|foi\s+lesad|clique\s+e\s+processe|n[ãa]o\s+perca\s+seu\s+direito|acione\s+agora)/i,
+          oq:'chama para contratação ou para litigar',
+          norma:'Provimento 205/2021, art. 3º, § 1º; Cartilha do Comitê Regulador do Marketing Jurídico (CFOAB, 2024)',
+          porq:'A cartilha oficial do CFOAB lista essas expressões nominalmente como vedadas. '
+            + 'O clique precisa levar a conteúdo informativo, sem induzir ao acionamento.' },
+        { id:'oab-gratis', nivel:'grave',
+          re:/(consulta\s+gr[áa]tis|consulta\s+gratuita|an[áa]lise\s+gr[áa]tis|avalia[çc][ãa]o\s+gratuita|s[óo]\s+pague\s+se\s+ganhar|sem\s+ganho.{0,12}sem\s+honor[áa]rio)/i,
+          oq:'oferece gratuidade ou êxito condicionado',
+          norma:'Provimento 205/2021, art. 3º, I; CED art. 30, § 3º',
+          porq:'Vedada referência a gratuidade como forma de captação. A advocacia pro bono não pode servir de publicidade.' },
+        { id:'oab-preco', nivel:'grave', re:/(R\$\s*\d|\bhonor[áa]rios?\s+a\s+partir|\bdesconto\b|\bpromo[çc][ãa]o\b|parcel(a|amos|ado))/i,
+          oq:'divulga valor, desconto ou forma de pagamento',
+          norma:'Provimento 205/2021, art. 3º, I',
+          porq:'Vedada referência, direta ou indireta, a valores, forma de pagamento, gratuidade ou desconto como forma de captação.' },
+        { id:'oab-resultado', nivel:'grave',
+          re:/(garantia\s+de\s+[êe]xito|ganho\s+garantido|\bvamos\s+ganhar\b|voc[êe]\s+vai\s+receber|especialistas?\s+em\s+ganhar)/i,
+          oq:'promete resultado ou êxito',
+          norma:'Provimento 205/2021, art. 6º e parágrafo único',
+          porq:'Vedada a menção a promessa de resultados em qualquer publicidade.' },
+        { id:'oab-caso', nivel:'grave',
+          re:/(mais\s+uma\s+vit[óo]ria|ganhamos\s+(a|mais)|senten[çc]a\s+favor[áa]vel|decis[ãa]o\s+favor[áa]vel|\b[êe]xito\s+no\s+processo)/i,
+          oq:'divulga resultado de processo',
+          norma:'Provimento 205/2021, art. 4º, § 2º e art. 5º, § 3º',
+          porq:'Vedada a menção a decisões e resultados obtidos em procedimentos que patrocina. '
+            + 'A única exceção é manifestação espontânea em caso já coberto pela mídia.' },
+        { id:'oab-ostenta', nivel:'grave',
+          re:/(maior\s+escrit[óo]rio|\b\d+\s+advogad[oa]s\b|\b\d+\s+filiais\b|nossa\s+sede|jatinho|carro\s+de\s+luxo)/i,
+          oq:'ostenta estrutura ou bens',
+          norma:'Provimento 205/2021, art. 6º, caput e parágrafo único',
+          porq:'Vedada informação sobre dimensões, qualidades ou estrutura física do escritório, e ostentação de bens.' },
+        { id:'oab-clientes', nivel:'grave', re:/(nossos\s+clientes\s+incluem|atendemos\s+a\s+empresa|carteira\s+de\s+clientes)/i,
+          oq:'divulga clientes',
+          norma:'CED art. 42, IV',
+          porq:'Vedado divulgar listas de clientes e demandas.' },
+        // --- indícios
+        { id:'oab-especialista', nivel:'indicio', re:/\b(especialistas?\s+em|especializad[oa]s?\s+em|expert\s+em)\b/i,
+          oq:'anuncia especialidade',
+          norma:'Provimento 205/2021, art. 3º, III; Lei 8.906/94, art. 3º-A, parágrafo único',
+          condicao:'"Especialista" não é palavra proibida. É lícita se houver título certificado ou notória '
+            + 'especialização no sentido do art. 3º-A. O que reprova é o uso sem lastro.',
+          porq:'A ferramenta não confere diploma; quem confere é você, e a OAB pode exigir a prova.' },
+        { id:'oab-impulsiona', nivel:'indicio', re:/(impulsion|patrocinad|an[úu]ncio\s+pago|google\s+ads|meta\s+ads)/i,
+          oq:'é anúncio pago',
+          norma:'Provimento 205/2021, arts. 4º e 5º; Anexo Único',
+          condicao:'Anúncio pago é PERMITIDO. Fica ilícito se o criativo ofertar serviço em vez de informar, '
+            + 'ou se o meio for vedado pelo art. 40 do CED (rádio, cinema, TV, outdoor). No Google Ads, '
+            + 'só responsivo a busca do usuário, e nada de anúncio ostensivo em plataforma de vídeo.',
+          porq:'É a regra mais mal compreendida do mercado jurídico: muita gente acha que impulsionar é proibido, '
+            + 'e quem impulsiona costuma errar no texto do criativo.' },
+        { id:'oab-caixinha', nivel:'indicio', re:/(caixinha\s+de\s+perguntas|tire\s+suas\s+d[úu]vidas|responda?ndo\s+d[úu]vidas)/i,
+          oq:'responde consultas do público',
+          norma:'CED art. 42, I',
+          condicao:'Propagar conteúdo jurídico é permitido. Responder consulta COM HABITUALIDADE nos meios de '
+            + 'comunicação é vedado. A fronteira é a frequência e o grau de individualização da resposta.',
+          porq:'É o formato que mais cresce em rede social e o que mais se aproxima da vedação.' },
+        { id:'oab-disparo', nivel:'indicio', re:/(mala\s+direta|disparo\s+em\s+massa|lista\s+de\s+transmiss[ãa]o|newsletter)/i,
+          oq:'envia comunicação em massa',
+          norma:'CED art. 40, VI e art. 46, parágrafo único; Anexo Único do Prov. 205/2021',
+          condicao:'Só é lícito para clientes, pessoas do relacionamento, ou quem autorizou antes — e sem oferecer serviço. '
+            + 'Disparo para lista fria é mala direta, e é vedado.',
+          porq:'A origem da lista é o que decide, e ela não está no texto da peça.' },
+      ],
+      confirme:[
+        'A peça traz nome do advogado ou da sociedade e o número de inscrição na OAB?',
+        'Se cita título ("Dr.", mestre, pós-graduado), você consegue comprovar à OAB se for solicitado?',
+        'Se é anúncio pago: o criativo informa, em vez de ofertar serviço?',
+        'Se menciona um caso: ele já era público na imprensa e a manifestação foi espontânea? (o sigilo é de ordem pública — autorização do cliente NÃO libera)',
+        'O tom da peça é sóbrio e discreto, ou soa como captação?',
+      ],
+    },
+  ];
+
+  const PACOTE_GENERICO = {
+    id:'generico', nome:'Sem conselho profissional', conselho:null,
+    conferido_em:'2026-09-16', revisado_por:null, normas:[], regras:[], confirme:[],
+  };
+
+  function pacoteDe(cliente){
+    const v = String((cliente && cliente.vertical) || '').toLowerCase();
+    if(!v) return PACOTE_GENERICO;
+    return PACOTES_REGRA.find(p => p.casa.some(c => new RegExp(c, 'i').test(v))) || PACOTE_GENERICO;
   }
+  const conselhoDe = c => (pacoteDe(c).conselho || null);
 
-  // Nada aqui é opinião sobre o texto: é uma lista de padrões que a pesquisa
-  // aponta como risco. "Grave" é o que viola norma com folga; "aviso" é o que
-  // depende de como for feito. O Bloco C é explícito: antes e depois honesto,
-  // com autorização e sem prazo, não viola artigo nenhum que a gente tenha
-  // achado — o que viola é "emagreça 10kg em 30 dias".
-  const REGRAS_TEXTO = [
-    { re:/\bgarant(o|e|ia|ido|idos|ida|idas)\b/i, nivel:'grave', oq:'promete resultado garantido',
-      porq:'Resultado garantido é afirmação sem lastro e cai no Art. 5º XVII do Código de Ética, além do CDC.' },
-    { re:/\bem\s+\d+\s*(dias?|semanas?|mes(es)?)\b/i, nivel:'grave', oq:'promete prazo',
-      porq:'Prazo de resultado é o exemplo que a pesquisa dá de violação com folga.' },
-    { re:/\b\d+\s*(kg|quilos?|cm|centímetros?)\b/i, nivel:'grave', oq:'promete número',
-      porq:'Número prometido é promessa de resultado, mesmo sem a palavra "garantia".' },
-    { re:/(queim\w+|elimin\w+|secar?)\s+(a\s+)?gordura\s+localizada/i, nivel:'grave',
-      oq:'afirma queima de gordura localizada',
-      porq:'É o exemplo de afirmação sem base técnica citado no Bloco C.' },
-    { re:/\b(cura|curar|tratamento definitivo|milagr\w+)\b/i, nivel:'grave', oq:'fala em cura',
-      porq:'Cura é termo de saúde e exige lastro que uma peça de rede social não tem.' },
-    { re:/\bantes e depois\b/i, nivel:'aviso', oq:'usa antes e depois',
-      porq:'Não é proibido por artigo: precisa de autorização de imagem, contexto, e nenhum prazo ou garantia junto.' },
-    { re:/\bdepoimento\b/i, nivel:'aviso', oq:'usa depoimento',
-      porq:'Mesma régua do antes e depois: autorização e nada de prazo ou número.' },
-    { re:/\b(o melhor|a melhor|melhor que|mais barato que|o mais barato)\b/i, nivel:'aviso',
-      oq:'compara com concorrente',
-      porq:'Art. 10 § 2º veda aviltamento de honorários e concorrência desleal.' },
-  ];
-
+  // Roda as regras do pacote sobre o texto. Devolve três listas separadas, e
+  // elas NÃO se misturam na tela: misturar "isto é infração" com "isto depende"
+  // é exatamente o erro que faz ferramenta de conformidade perder a confiança.
   function checarTexto(texto, cliente){
     const t = String(texto || '');
-    const achados = [];
-    REGRAS_TEXTO.forEach(r=>{
+    const pac = pacoteDe(cliente);
+    const barra = [], confira = [];
+    const rodar = r => {
       const m = t.match(r.re);
-      if(m) achados.push({ nivel:r.nivel, oq:r.oq, porq:r.porq, trecho:m[0] });
-    });
-    // Conformidade já registrada na ficha do cliente, para não repetir aviso
-    // sobre o que já tem veredito escrito.
-    const barrados = cliente
-      ? (state.tudo.conformidade || []).filter(x => x.cliente_id === cliente.id && x.status === 'nao_conforme')
-      : [];
-    barrados.forEach(x => achados.push({ nivel:'grave', oq:'ficha marca "não pode publicar": ' + x.item,
-      porq:(x.norma ? x.norma + '. ' : '') + 'Isso está registrado na aba Conformidade dele.', trecho:'' }));
-    return achados;
+      if(!m) return;
+      const achado = { id:r.id, oq:r.oq, norma:r.norma, porq:r.porq,
+        condicao:r.condicao || null, trecho:m[0] };
+      if(r.nivel === 'indicio') confira.push(achado);
+      else if(r.nivel === 'grave') barra.push(Object.assign({ nivel:'grave' }, achado));
+      else confira.push(Object.assign({ nivel:'aviso' }, achado));
+    };
+    REGRAS_BASE.forEach(rodar);
+    pac.regras.forEach(rodar);
+
+    // O que a ficha do cliente já decidiu não se discute de novo.
+    if(cliente) (state.tudo.conformidade || [])
+      .filter(x => x.cliente_id === cliente.id && x.status === 'nao_conforme')
+      .forEach(x => barra.push({ id:'ficha-' + x.id, nivel:'grave',
+        oq:'a ficha marca "não pode publicar": ' + x.item,
+        norma:x.norma || 'registrado na aba Conformidade deste cliente',
+        porq:'Alguém já analisou este item e concluiu que não pode ir ao ar.', trecho:'' }));
+
+    return { pacote:pac, barra, confira };
   }
 
-  function blocoConformidade(texto, cliente, assinatura){
-    const achados = checarTexto(texto, cliente);
+  // Compatibilidade: o resto da Central ainda chama isso esperando uma lista só.
+  const achadosGraves = (texto, cliente) => checarTexto(texto, cliente).barra;
+
+  function blocoConformidade(texto, cliente, assinatura, opts){
+    opts = opts || {};
+    const r = checarTexto(texto, cliente);
+    const pac = r.pacote;
     const valeAssinatura = assinatura !== false;
-    const conselho = valeAssinatura ? conselhoDe(cliente) : null;
     const box = el('div',{class:'confere'});
-    if(conselho && !String(assinatura || '').trim()){
-      achados.unshift({ nivel:'grave', oq:'sem o registro ' + conselho + ' na peça',
-        porq:'Profissão com conselho exige nome e número do registro na publicidade digital. '
-          + 'Preencha na ficha do cliente e a assinatura entra sozinha em toda peça.', trecho:'' });
+
+    // Falta o registro profissional na peça: é o item mais ignorado do mercado
+    // e o único que a ferramenta consegue garantir sozinha.
+    if(pac.conselho && valeAssinatura && !String(assinatura || '').trim()){
+      r.barra.unshift({ id:'sem-registro', nivel:'grave',
+        oq:'a peça vai sem o registro ' + pac.conselho,
+        norma: pac.id === 'edfisica' ? 'Resolução CONFEF 508/2023, art. 4º'
+          : pac.id === 'odonto' ? 'CEO art. 43 e Res. CFO-196/2019, art. 4º'
+          : 'CED art. 44',
+        porq:'Profissão com conselho exige nome e número de registro na publicidade. '
+          + 'Preencha na ficha do cliente e a assinatura entra sozinha em toda peça nova.', trecho:'' });
     }
-    if(!achados.length){
-      box.appendChild(el('p',{class:'dica', style:'margin:0'},
-        conselho ? 'Nada apanhado, e a assinatura ' + conselho + ' está na peça.'
-          : (valeAssinatura ? 'Nada apanhado pela conferência.'
-             : 'Nada apanhado no texto. A assinatura do conselho é conferida na peça que for ao ar.')));
-      return { box, achados };
+
+    // --- cabeçalho do pacote: qual norma, conferida quando, e por quem não foi
+    if(pac.conselho){
+      const cab = el('div',{class:'pac'});
+      cab.appendChild(el('p',{class:'rot laranja', style:'margin:0 0 6px'},
+        esc(pac.nome + ' · ' + pac.conselho)));
+      const lista = el('p',{class:'dica', style:'margin:0'});
+      lista.innerHTML = 'Conferido contra: '
+        + pac.normas.map(([nome, url]) => url
+            ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(nome) + '</a>'
+            : esc(nome)).join(' · ')
+        + '. <b>Regras verificadas em ' + esc(soData(pac.conferido_em)) + '.</b>';
+      cab.appendChild(lista);
+      if(pac.nota) cab.appendChild(el('p',{class:'dica', style:'margin:8px 0 0'}, esc(pac.nota)));
+      if(!pac.revisado_por) cab.appendChild(el('p',{class:'aviso-conf aviso', style:'margin:10px 0 0'},
+        'Este pacote de regras ainda não passou por revisão de advogado. '
+        + 'Ele aponta o artigo e o trecho; ele não substitui parecer.'));
+      box.appendChild(cab);
     }
-    achados.forEach(a=>{
-      const l = el('p',{class:'aviso-conf ' + a.nivel});
-      l.innerHTML = '<b>' + esc(a.nivel === 'grave' ? 'Não publique assim' : 'Confira antes') + '</b> — '
-        + esc(a.oq) + (a.trecho ? ' (“' + esc(a.trecho) + '”)' : '') + '. ' + esc(a.porq);
-      box.appendChild(l);
-    });
-    return { box, achados };
+
+    // --- 1. o que a máquina decide
+    if(r.barra.length){
+      box.appendChild(el('p',{class:'rot', style:'margin:18px 0 8px'},'Não publique assim'));
+      r.barra.forEach(a=>{
+        const l = el('p',{class:'aviso-conf grave'});
+        l.innerHTML = '<b>' + esc(a.oq) + '</b>'
+          + (a.trecho ? ' — “' + esc(a.trecho) + '”' : '')
+          + '<br><span class="norma">' + esc(a.norma) + '</span> ' + esc(a.porq);
+        box.appendChild(l);
+      });
+    }
+
+    // --- 2. o que depende de um fato que a máquina não alcança
+    if(r.confira.length){
+      box.appendChild(el('p',{class:'rot', style:'margin:18px 0 8px'},'Depende de você'));
+      r.confira.forEach(a=>{
+        const l = el('p',{class:'aviso-conf aviso'});
+        l.innerHTML = '<b>' + esc(a.oq) + '</b>'
+          + (a.trecho ? ' — “' + esc(a.trecho) + '”' : '')
+          + '<br><span class="norma">' + esc(a.norma) + '</span> '
+          + esc(a.condicao || a.porq);
+        box.appendChild(l);
+      });
+    }
+
+    if(!r.barra.length && !r.confira.length){
+      box.appendChild(el('p',{class:'dica', style:'margin:14px 0 0'},
+        pac.conselho
+          ? 'Nada apanhado no texto, e a assinatura ' + pac.conselho + ' está na peça.'
+          : 'Nada apanhado no texto.'));
+    }
+
+    // --- 3. o que só a pessoa sabe. Fica guardado com a peça, e é isso que
+    //        vira a linha do relatório que a agência anexa na proposta.
+    if(pac.confirme.length && opts.dados){
+      const conf = opts.dados.conformidade = opts.dados.conformidade || { respostas:{} };
+      conf.pacote = pac.id;
+      conf.respostas = conf.respostas || {};
+      const cx = el('div',{class:'confirme'});
+      cx.appendChild(el('p',{class:'rot', style:'margin:18px 0 4px'},'Confirme antes de publicar'));
+      cx.appendChild(el('p',{class:'dica', style:'margin:0 0 10px'},
+        'Nenhum programa responde isto. O que você marcar fica guardado com a peça, com a data.'));
+      pac.confirme.forEach((pergunta, i)=>{
+        const chave = pac.id + '-' + i;
+        const lin = el('label',{class:'item-confirme'});
+        const cb = el('input',{type:'checkbox'});
+        cb.checked = !!conf.respostas[chave];
+        cb.addEventListener('change', ()=>{
+          if(cb.checked) conf.respostas[chave] = new Date().toISOString();
+          else delete conf.respostas[chave];
+          if(opts.aoMudar) opts.aoMudar();
+        });
+        lin.appendChild(cb);
+        lin.appendChild(el('span',{}, esc(pergunta)));
+        cx.appendChild(lin);
+      });
+      const faltam = pac.confirme.length - Object.keys(conf.respostas).length;
+      cx.appendChild(el('p',{class:'dica', style:'margin:10px 0 0'},
+        faltam ? faltam + (faltam === 1 ? ' pergunta sem resposta.' : ' perguntas sem resposta.')
+               : 'Todas respondidas.'));
+      box.appendChild(cx);
+    }
+
+    return { box, achados:r.barra, confira:r.confira, pacote:pac };
   }
 
   // ---------- desenho da peça ----------
@@ -4310,32 +4831,473 @@
     return d;
   }
 
+  // ---------- layouts de slide ----------
+
+  // Um layout é um arranjo pronto: onde entra o título, onde entra a foto, o
+  // que fica grande e o que fica pequeno. É a diferença entre "editor onde dá
+  // pra mexer em tudo" e "estúdio onde a peça sai rápido" — e é também o que
+  // faz o perfil do cliente parecer um perfil só, porque a repetição do
+  // arranjo é o que o olho reconhece de longe.
+  //
+  // Aplicar um layout NÃO apaga o que já está escrito: o texto que existe é
+  // encaixado nos lugares do arranjo novo, pelo papel de cada um.
+
+  // Empilha uma lista de elementos de texto medindo cada um, e devolve a altura
+  // total. `base` diz onde o bloco assenta: 'baixo' encosta no rodapé (cartaz),
+  // 'meio' centra no miolo, 'cima' começa no topo.
+  function empilhar(els, caixa){
+    const g = contextoDeMedida();
+    const espaco = caixa.base - caixa.topo;
+    const tamOriginal = els.map(e => e.tam);
+    const vaoOriginal = els.map(e => e._vao == null ? 28 : e._vao);
+    const medir = ()=>{
+      const alturas = els.map(e => e.tipo === 'texto' ? medirTexto(g, e).altura : e.h);
+      let total = alturas.reduce((h, x) => h + x, 0);
+      els.forEach((e, i)=>{ if(i < els.length - 1) total += (e._vao == null ? 28 : e._vao); });
+      return { alturas, total };
+    };
+    let m = medir();
+    // Não coube: encolhe o conjunto inteiro até caber, com piso. Encolher junto
+    // preserva a hierarquia entre título e apoio; encolher só o que estourou
+    // destrói a hierarquia, que é o que a peça tem de mais valioso.
+    let escala = 1, voltas = 0;
+    while(m.total > espaco && escala > 0.66 && voltas++ < 16){
+      escala -= 0.04;
+      els.forEach((e, i)=>{
+        if(e.tipo === 'texto') e.tam = Math.max(16, Math.round(tamOriginal[i] * escala));
+        e._vao = Math.round(vaoOriginal[i] * escala);
+      });
+      m = medir();
+    }
+    let y = caixa.topo;
+    if(caixa.modo === 'baixo') y = caixa.base - m.total;
+    else if(caixa.modo === 'meio') y = caixa.topo + Math.max(0, (espaco - m.total) / 2);
+    y = Math.max(caixa.topo, y);
+    els.forEach((e, i)=>{
+      e.y = Math.round(y);
+      y += m.alturas[i] + (e._vao == null ? 28 : e._vao);
+      delete e._vao;
+    });
+    return m.total;
+  }
+
+  // O que já está no slide, pra não se perder na troca de layout.
+  function conteudoDoSlide(slide){
+    const els = slide.elementos || [];
+    const txt = els.filter(x => x.tipo === 'texto');
+    const pegar = (papel, ordem) => {
+      const p = txt.find(x => x.papel === papel);
+      if(p) return String(p.txt || '');
+      const o = txt[ordem];
+      return o ? String(o.txt || '') : '';
+    };
+    return {
+      titulo: pegar('titulo', 0),
+      texto:  pegar('texto', 1),
+      kicker: pegar('kicker', -1),
+      numero: pegar('numero', -1),
+      fonteDado: pegar('fonteDado', -1),
+      itens: txt.filter(x => x.papel === 'item').map(x => String(x.txt || '')),
+      fotos: els.filter(x => x.tipo === 'imagem' && x.src).map(x => x.src),
+    };
+  }
+
+  // Os arranjos. Cada um recebe o contexto e devolve a lista de elementos, de
+  // trás pra frente (o primeiro é desenhado por baixo).
+  const LAYOUTS = [
+    {
+      k:'manchete', nome:'Manchete', d:'Título grande assentado embaixo, como cartaz. A capa que mais funciona.',
+      cabe:['capa','fim','conteudo'],
+      montar(c){
+        const els = [];
+        if(c.kicker || c.tipo === 'capa') els.push(elementoTexto({ papel:'kicker',
+          txt:c.kicker || 'CARROSSEL', x:c.m, w:c.larg, tam:passo(c.A, -2), fonte:'mono',
+          peso:700, caixa:'alta', cor:c.destaque, alinha:c.al, alt:1.2, _vao:Math.round(c.A*0.022) }));
+        els.push(elementoTexto({ papel:'titulo', txt:c.titulo || 'O título da capa',
+          x:c.m, w:c.larg, tam:passo(c.A, 5), fonte:'display', peso:700, alinha:c.al,
+          alt:1.05, _vao:Math.round(c.A*0.02) }));
+        if(c.texto) els.push(elementoTexto({ papel:'texto', txt:c.texto,
+          x:c.m, w:c.larg, tam:passo(c.A, 0), fonte:'corpo', peso:400, alinha:c.al, alt:1.35 }));
+        empilhar(els, { topo:c.topo, base:c.base, modo:'baixo' });
+        return els;
+      },
+    },
+    {
+      k:'fotoCheia', nome:'Foto cheia', d:'A foto ocupa tudo e o texto vem por cima, em branco.',
+      cabe:['capa','fim','conteudo'], querFundo:true,
+      montar(c){
+        const els = [];
+        els.push(elementoTexto({ papel:'kicker', txt:c.kicker || 'CARROSSEL',
+          x:c.m, w:c.larg, tam:passo(c.A, -2), fonte:'mono', peso:700, caixa:'alta',
+          cor:'#FFFFFF', opac:0.8, alinha:c.al, alt:1.2, _vao:Math.round(c.A*0.022) }));
+        els.push(elementoTexto({ papel:'titulo', txt:c.titulo || 'O título por cima da foto',
+          x:c.m, w:c.larg, tam:passo(c.A, 5), fonte:'display', peso:700, cor:'#FFFFFF',
+          alinha:c.al, alt:1.04, _vao:Math.round(c.A*0.018) }));
+        if(c.texto) els.push(elementoTexto({ papel:'texto', txt:c.texto, x:c.m, w:c.larg,
+          tam:passo(c.A, 0), fonte:'corpo', peso:400, cor:'#FFFFFF', opac:0.88,
+          alinha:c.al, alt:1.35 }));
+        empilhar(els, { topo:c.topo, base:c.base, modo:'baixo' });
+        return els;
+      },
+    },
+    {
+      k:'numero', nome:'Número gigante', d:'O "01" enorme em cima, título e texto embaixo. Pra lista de erros, passos, motivos.',
+      cabe:['conteudo'],
+      montar(c){
+        const els = [];
+        els.push(elementoTexto({ papel:'numero', txt:c.numero || c.ordem,
+          x:c.m, w:c.larg, tam:passo(c.A, 9), fonte:'impacto', peso:400,
+          cor:c.destaque, alinha:c.al, alt:0.95, _vao:Math.round(c.A*0.012) }));
+        els.push(elementoTexto({ papel:'titulo', txt:c.titulo || 'O ponto deste slide',
+          x:c.m, w:c.larg, tam:passo(c.A, 3), fonte:'display', peso:700, alinha:c.al,
+          alt:1.1, _vao:Math.round(c.A*0.018) }));
+        els.push(elementoTexto({ papel:'texto', txt:c.texto || 'O que explica o ponto, em duas ou três linhas.',
+          x:c.m, w:c.larg, tam:passo(c.A, 0), fonte:'corpo', peso:400, alinha:c.al, alt:1.4 }));
+        empilhar(els, { topo:c.topo, base:c.base, modo:'meio' });
+        return els;
+      },
+    },
+    {
+      k:'citacao', nome:'Citação', d:'Aspas grandes e a frase em serifada. Pra frase do cliente ou do dono do negócio.',
+      cabe:['conteudo','capa'],
+      montar(c){
+        const els = [];
+        // As aspas ficam soltas atrás: é ornamento, e por isso não entra na pilha.
+        els.push(elementoTexto({ papel:'ornamento', txt:'”', x:c.m - Math.round(c.L*0.012),
+          y:Math.round(c.A*0.16), w:c.larg, tam:passo(c.A, 10), fonte:'serif', peso:700,
+          cor:c.destaque, opac:0.22, alinha:'esq', alt:1 }));
+        const pilha = [];
+        pilha.push(elementoTexto({ papel:'titulo', txt:c.titulo || 'A frase que eles mesmos disseram.',
+          x:c.m, w:c.larg, tam:passo(c.A, 3), fonte:'serif', peso:400, alinha:c.al,
+          alt:1.3, _vao:Math.round(c.A*0.026) }));
+        pilha.push(elementoTexto({ papel:'texto', txt:c.texto || 'Quem disse',
+          x:c.m, w:c.larg, tam:passo(c.A, -2), fonte:'mono', peso:700, caixa:'alta',
+          cor:c.apoio, alinha:c.al, alt:1.3 }));
+        empilhar(pilha, { topo:c.topo + Math.round(c.A*0.06), base:c.base, modo:'meio' });
+        return els.concat(pilha);
+      },
+    },
+    {
+      k:'doisBlocos', nome:'Título e explicação', d:'Título em cima, um risco, texto embaixo. O arranjo mais neutro dos dez.',
+      cabe:['conteudo','fim'],
+      montar(c){
+        const els = [];
+        const pilha = [];
+        pilha.push(elementoTexto({ papel:'titulo', txt:c.titulo || 'O ponto',
+          x:c.m, w:c.larg, tam:passo(c.A, 3), fonte:'display', peso:700, alinha:c.al,
+          alt:1.12, _vao:Math.round(c.A*0.055) }));
+        pilha.push(elementoTexto({ papel:'texto', txt:c.texto || 'A explicação do ponto.',
+          x:c.m, w:c.larg, tam:passo(c.A, 0), fonte:'corpo', peso:400, alinha:c.al, alt:1.45 }));
+        empilhar(pilha, { topo:c.topo, base:c.base, modo:'meio' });
+        // O risco vai no meio do vão entre os dois, e o vão é largo de propósito:
+        // colado embaixo do título ele vira sublinhado, que é outra coisa.
+        const g = contextoDeMedida();
+        const altTit = medirTexto(g, pilha[0]).altura;
+        els.push(elementoForma({ papel:'risco', x:c.m, y:Math.round(pilha[0].y + altTit + c.A*0.024),
+          w:Math.round(c.L*0.11), h:Math.max(3, Math.round(c.A*0.0033)), cor:c.destaque }));
+        return els.concat(pilha);
+      },
+    },
+    {
+      k:'fotoETexto', nome:'Foto e texto', d:'Foto na metade de cima, texto embaixo. Pra mostrar o exercício, o produto, o lugar.',
+      cabe:['conteudo','capa'],
+      montar(c){
+        const els = [];
+        const altFoto = Math.round(c.A * 0.5);
+        els.push(elementoImagem(c.fotos[0] || null, { papel:'foto',
+          x:0, y:0, w:c.L, h:altFoto, ajuste:'cobrir', raio:0 }));
+        const pilha = [];
+        pilha.push(elementoTexto({ papel:'titulo', txt:c.titulo || 'O que a foto mostra',
+          x:c.m, w:c.larg, tam:passo(c.A, 2), fonte:'display', peso:700, alinha:c.al,
+          alt:1.12, _vao:Math.round(c.A*0.018) }));
+        pilha.push(elementoTexto({ papel:'texto', txt:c.texto || 'O que ela explica.',
+          x:c.m, w:c.larg, tam:passo(c.A, 0), fonte:'corpo', peso:400, alinha:c.al, alt:1.42 }));
+        empilhar(pilha, { topo:altFoto + Math.round(c.A*0.045), base:c.base, modo:'meio' });
+        return els.concat(pilha);
+      },
+    },
+    {
+      k:'lista', nome:'Lista de três', d:'Título e três linhas com marcador. Pra checklist, sintomas, o que levar.',
+      cabe:['conteudo'],
+      montar(c){
+        const els = [];
+        const tit = elementoTexto({ papel:'titulo', txt:c.titulo || 'Três coisas',
+          x:c.m, w:c.larg, tam:passo(c.A, 2), fonte:'display', peso:700, alinha:c.al, alt:1.12 });
+        empilhar([tit], { topo:c.topo, base:c.base, modo:'cima' });
+        els.push(tit);
+        const g = contextoDeMedida();
+        let y = tit.y + medirTexto(g, tit).altura + Math.round(c.A*0.045);
+        const recuo = Math.round(c.L*0.055);
+        const padrao = c.itens.length ? c.itens
+          : [c.texto || 'Primeiro item', 'Segundo item', 'Terceiro item'];
+        padrao.slice(0, 5).forEach(t=>{
+          const item = elementoTexto({ papel:'item', txt:t, x:c.m + recuo, y,
+            w:c.larg - recuo, tam:passo(c.A, 0), fonte:'corpo', peso:400, alinha:'esq', alt:1.38 });
+          const alt = medirTexto(g, item).altura;
+          els.push(elementoForma({ papel:'marcador', forma:'circulo',
+            x:c.m + Math.round(c.L*0.008), y:Math.round(y + c.A*0.009),
+            w:Math.round(c.L*0.016), h:Math.round(c.L*0.016), cor:c.destaque }));
+          els.push(item);
+          y += alt + Math.round(c.A*0.026);
+        });
+        return els;
+      },
+    },
+    {
+      k:'antesDepois', nome:'Antes e depois', d:'Duas fotos lado a lado com rótulo. A conferência avisa o que isso exige.',
+      cabe:['conteudo'],
+      montar(c){
+        const els = [];
+        const tit = elementoTexto({ papel:'titulo', txt:c.titulo || 'Antes e depois',
+          x:c.m, w:c.larg, tam:passo(c.A, 2), fonte:'display', peso:700, alinha:c.al, alt:1.12 });
+        empilhar([tit], { topo:c.topo, base:c.base, modo:'cima' });
+        els.push(tit);
+        const g = contextoDeMedida();
+        const yFoto = Math.round(tit.y + medirTexto(g, tit).altura + c.A*0.035);
+        const vao = Math.round(c.L*0.022);
+        const lFoto = Math.round((c.larg - vao) / 2);
+        const hFoto = Math.round(c.A*0.34);
+        [['Antes', 0], ['Depois', 1]].forEach(([rot, i])=>{
+          const x = c.m + i * (lFoto + vao);
+          els.push(elementoImagem(c.fotos[i] || null, { papel:'foto',
+            x, y:yFoto, w:lFoto, h:hFoto, ajuste:'cobrir', raio:Math.round(c.L*0.014) }));
+          els.push(elementoTexto({ papel:'rotulo', txt:rot, x, y:Math.round(yFoto + hFoto + c.A*0.014),
+            w:lFoto, tam:passo(c.A, -2), fonte:'mono', peso:700, caixa:'alta',
+            cor:c.apoio, alinha:'esq', alt:1.2 }));
+        });
+        if(c.texto) els.push(elementoTexto({ papel:'texto', txt:c.texto,
+          x:c.m, y:Math.round(yFoto + hFoto + c.A*0.06), w:c.larg,
+          tam:passo(c.A, -1), fonte:'corpo', peso:400, alinha:c.al, alt:1.4 }));
+        return els;
+      },
+    },
+    {
+      k:'dado', nome:'Um número', d:'O número enorme, o que ele é, e de onde saiu. A fonte é obrigatória no arranjo.',
+      cabe:['conteudo','capa'],
+      montar(c){
+        const els = [];
+        const pilha = [];
+        pilha.push(elementoTexto({ papel:'numero', txt:c.numero || c.titulo || '72%',
+          x:c.m, w:c.larg, tam:passo(c.A, 9), fonte:'impacto', peso:400, cor:c.destaque,
+          alinha:c.al, alt:0.95, _vao:Math.round(c.A*0.016) }));
+        pilha.push(elementoTexto({ papel:'texto', txt:c.texto || 'O que esse número quer dizer.',
+          x:c.m, w:c.larg, tam:passo(c.A, 1), fonte:'display', peso:700, alinha:c.al, alt:1.2 }));
+        empilhar(pilha, { topo:c.topo, base:c.base - Math.round(c.A*0.05), modo:'meio' });
+        els.push(...pilha);
+        els.push(elementoTexto({ papel:'fonteDado', txt:c.fonteDado || 'Fonte: escreva de onde saiu',
+          x:c.m, y:Math.round(c.base - c.A*0.018), w:c.larg, tam:passo(c.A, -3),
+          fonte:'mono', peso:400, cor:c.apoio, alinha:c.al, alt:1.2 }));
+        return els;
+      },
+    },
+    {
+      k:'chamada', nome:'Fecho com faixa', d:'Uma faixa colorida embaixo com a chamada em cima dela. Pro último slide.',
+      cabe:['fim','capa'],
+      montar(c){
+        const els = [];
+        const altFaixa = Math.round(c.A*0.34);
+        els.push(elementoForma({ papel:'faixa', x:0, y:c.A - altFaixa, w:c.L, h:altFaixa,
+          cor:c.destaque }));
+        const sobre = tintaSobre(c.destaque);
+        const pilha = [];
+        pilha.push(elementoTexto({ papel:'titulo', txt:c.titulo || 'Quer que a gente olhe o seu?',
+          x:c.m, w:c.larg, tam:passo(c.A, 3), fonte:'display', peso:700, cor:sobre,
+          alinha:c.al, alt:1.1, _vao:Math.round(c.A*0.016) }));
+        pilha.push(elementoTexto({ papel:'texto', txt:c.texto || 'Chama no direct.',
+          x:c.m, w:c.larg, tam:passo(c.A, 0), fonte:'corpo', peso:400, cor:sobre,
+          opac:0.85, alinha:c.al, alt:1.35 }));
+        // O bloco para acima da linha da assinatura: ela é fixa e obrigatória,
+        // então é o texto do layout que cede espaço, nunca o contrário.
+        empilhar(pilha, { topo:c.A - altFaixa + Math.round(c.A*0.042),
+          base:c.A - c.m - Math.round(c.A*0.05), modo:'meio' });
+        return els.concat(pilha);
+      },
+    },
+  ];
+
+  const layoutDe = k => LAYOUTS.find(x => x.k === k) || LAYOUTS[0];
+
+  // Janela só pra conferência automática das artes (folha de contato dos
+  // arranjos). Não é usada pela Central em si.
+  if(typeof window !== 'undefined'){
+    window.__LAYOUTS = LAYOUTS;
+    window.__passaDaMargem = (...a) => passaDaMargem(...a);
+    window.__conferirDeck = (...a) => conferirDeck(...a);
+    window.__uniformizarDeck = (...a) => uniformizarDeck(...a);
+    window.__ajustarParaCaber = (...a) => ajustarParaCaber(...a);
+    window.__orcamentoDeTexto = (...a) => orcamentoDeTexto(...a);
+    window.__promptDaPeca = (...a) => promptDaPeca(...a);
+    window.__coresDoDeck = (...a) => coresDoDeck(...a);
+    window.__focoGuardado = (...a) => focoGuardado(...a);
+    window.__contraste = (...a) => contraste(...a);
+    window.__escadaDe = (...a) => escadaDe(...a);
+    // Referência preguiçosa de propósito: estes são `const` declarados mais
+    // abaixo, e citá-los direto aqui derruba a página inteira na carga.
+    window.__quebrar = (...a) => quebrar(...a);
+    window.__passo = (...a) => passo(...a);
+    window.__trackingDe = (...a) => trackingDe(...a);
+    window.__elementoTexto = elementoTexto;
+    window.__elementoImagem = elementoImagem;
+    window.__desenharSlide = (...a) => desenharSlide(...a);
+    window.__aplicarLayout = (...a) => aplicarLayout(...a);
+  }
+
+  // Troca o arranjo do slide mantendo o que estava escrito e as fotos.
+  function aplicarLayout(slide, deck, k, indice){
+    const lay = layoutDe(k);
+    const [ , , L, A] = medidas(deck.formato);
+    const m = deck.margem === 'compacta' ? 66 : 92;
+    const cores = coresDoDeck(deck);
+    const c = Object.assign(conteudoDoSlide(slide), {
+      L, A, m, larg:L - m*2, al: deck.alinha === 'centro' ? 'centro' : 'esq',
+      destaque:cores.destaque, apoio:cores.apoio, tipo:slide.tipo || 'conteudo',
+      topo:m + Math.round(A*0.11), base:A - m - Math.round(A*0.062),
+      ordem:String((indice == null ? 0 : indice) + 1).padStart(2,'0'),
+    });
+    slide.elementos = lay.montar(c);
+    slide.layout = k;
+    // A foto cheia só faz sentido com foto: se o slide não tem fundo, a
+    // primeira foto dele vira o fundo, e o escurecer entra junto pra o texto
+    // branco ter onde se apoiar.
+    if(lay.querFundo){
+      slide.fundo = slide.fundo || { cor:null, src:null, ajuste:'cobrir', escurecer:0 };
+      if(!slide.fundo.src && c.fotos[0]) slide.fundo.src = c.fotos[0];
+      if(slide.fundo.src && !slide.fundo.escurecer) slide.fundo.escurecer = 0.45;
+    }
+    return slide;
+  }
+
   // ---------- texto no canvas ----------
+
+  // ---------- tipografia ----------
+
+  // Uma escala só, em vez de números escolhidos a dedo. Todo tamanho da peça
+  // sai de uma razão fixa a partir do corpo do texto, e é isso que faz os
+  // tamanhos parecerem parentes em vez de vizinhos por acaso.
+  const RAZAO = 1.22;
+  const passo = (A, n) => Math.round(A * 0.0295 * Math.pow(RAZAO, n));
+
+  // Tracking óptico. Fonte grande precisa de menos espaço entre letras, e
+  // maiúscula precisa de mais — é a diferença entre um título desenhado e um
+  // título digitado. Onde o navegador não suportar, ele ignora, e o texto sai
+  // sem o ajuste em vez de sair quebrado.
+  function trackingDe(e){
+    if(e.letra != null) return e.letra;
+    if(e.caixa === 'alta') return 0.07;
+    if(e.tam >= 84) return -0.028;
+    if(e.tam >= 56) return -0.017;
+    if(e.tam >= 36) return -0.006;
+    return 0;
+  }
+  function comTracking(g, e){
+    const em = trackingDe(e);
+    try { g.letterSpacing = (em * e.tam).toFixed(2) + 'px'; } catch(err){ /* navegador antigo */ }
+  }
+  const semTracking = g => { try { g.letterSpacing = '0px'; } catch(err){} };
+
+  // Palavras que não podem terminar uma linha. Preposição, artigo e conjunção
+  // penduradas no fim da linha é o erro de tipografia mais comum em português
+  // e o mais fácil de ver depois que alguém aponta.
+  const PRESAS = new Set(('de da do das dos e ou a o as os em no na nos nas um uma uns umas '
+    + 'com por para pra que se ao aos à às pelo pela pelos pelas sem sob sobre entre até').split(' '));
 
   function quebrar(g, texto, larg){
     const linhas = [];
     String(texto == null ? '' : texto).split('\n').forEach(par=>{
       let linha = '';
+      const bruto = [];
       par.split(/\s+/).filter(Boolean).forEach(p=>{
         const tent = linha ? linha + ' ' + p : p;
-        if(linha && g.measureText(tent).width > larg){ linhas.push(linha); linha = p; }
+        if(linha && g.measureText(tent).width > larg){ bruto.push(linha); linha = p; }
         else linha = tent;
       });
-      linhas.push(linha);
+      bruto.push(linha);
+      linhas.push.apply(linhas, arrumarLinhas(g, bruto, larg));
     });
     return linhas;
   }
 
+  // Duas correções depois da quebra bruta:
+  //   viúva  — uma palavra curta sozinha na última linha
+  //   presa  — linha terminando em preposição, artigo ou conjunção
+  //
+  // A correção é sempre a mesma: empurrar a última palavra da linha pra linha
+  // de baixo. Mas empurrar transborda — a linha que recebeu pode estourar e
+  // precisa empurrar a dela, em cascata. E só se aceita o resultado se ele
+  // tiver MENOS problemas que o anterior, o que garante que isso termina.
+  function fimPreso(linha){
+    const pal = linha.split(' ');
+    if(pal.length < 2) return false;
+    return PRESAS.has(pal[pal.length-1].toLowerCase().replace(/[^a-zà-ú]/g,''));
+  }
+  function problemas(l){
+    let n = 0;
+    for(let i = 0; i < l.length - 1; i++) if(fimPreso(l[i])) n++;
+    if(l.length > 1){
+      const ult = l[l.length-1].split(' ');
+      if(ult.length === 1 && ult[0].length <= 12) n++;
+    }
+    return n;
+  }
+  function empurrarCascata(g, l, i, larg){
+    const cabe = t => g.measureText(t).width <= larg;
+    const pal = l[i].split(' ');
+    if(pal.length < 2) return null;
+    const out = l.slice();
+    const desce = pal.pop();
+    out[i] = pal.join(' ');
+    if(i + 1 >= out.length) out.push(desce);
+    else out[i+1] = desce + ' ' + out[i+1];
+    for(let k = i + 1; k < out.length; k++){
+      let voltas = 0;
+      while(!cabe(out[k]) && out[k].split(' ').length > 1 && voltas++ < 40){
+        const p2 = out[k].split(' ');
+        const d2 = p2.pop();
+        out[k] = p2.join(' ');
+        if(k + 1 >= out.length) out.push(d2);
+        else out[k+1] = d2 + ' ' + out[k+1];
+      }
+    }
+    // Ganhar duas linhas pra consertar uma preposição é mau negócio.
+    if(out.length > l.length + 1) return null;
+    return out;
+  }
+  function arrumarLinhas(g, linhas, larg){
+    let l = linhas.slice();
+    let restante = problemas(l);
+    for(let volta = 0; volta < 8 && restante > 0; volta++){
+      let melhorou = false;
+      for(let i = l.length - 2; i >= 0 && !melhorou; i--){
+        const ehPresa = fimPreso(l[i]);
+        const ehViuva = i === l.length - 2 &&
+          l[l.length-1].split(' ').length === 1 && l[l.length-1].length <= 12;
+        if(!ehPresa && !ehViuva) continue;
+        const tent = empurrarCascata(g, l, i, larg);
+        if(!tent) continue;
+        const n = problemas(tent);
+        if(n < restante){ l = tent; restante = n; melhorou = true; }
+      }
+      if(!melhorou) break;
+    }
+    return l;
+  }
+
+
   // Imagens ficam num cache por src: sem isto cada tecla digitada recarregaria
   // a foto e a prévia piscaria.
   const cacheImg = {};
+  const focoGuardado = src => (cacheImg[src] && cacheImg[src].foco) || { x:0.5, y:0.5 };
   function imagemDe(src, aoCarregar){
     if(!src) return null;
     if(cacheImg[src]) return cacheImg[src].completo ? cacheImg[src].img : null;
     const img = new Image();
     const reg = { img, completo:false };
     cacheImg[src] = reg;
-    img.onload = ()=>{ reg.completo = true; if(aoCarregar) aoCarregar(); };
+    img.onload = ()=>{
+      reg.completo = true;
+      try { reg.foco = focoDe(img); } catch(e){ reg.foco = { x:0.5, y:0.5 }; }
+      if(aoCarregar) aoCarregar();
+    };
     img.onerror = ()=>{ reg.completo = false; };
     img.src = src;
     return null;
@@ -4343,7 +5305,82 @@
 
   // Desenha uma imagem cobrindo ou cabendo dentro da caixa, com canto
   // arredondado opcional. Mesma conta usada na prévia e na exportação.
-  function pintarImagem(g, img, x, y, w, h, ajuste, raio){
+  // ---------- tratamento e enquadramento da foto ----------
+
+  const TRATAMENTOS = [
+    ['nenhum',  'Como está',   'A foto do jeito que veio'],
+    ['duotone', 'Duas cores',  'Mapeia a foto entre o escuro e o claro da marca. É o que faz foto de banco parecer arte do cliente'],
+    ['veu',     'Véu',         'Um véu da cor da marca por cima, mantendo a foto reconhecível'],
+    ['pb',      'Preto e branco', 'Tira a cor da foto pra ela não brigar com a da marca'],
+  ];
+
+  // Onde está o assunto da foto. Cortar sempre pelo meio é o que decepa cabeça
+  // em foto de retrato: o centro geométrico quase nunca é o centro do interesse.
+  // A conta é grosseira de propósito — mede onde a imagem tem mais variação,
+  // que é onde costuma estar a pessoa, e não onde tem parede.
+  function focoDe(img){
+    const L = 64, A = Math.max(1, Math.round(L * img.height / img.width));
+    const cv = document.createElement('canvas');
+    cv.width = L; cv.height = A;
+    const g = cv.getContext('2d', { willReadFrequently:true });
+    g.drawImage(img, 0, 0, L, A);
+    let px;
+    try { px = g.getImageData(0, 0, L, A).data; } catch(e){ return { x:0.5, y:0.5 }; }
+    const cinza = new Float32Array(L * A);
+    for(let i = 0; i < L*A; i++)
+      cinza[i] = 0.2126*px[i*4] + 0.7152*px[i*4+1] + 0.0722*px[i*4+2];
+    let sx = 0, sy = 0, soma = 0;
+    for(let yy = 1; yy < A-1; yy++) for(let xx = 1; xx < L-1; xx++){
+      const i = yy*L + xx;
+      const e = Math.abs(cinza[i] - cinza[i+1]) + Math.abs(cinza[i] - cinza[i+L]);
+      // o peso dá preferência ao terço de cima, que é onde fica rosto
+      const peso = e * (yy < A*0.55 ? 1.25 : 1);
+      sx += xx * peso; sy += yy * peso; soma += peso;
+    }
+    if(soma < 1) return { x:0.5, y:0.5 };
+    // puxado pro centro: foco cru demais corta torto em foto de paisagem
+    const bruto = { x: sx/soma/L, y: sy/soma/A };
+    return { x: 0.5 + (bruto.x - 0.5) * 0.7, y: 0.5 + (bruto.y - 0.5) * 0.7 };
+  }
+
+  // O tratamento roda uma vez por (foto, tratamento, cores) e fica guardado.
+  // Sem isso, mexer num cursor recalcularia dois milhões de pixels por quadro.
+  function tratarImagem(src, img, trat, a, b){
+    if(!trat || trat === 'nenhum') return img;
+    const reg = cacheImg[src];
+    if(!reg) return img;
+    const chave = trat + '|' + a + '|' + b;
+    reg.tratadas = reg.tratadas || {};
+    if(reg.tratadas[chave]) return reg.tratadas[chave];
+    const cv = document.createElement('canvas');
+    cv.width = img.width; cv.height = img.height;
+    const g = cv.getContext('2d', { willReadFrequently:true });
+    g.drawImage(img, 0, 0);
+    let d;
+    try { d = g.getImageData(0, 0, cv.width, cv.height); } catch(e){ return img; }
+    const px = d.data;
+    const ca = hexParaRgb(a).map(v => v*255), cb = hexParaRgb(b).map(v => v*255);
+    for(let i = 0; i < px.length; i += 4){
+      const lum = (0.2126*px[i] + 0.7152*px[i+1] + 0.0722*px[i+2]) / 255;
+      if(trat === 'pb'){
+        const v = lum * 255;
+        px[i] = v; px[i+1] = v; px[i+2] = v;
+      } else if(trat === 'duotone'){
+        px[i]   = ca[0] + (cb[0] - ca[0]) * lum;
+        px[i+1] = ca[1] + (cb[1] - ca[1]) * lum;
+        px[i+2] = ca[2] + (cb[2] - ca[2]) * lum;
+      } else { // véu: mantém a foto e puxa a cor por cima
+        px[i]   = px[i]   * 0.45 + cb[0] * lum * 0.55;
+        px[i+1] = px[i+1] * 0.45 + cb[1] * lum * 0.55;
+        px[i+2] = px[i+2] * 0.45 + cb[2] * lum * 0.55;
+      }
+    }
+    g.putImageData(d, 0, 0);
+    reg.tratadas[chave] = cv;
+    return cv;
+  }
+
+  function pintarImagem(g, img, x, y, w, h, ajuste, raio, foco){
     g.save();
     if(raio > 0){
       const r = Math.min(raio, w/2, h/2);
@@ -4362,18 +5399,280 @@
     let dw, dh;
     if(ajuste === 'conter' ? rc > rb : rc < rb){ dw = w; dh = w / rc; }
     else { dh = h; dw = h * rc; }
-    g.drawImage(img, x + (w - dw)/2, y + (h - dh)/2, dw, dh);
+    // Enquadramento: o ponto de foco da foto vai pro meio da caixa, preso nas
+    // bordas pra nunca sobrar buraco. Sem foco, cai no centro de sempre.
+    const f = foco || { x:0.5, y:0.5 };
+    const px = Math.min(x, Math.max(x + w - dw, x + w/2 - f.x*dw));
+    const py = Math.min(y, Math.max(y + h - dh, y + h/2 - f.y*dh));
+    g.drawImage(img, dw >= w ? px : x + (w - dw)/2, dh >= h ? py : y + (h - dh)/2, dw, dh);
     g.restore();
   }
 
   // Mede um elemento de texto sem pintar. Serve pro acerto de clique e pra
   // moldura de seleção saberem onde o texto realmente está.
   function medirTexto(g, e, c){
-    g.font = (e.caixa === 'alta' ? '' : '') + (e.peso || 400) + ' ' + e.tam + 'px ' + famDe(e.fonte);
+    g.font = (e.peso || 400) + ' ' + e.tam + 'px ' + famDe(e.fonte);
+    comTracking(g, e);
     const txt = e.caixa === 'alta' ? String(e.txt || '').toUpperCase() : String(e.txt || '');
     const linhas = quebrar(g, txt, e.w);
     const lh = e.tam * (e.alt || 1.14);
+    semTracking(g);
     return { linhas, lh, altura: linhas.length * lh };
+  }
+
+  // O texto passou da área segura do slide? Serve pro aviso e pro botão de
+  // ajustar — e é medido na peça, não no olho.
+  function passaDaMargem(deck, slide){
+    const [ , , L, A] = medidas(deck.formato);
+    const m = deck.margem === 'compacta' ? 66 : 92;
+    const g = contextoDeMedida();
+    const fora = [];
+    (slide.elementos || []).forEach(e=>{
+      if(e.tipo !== 'texto' || !String(e.txt || '').trim()) return;
+      const alt = medirTexto(g, e).altura;
+      const baixo = e.y + alt;
+      if(baixo > A - m - 33 || e.y < m * 0.4 - 1 || e.x < -1 || e.x + e.w > L + 1)
+        fora.push({ e, sobra: Math.round(baixo - (A - m - 34)) });
+    });
+    return fora;
+  }
+
+  // Encolhe e sobe os textos indicados até caberem na área segura. Nessa
+  // ordem de propósito: diminuir preserva a posição, e mexer no lugar é o
+  // último recurso — é o que uma pessoa faria.
+  function ajustarParaCaber(deck, slide, alvos){
+    const g = contextoDeMedida();
+    const [ , , L, A] = medidas(deck.formato);
+    const m = deck.margem === 'compacta' ? 66 : 92;
+    const limite = A - m - 34;
+    (alvos || (slide.elementos || []).filter(e => e.tipo === 'texto')).forEach(e=>{
+      let voltas = 0;
+      while(e.tam > 28 && voltas++ < 40 && e.y + medirTexto(g, e).altura > limite)
+        e.tam = Math.round(e.tam * 0.94);
+      const alt = medirTexto(g, e).altura;
+      if(e.y + alt > limite) e.y = Math.max(Math.round(m * 0.6), Math.floor(limite - alt) - 2);
+      e.x = Math.max(0, Math.min(e.x, L - e.w));
+    });
+  }
+
+  // Quantas palavras cabem de verdade em cada caixa deste slide. É a diferença
+  // entre pedir "texto curto" e pedir "até 22 palavras": o primeiro volta com
+  // sessenta, e aí alguém encolhe a fonte até o slide ficar feio; o segundo
+  // volta cabendo. A conta sai da arte — largura da caixa, fonte e corpo reais
+  // — e não de um número escolhido no olho.
+  //
+  // O teto de linhas por papel é regra de desenho, não de espaço: um título de
+  // seis linhas cabe na página e mesmo assim não é título.
+  const LINHAS_DO_PAPEL = { titulo:2, texto:4, item:2, kicker:1, numero:1,
+    dado:1, rotulo:1, antes:2, depois:2, citacao:3 };
+
+  // E há papéis cujo limite não é o espaço nem a linha: é o que a coisa é. Um
+  // chapéu de oito palavras cabe na caixa e mesmo assim não é chapéu.
+  const TETO_PALAVRAS = { kicker:4, numero:2, rotulo:3, dado:3 };
+
+  function orcamentoDeTexto(deck, slide){
+    const A = medidas(deck.formato)[3];
+    const m = deck.margem === 'compacta' ? 66 : 92;
+    // O espaço vertical é a área segura inteira, e não o que sobra abaixo do
+    // elemento: em arranjo assentado embaixo, o texto cresce pra cima, e medir
+    // pra baixo daria "título de duas palavras" numa capa que comporta oito.
+    const alturaSegura = A - m - 34 - Math.round(m * 0.4);
+    const g = contextoDeMedida();
+    const por = {};
+    (slide.elementos || []).forEach(e=>{
+      if(e.tipo !== 'texto') return;
+      const papel = e.papel || 'livre';
+      if(papel === 'ornamento' || papel === 'livre') return;
+      g.font = (e.peso || 400) + ' ' + e.tam + 'px ' + famDe(e.fonte);
+      // Largura média de caractere medida na fonte e no corpo reais — não na
+      // largura do "n", que é o chute que faz o título estourar em fonte larga.
+      const amostra = 'abcdefghijklmnopqrstuvwxyzaeiouaeiou ';
+      const larg = g.measureText(amostra).width / amostra.length || e.tam * 0.5;
+      const lh = e.tam * (e.alt || 1.14);
+      const cabem = Math.max(1, Math.floor(alturaSegura / lh));
+      const linhas = Math.min(LINHAS_DO_PAPEL[papel] || 3, cabem);
+      const porLinha = Math.max(6, Math.floor(e.w / larg));
+      // 6,4 caracteres por palavra é a média do português escrito com o espaço
+      // incluído; 0,92 é a folga pra quebra de linha, que nunca enche a última.
+      const palavras = Math.min(TETO_PALAVRAS[papel] || 99,
+        Math.max(2, Math.round(linhas * porLinha * 0.92 / 6.4)));
+      por[papel] = Math.max(por[papel] || 0, palavras);
+    });
+    return por;
+  }
+
+  // Os textos que os arranjos põem no slide só pra ele não nascer em branco.
+  // Mandar isso pra IA como "o que já está escrito" faz ela reescrever o
+  // exemplo em vez de escrever a peça — e às vezes devolver o exemplo de volta.
+  const EXEMPLOS_DO_ARRANJO = new Set(['72%','A explicação do ponto.',
+    'A frase que eles mesmos disseram.','Antes e depois','CARROSSEL','Chama no direct.',
+    'Fonte: escreva de onde saiu','O ponto deste slide','O ponto','O que a foto mostra',
+    'O que ela explica.','O que esse número quer dizer.',
+    'O que explica o ponto, em duas ou três linhas.','O título da capa',
+    'O título por cima da foto','Primeiro item','Segundo item','Terceiro item',
+    'Quem disse','Quer que a gente olhe o seu?','Três coisas','Antes','Depois']);
+
+  // ---------- o deck precisa parecer um deck ----------
+
+  // Um carrossel bom é uma peça só em dez quadros: os internos repetem o mesmo
+  // desenho e a capa é que destoa, de propósito. Então a conferência olha só os
+  // slides internos, junta os textos pelo papel que cada um faz — título com
+  // título, apoio com apoio — e reclama quando um foge do que os outros fazem.
+  // É o erro que ninguém vê slide a slide e todo mundo vê quando o carrossel
+  // passa no feed.
+
+  const PAPEL_NOME = { titulo:'o título', texto:'o texto de apoio', kicker:'o chapéu',
+    numero:'o número', item:'o item da lista', rotulo:'o rótulo',
+    antes:'o “antes”', depois:'o “depois”', dado:'o dado', fonte:'a fonte do dado' };
+
+  const nomeDoPapel = p => PAPEL_NOME[p] || 'o ' + p;
+
+  // Quantos tons de texto o carrossel aguenta antes de perder o eixo. Três é o
+  // que a paleta oferece — tinta, apoio, destaque — e o quarto é sempre um tom
+  // que entrou sem querer.
+  const TETO_CORES = 3;
+
+  function conferirDeck(d){
+    const achados = [];
+    const internos = [];
+    (d.slides || []).forEach((s, i)=>{ if(i > 0 && s.tipo !== 'capa' && s.tipo !== 'fim') internos.push({ s, i }); });
+
+    const moda = (lista, chave)=>{
+      const conta = new Map();
+      lista.forEach(x=>{ const k = chave(x); conta.set(k, (conta.get(k) || 0) + 1); });
+      let melhor = null, n = -1;
+      conta.forEach((q, k)=>{ if(q > n){ n = q; melhor = k; } });
+      return { valor: melhor, quantos: conta.size };
+    };
+
+    if(internos.length >= 2){
+      // A comparação é dentro do mesmo arranjo, e essa é a decisão que faz o
+      // aviso valer alguma coisa. Arranjos diferentes têm título de tamanho
+      // diferente de propósito — um "Número" ao lado de uma "Citação" não é
+      // erro, é o carrossel respirando. O que é erro é o mesmo arranjo
+      // aparecer duas vezes com desenho diferente, e isso só acontece quando
+      // alguém mexeu num slide e esqueceu do outro.
+      const grupos = new Map();
+      internos.forEach(({ s, i })=>{
+        const lay = s.layout || 'solto';
+        (s.elementos || []).forEach(e=>{
+          if(e.tipo !== 'texto' || !String(e.txt || '').trim()) return;
+          const papel = e.papel || 'livre';
+          // Elemento solto é solto: quem largou um texto à mão no slide fez
+          // isso de propósito, e não é o carrossel que está errado.
+          if(papel === 'livre' || papel === 'ornamento') return;
+          const k = lay + '|' + papel;
+          if(!grupos.has(k)) grupos.set(k, { lay, papel, itens:[] });
+          grupos.get(k).itens.push({ e, i });
+        });
+      });
+
+      grupos.forEach(({ lay, papel, itens })=>{
+        const slides = new Set(itens.map(x => x.i));
+        if(slides.size < 2) return;
+        const nome = nomeDoPapel(papel);
+        const ondeArranjo = lay === 'solto' ? ' entre os slides'
+          : ' nos slides com o arranjo “' + layoutDe(lay).nome + '”';
+
+        [['fonte','fonte', x => String(x.e.fonte || 'display')],
+         ['cor',  'cor',   x => String(x.e.cor || 'auto')],
+         ['x',    'margem', x => String(Math.round((x.e.x || 0) / 4))],
+        ].forEach(([prop, rotulo, chave])=>{
+          const m = moda(itens, chave);
+          if(m.quantos < 2) return;
+          const fora = itens.filter(x => chave(x) !== m.valor);
+          const ref = itens.find(x => chave(x) === m.valor).e;
+          achados.push({
+            lay, papel, prop, rotulo,
+            valor: ref[prop] === undefined ? null : ref[prop],
+            slides: [...new Set(fora.map(x => x.i))].sort((a,b)=>a-b),
+            frase: nome.charAt(0).toUpperCase() + nome.slice(1)
+              + (prop === 'x' ? ' começa em margens diferentes' : ' muda de ' + rotulo)
+              + ondeArranjo + '.',
+          });
+        });
+
+        // Tamanho não compara por igualdade: o empilhamento encolhe o que não
+        // cabe, e uma diferença de dois ou três por cento é isso, não um erro.
+        // Só vira achado quando o carrossel tem dois títulos de tamanhos
+        // visivelmente diferentes.
+        const tams = itens.map(x => x.e.tam || 0).filter(Boolean);
+        const maior = Math.max(...tams), menor = Math.min(...tams);
+        if(menor > 0 && maior / menor > 1.25){
+          // Uniformiza pelo tamanho mais repetido e, em caso de empate, pelo
+          // menor deles: aumentar é o caminho que faz o texto estourar a
+          // margem de novo.
+          const conta = new Map();
+          tams.forEach(t => conta.set(t, (conta.get(t) || 0) + 1));
+          let alvo = menor, melhorQ = -1;
+          [...conta.keys()].sort((a,b)=>a-b).forEach(t=>{
+            if(conta.get(t) > melhorQ){ melhorQ = conta.get(t); alvo = t; }
+          });
+          achados.push({
+            lay, papel, prop:'tam', rotulo:'tamanho', valor: alvo,
+            slides: [...new Set(itens.filter(x => x.e.tam !== alvo).map(x => x.i))].sort((a,b)=>a-b),
+            frase: nome.charAt(0).toUpperCase() + nome.slice(1)
+              + ' vai de ' + menor + 'px a ' + maior + 'px' + ondeArranjo + '.',
+          });
+        }
+      });
+    }
+
+    // Cores soltas: esta olha o carrossel inteiro, capa incluída, porque uma
+    // cor perdida na capa desafina igual.
+    const cores = new Set();
+    (d.slides || []).forEach(s=>{
+      (s.elementos || []).forEach(e=>{
+        if(e.tipo === 'texto' && String(e.txt || '').trim() && e.cor) cores.add(String(e.cor).toUpperCase());
+      });
+    });
+    if(cores.size > TETO_CORES){
+      achados.push({ papel:null, prop:'paleta', rotulo:'paleta', valor:null, slides:[],
+        frase: 'A peça usa ' + cores.size + ' cores de texto. Acima de '
+          + TETO_CORES + ' o carrossel perde o eixo.' });
+    }
+    return achados;
+  }
+
+  // Aplica o achado: põe todo mundo daquele papel, dentro do mesmo arranjo, no
+  // valor de referência — que é o que a maioria dos slides já faz. Para
+  // a paleta, puxa cada cor perdida pra mais perto entre as três da peça — que
+  // é o que se faria à mão, e não um "resetar cores" que apaga o destaque.
+  function uniformizarDeck(d, a){
+    if(a.prop === 'paleta'){
+      const c = coresDoDeck(d);
+      const alvos = [c.tinta, c.apoio, c.destaque].filter(Boolean);
+      const labs = alvos.map(paraOklab);
+      (d.slides || []).forEach(s=>{
+        (s.elementos || []).forEach(e=>{
+          if(e.tipo !== 'texto' || !e.cor) return;
+          if(alvos.some(x => String(x).toUpperCase() === String(e.cor).toUpperCase())) return;
+          const lab = paraOklab(e.cor);
+          let melhor = 0, dist = Infinity;
+          labs.forEach((o, i)=>{
+            const dd = Math.pow(o[0]-lab[0], 2) + Math.pow(o[1]-lab[1], 2) + Math.pow(o[2]-lab[2], 2);
+            if(dd < dist){ dist = dd; melhor = i; }
+          });
+          e.cor = alvos[melhor];
+        });
+      });
+      return;
+    }
+    const tocados = new Map();
+    (d.slides || []).forEach((s, i)=>{
+      if(i === 0 || s.tipo === 'capa' || s.tipo === 'fim') return;
+      if((s.layout || 'solto') !== a.lay) return;
+      (s.elementos || []).forEach(e=>{
+        if(e.tipo !== 'texto' || (e.papel || 'livre') !== a.papel) return;
+        if(e[a.prop] === a.valor) return;
+        e[a.prop] = a.valor;
+        if(!tocados.has(i)) tocados.set(i, []);
+        tocados.get(i).push(e);
+      });
+    });
+    // Mudar tamanho ou margem pode jogar o texto pra fora da área segura.
+    // Resolver aqui evita trocar um aviso por outro.
+    tocados.forEach((els, i)=> ajustarParaCaber(d, d.slides[i], els));
   }
 
   function desenharSlide(cv, slide, deck, i, escala, opts){
@@ -4395,7 +5694,8 @@
     g.fillRect(0, 0, L, A);
     if(fundo.src){
       const img = imagemDe(fundo.src, opts.aoCarregar);
-      if(img) pintarImagem(g, img, 0, 0, L, A, fundo.ajuste || 'cobrir', 0);
+      if(img) pintarImagem(g, tratarImagem(fundo.src, img, fundo.trat, c.breu || c.fundo, c.destaque),
+        0, 0, L, A, fundo.ajuste || 'cobrir', 0, fundo.foco || focoGuardado(fundo.src));
     }
     if(fundo.escurecer){
       g.fillStyle = 'rgba(0,0,0,' + Math.min(0.85, fundo.escurecer) + ')';
@@ -4426,8 +5726,19 @@
       g.globalAlpha = e.opac == null ? 1 : e.opac;
       if(e.tipo === 'imagem'){
         const img = imagemDe(e.src, opts.aoCarregar);
-        if(img) pintarImagem(g, img, e.x, e.y, e.w, e.h, e.ajuste || 'cobrir', e.raio || 0);
-        else { g.fillStyle = 'rgba(128,128,128,.18)'; g.fillRect(e.x, e.y, e.w, e.h); }
+        if(img) pintarImagem(g, tratarImagem(e.src, img, e.trat, c.breu || c.fundo, c.destaque),
+          e.x, e.y, e.w, e.h, e.ajuste || 'cobrir', e.raio || 0, e.foco || focoGuardado(e.src));
+        else {
+          // Lugar de foto ainda vazio. Fica dito na peça, senão vira um
+          // retângulo cinza que ninguém sabe se é buraco ou desenho.
+          g.fillStyle = 'rgba(128,128,128,.16)';
+          g.fillRect(e.x, e.y, e.w, e.h);
+          g.fillStyle = 'rgba(128,128,128,.75)';
+          g.font = '700 ' + Math.max(18, Math.round(Math.min(e.w, e.h) * 0.1)) + 'px ' + famDe('mono');
+          g.textAlign = 'center';
+          g.fillText('FOTO', e.x + e.w/2, e.y + e.h/2);
+          g.textAlign = 'left';
+        }
         e._caixa = { x:e.x, y:e.y, w:e.w, h:e.h };
       } else if(e.tipo === 'forma'){
         g.fillStyle = e.cor || c.destaque;
@@ -4450,6 +5761,7 @@
         e._caixa = { x:e.x, y:e.y, w:e.w, h:e.h };
       } else {
         const med = medirTexto(g, e, c);
+        comTracking(g, e);   // medirTexto devolve o contexto limpo; aqui vai pintar
         const cor = e.cor || (fundo.src || fundo.escurecer ? '#FFFFFF' : (e.papel === 'texto' ? c.apoio : c.tinta));
         const xTexto = e.alinha === 'centro' ? e.x + e.w/2 : (e.alinha === 'dir' ? e.x + e.w : e.x);
         g.textAlign = e.alinha === 'centro' ? 'center' : (e.alinha === 'dir' ? 'right' : 'left');
@@ -4466,6 +5778,7 @@
         g.fillStyle = cor;
         med.linhas.forEach((l, k)=>{ g.fillText(l, xTexto, e.y + k*med.lh + e.tam); });
         e._caixa = { x:e.x, y:e.y, w:e.w, h:Math.max(e.tam, med.altura) };
+        semTracking(g);
         g.textAlign = 'left';
       }
       g.restore();
@@ -4474,10 +5787,32 @@
     // Assinatura: sempre no mesmo canto, sempre presente. É o que faz a regra
     // de registro profissional não depender de ninguém lembrar dela.
     if(deck.assinatura){
-      g.fillStyle = fundo.src || fundo.escurecer ? 'rgba(255,255,255,.85)' : c.apoio;
+      // A assinatura fica sempre no mesmo canto, e por isso um layout com faixa
+      // embaixo passaria por cima dela. Em vez de proibir a faixa, a assinatura
+      // olha o que está atrás e escolhe a cor que se lê — é obrigação de norma,
+      // não pode depender de ninguém reparar.
+      let corAssin = fundo.src || fundo.escurecer ? 'rgba(255,255,255,.85)' : c.apoio;
+      const atras = elementoEm({ elementos:(slide.elementos || []).filter(x => x.tipo !== 'texto') },
+        m + 4, A - m - 10);
+      if(atras && (atras.opac == null || atras.opac > 0.6)){
+        corAssin = atras.tipo === 'imagem' ? 'rgba(255,255,255,.9)'
+          : misturar(tintaSobre(atras.cor || c.destaque), atras.cor || c.destaque, 0.28);
+      }
+      g.fillStyle = corAssin;
       g.font = '400 24px ' + famDe('mono');
       g.fillText(String(deck.assinatura).slice(0, 64), m, A - m);
     }
+
+    // As linhas de encaixe. Como a moldura, só na tela.
+    (opts.guias || []).forEach(gg=>{
+      g.strokeStyle = '#FF5E00';
+      g.lineWidth = 2 / escala;
+      g.setLineDash([]);
+      g.beginPath();
+      if(gg.eixo === 'v'){ g.moveTo(gg.pos, 0); g.lineTo(gg.pos, A); }
+      else { g.moveTo(0, gg.pos); g.lineTo(L, gg.pos); }
+      g.stroke();
+    });
 
     // Moldura de seleção. Só na tela, nunca no arquivo exportado.
     if(opts.selecionado){
@@ -4496,6 +5831,42 @@
     return cv;
   }
 
+  // Encaixe. Enquanto se arrasta, as bordas e o meio do elemento procuram as
+  // margens da peça, o meio dela e as bordas dos outros elementos. É o que
+  // separa "quase alinhado" de alinhado — e quase alinhado é o que faz uma
+  // peça parecer feita às pressas.
+  function encaixar(slide, e, x, y, deck){
+    const [ , , L, A] = medidas(deck.formato);
+    const m = deck.margem === 'compacta' ? 66 : 92;
+    const larg = (e._caixa && e._caixa.w) || e.w || 100;
+    const alt  = (e._caixa && e._caixa.h) || e.h || e.tam || 40;
+    const tol = 14;
+    const alvosV = [m, L - m, L/2];
+    const alvosH = [m, A - m, A/2];
+    (slide.elementos || []).forEach(o=>{
+      if(o.id === e.id || !o._caixa) return;
+      alvosV.push(o._caixa.x, o._caixa.x + o._caixa.w, o._caixa.x + o._caixa.w/2);
+      alvosH.push(o._caixa.y, o._caixa.y + o._caixa.h, o._caixa.y + o._caixa.h/2);
+    });
+    let nx = x, ny = y, guiaV = null, guiaH = null, dV = tol, dH = tol;
+    [[0, 0], [larg, larg], [larg/2, larg/2]].forEach(([desl])=>{
+      alvosV.forEach(a=>{
+        const dist = Math.abs(x + desl - a);
+        if(dist <= dV){ dV = dist; nx = a - desl; guiaV = a; }
+      });
+    });
+    [[0, 0], [alt, alt], [alt/2, alt/2]].forEach(([desl])=>{
+      alvosH.forEach(a=>{
+        const dist = Math.abs(y + desl - a);
+        if(dist <= dH){ dH = dist; ny = a - desl; guiaH = a; }
+      });
+    });
+    const guias = [];
+    if(guiaV != null) guias.push({ eixo:'v', pos:guiaV });
+    if(guiaH != null) guias.push({ eixo:'h', pos:guiaH });
+    return { x:Math.round(nx), y:Math.round(ny), guias };
+  }
+
   // Qual elemento está debaixo do dedo. De cima pra baixo: o que está por
   // último foi desenhado por cima, então ganha o clique.
   function elementoEm(slide, x, y){
@@ -4506,6 +5877,79 @@
       if(x >= b.x - 8 && x <= b.x + b.w + 8 && y >= b.y - 8 && y <= b.y + b.h + 8) return els[i];
     }
     return null;
+  }
+
+  // ---------- o texto se lê? ----------
+
+  // A conferência de texto olha o que a peça DIZ. Esta olha se dá pra LER.
+  // O jeito honesto de saber é desenhar o slide sem aquele texto, olhar os
+  // pixels que ficam atrás dele e comparar com a cor da letra — é a mesma
+  // conta de contraste da web, feita na arte em vez de na tela.
+  function contrasteDeElemento(deck, slide, i, e){
+    if(e.tipo !== 'texto' || !String(e.txt || '').trim()) return null;
+    if(!e._caixa) return null;
+    const [ , , L, A] = medidas(deck.formato);
+    const esc = 0.3;
+    const cv = document.createElement('canvas');
+    const antes = (slide.elementos || []);
+    const posicao = antes.findIndex(x => x.id === e.id);
+    // só o que é desenhado ANTES dele conta como fundo
+    const soAtras = Object.assign({}, slide, { elementos: antes.slice(0, Math.max(0, posicao)) });
+    desenharSlide(cv, soAtras, Object.assign({}, deck, { assinatura:'' }), i, esc);
+    const g = cv.getContext('2d');
+    const bx = Math.max(0, Math.round(e._caixa.x * esc));
+    const by = Math.max(0, Math.round(e._caixa.y * esc));
+    const bw = Math.min(cv.width - bx, Math.max(1, Math.round(e._caixa.w * esc)));
+    const bh = Math.min(cv.height - by, Math.max(1, Math.round(e._caixa.h * esc)));
+    if(bw < 1 || bh < 1) return null;
+    const px = g.getImageData(bx, by, bw, bh).data;
+    const lin = v => { v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); };
+    let soma = 0, n = 0, pior = null;
+    const cores = coresDoDeck(deck);
+    const corTexto = e.cor || ((slide.fundo && (slide.fundo.src || slide.fundo.escurecer))
+      ? '#FFFFFF' : (e.papel === 'texto' ? cores.apoio : cores.tinta));
+    const lumDe = hex => {
+      const h = String(hex).replace('#','');
+      const q = h.length === 3 ? h.split('').map(x=>x+x).join('') : h;
+      const [r,gg,b] = [0,2,4].map(k => lin(parseInt(q.slice(k,k+2),16)));
+      return 0.2126*r + 0.7152*gg + 0.0722*b;
+    };
+    const lt = lumDe(corTexto);
+    for(let k = 0; k < px.length; k += 4){
+      const lf = 0.2126*lin(px[k]) + 0.7152*lin(px[k+1]) + 0.0722*lin(px[k+2]);
+      const r = (Math.max(lt, lf) + 0.05) / (Math.min(lt, lf) + 0.05);
+      soma += r; n++;
+      if(pior == null || r < pior) pior = r;
+    }
+    if(!n) return null;
+    // Texto grande precisa de menos contraste, e a régua da web é em pixel de
+    // tela: um slide de 1080 chega no celular com uns 40% do tamanho.
+    const naTela = e.tam * 0.37;
+    const grande = naTela >= 24 || (naTela >= 18.66 && (e.peso || 400) >= 700);
+    const minimo = grande ? 3 : 4.5;
+    const medio = soma / n;
+    return { medio, pior, minimo, grande, opacidade: e.opac == null ? 1 : e.opac,
+      trecho: String(e.txt).trim().slice(0, 42) };
+  }
+
+  function contrastesDaPeca(deck){
+    const achados = [];
+    (deck.slides || []).forEach((slide, i)=>{
+      (slide.elementos || []).forEach(e=>{
+        const r = contrasteDeElemento(deck, slide, i, e);
+        if(!r) return;
+        const efetivo = r.medio * (r.opacidade < 1 ? r.opacidade : 1);
+        if(efetivo < r.minimo){
+          achados.push({ slide:i + 1, trecho:r.trecho, razao:r.medio, minimo:r.minimo,
+            motivo: r.opacidade < 1 ? 'clara demais em cima do que está atrás'
+              : 'quase da cor do que está atrás' });
+        } else if(r.pior < r.minimo * 0.62){
+          achados.push({ slide:i + 1, trecho:r.trecho, razao:r.pior, minimo:r.minimo,
+            motivo:'a foto atrás tem parte clara e parte escura, e num pedaço o texto some' });
+        }
+      });
+    });
+    return achados;
   }
 
   async function baixarSlides(deck, nome){
@@ -4761,30 +6205,82 @@
 
     L.push('## O QUE EU PRECISO');
     if(peca.tipo === 'carrossel'){
-      const d = peca.dados;
+      const d = migrarDeck(peca.dados);
       L.push('Um carrossel de ' + d.slides.length + ' slides para Instagram.');
-      L.push('Slide 1 é a capa (título curto e forte, no máximo 8 palavras). '
-        + 'O último é o fecho, com uma chamada' + (m.chamada ? ' na linha de "' + m.chamada + '"' : '') + '.');
-      L.push('Os do meio trazem um ponto cada, com título de até 5 palavras e texto de até 35 palavras.');
+      L.push('');
+      L.push('Regra de ouro: uma ideia por slide. Se um slide precisa de "e também", '
+        + 'ele é dois slides.');
+      L.push('');
+      // O gancho é o que decide se alguém desliza. Dizer "faça um título forte"
+      // não ensina nada — dois exemplos ruim/bom ensinam em uma linha.
+      L.push('A capa abre uma pergunta na cabeça de quem lê; ela não anuncia o assunto.');
+      L.push('  ruim: "Dicas para o agachamento"  → anuncia o assunto, e ninguém desliza por um índice.');
+      L.push('  bom:  "Seu joelho entra — e o problema não é o joelho"  → abre uma pergunta que só o slide 2 fecha.');
+      L.push('Na capa, não use: "veja", "confira", "saiba", "descubra", "dicas", "tudo sobre", '
+        + 'nem começar por número de lista.');
+      L.push('A capa é a frase mais curta da peça.');
+      L.push('');
+      // O teto por slide sai da arte, não de um número redondo: cada slide tem
+      // caixa, fonte e corpo próprios, e é isso que decide o que cabe.
+      L.push('## QUANTO CABE EM CADA SLIDE');
+      L.push('Os tetos abaixo foram medidos na arte de verdade, caixa por caixa. '
+        + 'Passar do teto não deixa a letra menor: deixa a peça feia. Fique abaixo deles.');
+      // Só Titulo e Texto entram aqui, porque é só isso que o formato da
+      // resposta carrega — anunciar um teto de "chapéu" faria a IA escrever um
+      // campo que não tem para onde ir.
+      const temTexto = [];
+      d.slides.forEach((s, i)=>{
+        const o = orcamentoDeTexto(d, s);
+        const itens = (s.elementos || []).filter(x => x.tipo === 'texto' && x.papel === 'item').length;
+        const ponta = i === 0 || s.tipo === 'fim' || i === d.slides.length - 1;
+        const partes = [];
+        if(o.titulo) partes.push('Titulo: até ' + o.titulo + ' palavras');
+        if(o.texto){
+          // Capa e fecho são frase única por função, não por falta de espaço:
+          // a caixa comporta um parágrafo, e um parágrafo ali afunda o gancho.
+          partes.push('Texto: até ' + (ponta ? Math.min(12, Math.max(4, Math.round(o.texto * 0.5)))
+            : o.texto) + ' palavras');
+          temTexto.push(i);
+        } else if(itens && o.item){
+          partes.push('Texto: ' + itens + ' linhas de até ' + o.item
+            + ' palavras cada, uma por linha — elas viram a lista do slide');
+          temTexto.push(i);
+        } else {
+          partes.push('Texto: deixe vazio, este slide não tem caixa de texto');
+        }
+        const papel = i === 0 ? 'capa' : ponta ? 'fecho' : 'ponto ' + i;
+        const arranjo = s.layout ? ', arranjo "' + layoutDe(s.layout).nome + '"' : '';
+        L.push('- Slide ' + (i+1) + ' (' + papel + arranjo + ') — ' + partes.join(' · '));
+      });
+      L.push('');
+      L.push('O fecho é uma chamada só' + (m.chamada ? ', na linha de "' + m.chamada + '"' : '')
+        + ' — sem resumo do que já foi dito e sem pedir duas coisas ao mesmo tempo.');
+      // Só o que a IA de fato escreve: chapéu e número são do arranjo, e
+      // mandá-los de volta como "já está escrito" só ocupa espaço no pedido.
+      const PAPEL_DA_IA = new Set(['titulo','texto','item','antes','depois','citacao']);
       const jaTem = d.slides.map((s, i)=>{
-        const t = (s.elementos || []).filter(x => x.tipo === 'texto')
-          .map(x => String(x.txt || '').trim()).filter(Boolean).join(' — ');
+        const t = (s.elementos || []).filter(x => x.tipo === 'texto' && PAPEL_DA_IA.has(x.papel))
+          .map(x => String(x.txt || '').trim())
+          .filter(x => x && !EXEMPLOS_DO_ARRANJO.has(x)).join(' — ');
         return t ? 'Slide ' + (i+1) + ': ' + t : null;
       }).filter(Boolean);
       if(jaTem.length){ L.push(''); L.push('O que já está escrito, para melhorar em vez de recomeçar:');
         jaTem.forEach(x => L.push('  ' + x)); }
       L.push('');
       L.push('## FORMATO DA RESPOSTA (exatamente assim, sem nada além disso)');
-      for(let i = 1; i <= d.slides.length; i++){
-        L.push('SLIDE ' + i);
+      for(let i = 0; i < d.slides.length; i++){
+        L.push('SLIDE ' + (i+1));
         L.push('Titulo: ...');
-        L.push('Texto: ...');
+        if(temTexto.includes(i)) L.push('Texto: ...');
         L.push('');
       }
     } else if(peca.tipo === 'roteiro'){
       const f = formatoRoteiro(peca.dados.formato);
       L.push('Um roteiro de vídeo curto no formato "' + f.nome + '": ' + f.d);
       L.push('Alvo de ' + f.seg + ' segundos falados — cerca de ' + Math.round(f.seg * 2.6) + ' palavras no total.');
+      L.push('Os três primeiros segundos decidem o resto: a primeira frase abre uma pergunta '
+        + 'e não se apresenta, não agradece e não diz sobre o que o vídeo vai falar.');
+      L.push('Escreva como se fala, em voz alta. Frases de uma linha. Sem período composto.');
       if(peca.dados.tema) L.push('Tema: ' + peca.dados.tema);
       const jaTem = f.partes.map(([rot], i)=>{
         const v = (peca.dados.partes || [])[i];
@@ -4796,9 +6292,14 @@
       f.partes.forEach(([rot]) => { L.push(rot.toUpperCase() + ': ...'); });
     } else {
       L.push('Uma legenda de Instagram.');
-      L.push('O gancho é a primeira linha e precisa caber em 125 caracteres — é o que aparece antes do "mais".');
-      L.push('O corpo tem no máximo 4 parágrafos curtos.');
+      L.push('O gancho é a primeira linha e precisa caber em 125 caracteres — é o que aparece '
+        + 'antes do "mais". Ele abre uma pergunta; não anuncia o assunto e não começa com '
+        + '"veja", "confira" ou "saiba".');
+      L.push('No corpo, cada parágrafo é separado por uma LINHA EM BRANCO, e tem no máximo '
+        + 'duas frases. Parágrafo colado no Instagram vira um bloco cinza que ninguém lê.');
+      L.push('No máximo 4 parágrafos. Uma ideia por parágrafo.');
       if(m.chamada) L.push('A chamada final deve ser na linha de: ' + m.chamada);
+      L.push('A chamada pede UMA coisa só.');
       L.push('Cinco hashtags, específicas, sem as genéricas de milhões de posts.');
       if(m.hashtags) L.push('Hashtags que ele já usa: ' + m.hashtags);
       L.push('');
@@ -4812,8 +6313,14 @@
     const sug = sugestoesDe(cliente).slice(0,6);
     if(sug.length){
       L.push('');
-      L.push('## FRASES DELES, PARA APROVEITAR O TOM (não copie literalmente todas)');
+      L.push('## FRASES DELES, PARA APROVEITAR O TOM');
       sug.forEach(s => L.push('- "' + s.frase + '" (' + s.de + ')'));
+      L.push('');
+      // A frase do cliente na capa é o que faz a peça soar como ele e não como
+      // uma IA. Nos outros slides, a mesma frase repetida vira bordão.
+      L.push('Use UMA dessas frases quase literal — só na capa' + (peca.tipo === 'carrossel'
+        ? '' : ' ou no gancho') + ', escolhendo a que mais tem a ver com o tema.');
+      L.push('Nos demais, aproveite o vocabulário e o jeito de dizer, não a frase.');
     }
     return L.join('\n');
   }
@@ -4863,7 +6370,23 @@
         const s = d.slides[i];
         const baixo = s.tipo === 'capa' || s.tipo === 'fim';
         if(tit) ondeEscrever(s, 'titulo', 0, baixo).txt = tit;
-        if(txt.length) ondeEscrever(s, 'texto', 1, baixo).txt = txt.join('\n');
+        // Num slide de lista, o Texto que volta são os itens — uma linha cada.
+        // Jogar as três linhas no primeiro item é o que faz a resposta boa
+        // chegar torta na arte.
+        const itens = (s.elementos || []).filter(x => x.tipo === 'texto' && x.papel === 'item');
+        if(txt.length && itens.length && !(s.elementos || []).some(x => x.papel === 'texto')){
+          const linhasItem = txt.join('\n').split('\n')
+            .map(x => x.replace(/^[-•–\d.)\s]+/,'').trim()).filter(Boolean);
+          itens.forEach((it, k)=>{ if(linhasItem[k]) it.txt = linhasItem[k]; });
+        } else if(txt.length){
+          ondeEscrever(s, 'texto', 1, baixo).txt = txt.join('\n');
+        }
+        // Texto colado não passa pelo empilhamento do arranjo, então um título
+        // mais longo do que o pedido sairia cortado na borda do slide. Encolhe
+        // na hora: resposta boa que chega cortada parece erro do editor, e o
+        // aviso de margem depois disso é conversa, não conserto.
+        const fora = passaDaMargem(d, s);
+        if(fora.length) ajustarParaCaber(d, s, fora.map(x => x.e));
         n++;
       });
       return n;
@@ -5328,22 +6851,67 @@
     const selecionado = () => (slideAgora().elementos || []).find(x => x.id === d.sel) || null;
 
     let pintarInsta = ()=>{};
+    let guias = [];
     function pintar(){
       d.slideAtual = Math.max(0, Math.min(d.slides.length - 1, d.slideAtual));
-      desenharSlide(cv, slideAgora(), d, d.slideAtual, 0.8, { selecionado:d.sel, aoCarregar:pintar });
+      desenharSlide(cv, slideAgora(), d, d.slideAtual, 0.8,
+        { selecionado:d.sel, guias, aoCarregar:pintar });
       cv.style.width = '100%';
       pintarTira();
       pintarInsta();
+      conferirMargem();
+      conferirConjunto();
       conferir();
     }
     function repintarTudo(){ desenharProp(); pintar(); }
+
+    // --- desfazer dentro do editor
+    // A pilha guarda o desenho inteiro em texto. O carrossel é pequeno, e
+    // comparar texto é a maneira que não erra: nenhum caminho de mudança
+    // precisa lembrar de avisar o histórico do que mexeu.
+    const retrato = () => JSON.stringify(semRascunho(d));
+    const chave = p.id || 'nova';
+    if(!E.hist || E.hist.peca !== chave)
+      E.hist = { peca:chave, pilha:[retrato()], topo:0, assunto:'', quando:0 };
+    const H = E.hist;
+    function registrar(assunto){
+      const atual = retrato();
+      if(atual === H.pilha[H.topo]) return;
+      const agora = Date.now();
+      // Mexer no mesmo controle sem parar é uma mudança só: senão cada passo
+      // de um cursor viraria um Ctrl+Z.
+      const juntar = assunto && assunto === H.assunto && agora - H.quando < 800 && H.topo > 0;
+      H.assunto = assunto || ('u' + agora);
+      H.quando = agora;
+      H.pilha = H.pilha.slice(0, H.topo + (juntar ? 0 : 1));
+      H.pilha.push(atual);
+      if(H.pilha.length > 40) H.pilha.shift();
+      H.topo = H.pilha.length - 1;
+    }
+    function andarNoTempo(passo){
+      const alvo = H.topo + passo;
+      if(alvo < 0 || alvo >= H.pilha.length) return false;
+      H.topo = alvo;
+      H.assunto = '';
+      const novo = JSON.parse(H.pilha[alvo]);
+      Object.keys(d).forEach(k => delete d[k]);
+      Object.assign(d, novo);
+      repintarTudo();
+      return true;
+    }
+    // Um assunto novo a cada reconstrução do painel, pra dois arrastes
+    // seguidos no mesmo cursor não virarem um passo só.
+    let seqCtrl = 0;
+
+    // Toda mudança passa por aqui: registra no histórico e repinta.
+    const mudou = assunto => { registrar(assunto); repintarTudo(); };
 
     // --- barra de elementos
     const barra = el('div',{class:'barra-el'});
     const addTexto = el('button',{class:'btn ghost small', onclick:()=>{
       const [ , , L, A] = medidas(d.formato);
       const e = elementoTexto({ x:92, y:Math.round(A*0.35), w:L-184, txt:'Escreva aqui' });
-      slideAgora().elementos.push(e); d.sel = e.id; repintarTudo();
+      slideAgora().elementos.push(e); d.sel = e.id; mudou();
     }},'+ texto');
     const arqImg = el('input',{type:'file', accept:'image/*', style:'display:none'});
     arqImg.addEventListener('change', ()=>{
@@ -5354,7 +6922,7 @@
         const larg = Math.round(L * 0.62);
         const e = elementoImagem(url, { x:Math.round((L-larg)/2), y:Math.round(A*0.18),
           w:larg, h:Math.round(larg * h / w), raio:18 });
-        slideAgora().elementos.push(e); d.sel = e.id; repintarTudo();
+        slideAgora().elementos.push(e); d.sel = e.id; mudou();
       });
       arqImg.value = '';
     });
@@ -5362,7 +6930,7 @@
     const addForma = el('button',{class:'btn ghost small', onclick:()=>{
       const [ , , L, A] = medidas(d.formato);
       const e = elementoForma({ x:92, y:Math.round(A*0.62), w:Math.round(L*0.3), h:14 });
-      slideAgora().elementos.push(e); d.sel = e.id; repintarTudo();
+      slideAgora().elementos.push(e); d.sel = e.id; mudou();
     }},'+ forma');
     const arqFundo = el('input',{type:'file', accept:'image/*', style:'display:none'});
     arqFundo.addEventListener('change', ()=>{
@@ -5371,7 +6939,7 @@
       lerImagem(f, url=>{
         const s = slideAgora();
         s.fundo = Object.assign({ cor:null, ajuste:'cobrir', escurecer:0.45 }, s.fundo, { src:url });
-        d.sel = null; repintarTudo();
+        d.sel = null; mudou();
       });
       arqFundo.value = '';
     });
@@ -5379,9 +6947,66 @@
     [addTexto, addImg, addForma, addFundo].forEach(b => barra.appendChild(b));
     barra.appendChild(arqImg); barra.appendChild(arqFundo);
     barra.appendChild(el('span',{style:'flex:1'}));
+    const btVoltar = el('button',{class:'btn ghost small', title:'Ctrl+Z',
+      onclick:()=>{ if(!andarNoTempo(-1)) toast('Não há mais o que desfazer.'); }},'↶ desfazer');
+    const btRefazer = el('button',{class:'btn ghost small', title:'Ctrl+Shift+Z',
+      onclick:()=>{ if(!andarNoTempo(1)) toast('Não há o que refazer.'); }},'↷ refazer');
+    barra.appendChild(btVoltar); barra.appendChild(btRefazer);
     barra.appendChild(el('span',{class:'dica', style:'margin:0'},'Clique num elemento pra editar. Arraste pra mover.'));
     ladoPalco.appendChild(barra);
     ladoPalco.appendChild(cv);
+
+    // O aviso de texto estourando a margem fica aqui, embaixo da peça, e não
+    // dentro da conferência: é problema de desenho, e se resolve olhando a peça.
+    const avisoPalco = el('div',{class:'aviso-palco', hidden:true});
+    ladoPalco.appendChild(avisoPalco);
+    function conferirMargem(){
+      const fora = passaDaMargem(d, slideAgora());
+      avisoPalco.hidden = !fora.length;
+      if(!fora.length) return;
+      avisoPalco.innerHTML = '';
+      // Dizer QUAL texto estourou: "um texto passa da margem" manda a pessoa
+      // procurar, e procurar num slide de dez elementos é o que irrita.
+      const nomes = fora.slice(0, 2).map(({ e })=>
+        '“' + String(e.txt || '').trim().slice(0, 26) + (String(e.txt||'').trim().length > 26 ? '…' : '') + '”');
+      avisoPalco.appendChild(el('span',{},
+        (fora.length === 1 ? 'O texto ' + nomes[0] + ' passa' : fora.length + ' textos passam ('
+          + nomes.join(', ') + (fora.length > 2 ? '…' : '') + ')')
+        + ' da margem deste slide.'
+        + (fora[0].sobra > 0 ? ' Sobra ' + fora[0].sobra + 'px.' : '')));
+      avisoPalco.appendChild(el('button',{class:'btn ghost small', onclick:()=>{
+        // Encolhe só o que estourou, até caber na área segura.
+        ajustarParaCaber(d, slideAgora(), fora.map(({ e })=> e));
+        mudou();
+        toast('Ajustado pra caber.');
+      }},'ajustar pra caber'));
+    }
+
+    // O aviso de consistência olha o carrossel inteiro, então mora embaixo da
+    // tira de slides — que é onde se olha o carrossel inteiro — e não embaixo
+    // da peça, que é onde se olha um slide.
+    const avisoDeck = el('div',{class:'aviso-deck', hidden:true});
+    function conferirConjunto(){
+      const achados = conferirDeck(d);
+      avisoDeck.hidden = !achados.length;
+      if(!achados.length) return;
+      avisoDeck.innerHTML = '';
+      avisoDeck.appendChild(el('p',{class:'rot'},
+        achados.length === 1 ? 'Um detalhe destoa entre os slides'
+          : achados.length + ' detalhes destoam entre os slides'));
+      achados.slice(0, 5).forEach(a=>{
+        const l = el('div',{class:'lin-deck'});
+        l.appendChild(el('span',{}, a.frase
+          + (a.slides.length ? ' (slide' + (a.slides.length > 1 ? 's ' : ' ')
+              + a.slides.map(i => i + 1).join(', ') + ')' : '')));
+        l.appendChild(el('button',{class:'btn ghost small', onclick:()=>{
+          uniformizarDeck(d, a);
+          mudou();
+          toast(a.prop === 'paleta' ? 'Cores puxadas pra paleta da peça.' : 'Uniformizado.');
+        }}, a.prop === 'paleta' ? 'puxar pra paleta' : 'uniformizar'));
+        avisoDeck.appendChild(l);
+      });
+    }
 
     // --- clicar, arrastar, teclado
     const paraSlide = ev => {
@@ -5398,6 +7023,7 @@
         arrastando = { id:achado.id, dx:pt.x - achado.x, dy:pt.y - achado.y, mexeu:false };
         cv.setPointerCapture(ev.pointerId);
       }
+      guias = [];
       repintarTudo();
       cv.focus();
     });
@@ -5406,12 +7032,24 @@
       const e = (slideAgora().elementos || []).find(x => x.id === arrastando.id);
       if(!e) return;
       const pt = paraSlide(ev);
-      e.x = Math.round(pt.x - arrastando.dx);
-      e.y = Math.round(pt.y - arrastando.dy);
+      // Encaixe desligado com Alt, pra quando a intenção for mesmo ficar torto.
+      const bruto = { x:Math.round(pt.x - arrastando.dx), y:Math.round(pt.y - arrastando.dy) };
+      const enc = ev.altKey ? { x:bruto.x, y:bruto.y, guias:[] }
+        : encaixar(slideAgora(), e, bruto.x, bruto.y, d);
+      e.x = enc.x; e.y = enc.y;
+      guias = enc.guias;
       arrastando.mexeu = true;
       pintar();
     });
-    const soltar = ()=>{ arrastando = null; };
+    const soltar = ()=>{
+      const mexeu = arrastando && arrastando.mexeu;
+      if(mexeu) registrar('arrastar:' + arrastando.id);
+      arrastando = null;
+      guias = [];
+      // Refaz o painel, não só o desenho: senão os números de posição ficam
+      // mostrando onde o elemento estava antes de você arrastar.
+      if(mexeu) repintarTudo(); else pintar();
+    };
     cv.addEventListener('pointerup', soltar);
     cv.addEventListener('pointercancel', soltar);
     cv.addEventListener('dblclick', ()=>{
@@ -5425,15 +7063,34 @@
       if(ev.key === 'Delete' || ev.key === 'Backspace'){
         ev.preventDefault();
         slideAgora().elementos = slideAgora().elementos.filter(x => x.id !== e.id);
-        d.sel = null; repintarTudo(); return;
+        d.sel = null; mudou(); return;
       }
       const mapa = { ArrowLeft:[-passo,0], ArrowRight:[passo,0], ArrowUp:[0,-passo], ArrowDown:[0,passo] };
-      if(mapa[ev.key]){ ev.preventDefault(); e.x += mapa[ev.key][0]; e.y += mapa[ev.key][1]; pintar(); }
+      if(mapa[ev.key]){
+        ev.preventDefault();
+        e.x += mapa[ev.key][0]; e.y += mapa[ev.key][1];
+        registrar('seta:' + e.id);
+        pintar();
+      }
     });
+
+    // Ctrl+Z vale na tela toda do editor, não só com o palco em foco — é onde
+    // a mão vai. Dentro de um campo de texto o navegador desfaz a digitação,
+    // que é o certo, então ali a gente não se mete.
+    const noCampo = n => !!n && /^(INPUT|TEXTAREA|SELECT)$/.test(n.tagName);
+    function atalhoDoEditor(ev){
+      if(!(ev.ctrlKey || ev.metaKey) || (ev.key !== 'z' && ev.key !== 'Z' && ev.key !== 'y')) return;
+      if(!document.body.contains(cv)){ document.removeEventListener('keydown', atalhoDoEditor); return; }
+      if(noCampo(document.activeElement)) return;
+      ev.preventDefault();
+      andarNoTempo((ev.shiftKey || ev.key === 'y') ? 1 : -1);
+    }
+    document.addEventListener('keydown', atalhoDoEditor);
 
     // --- tira de slides
     const tira = el('div',{class:'tira'});
     ladoPalco.appendChild(tira);
+    ladoPalco.appendChild(avisoDeck);
     function pintarTira(){
       tira.innerHTML = '';
       d.slides.forEach((s, i)=>{
@@ -5445,17 +7102,22 @@
         b.appendChild(el('span',{class:'n'}, String(i+1)));
         tira.appendChild(b);
       });
-      const mais = el('button',{class:'mini add', onclick:()=>{
+      const mais = el('button',{class:'mini add', title:'novo slide', onclick:()=>{
         if(d.slides.length >= 10){ toast('Dez slides é o limite do Instagram.'); return; }
-        d.slides.splice(d.slideAtual + 1, 0,
-          { tipo:'conteudo', fundo:{ cor:null, src:null, ajuste:'cobrir', escurecer:0 }, elementos:[] });
-        d.slideAtual += 1; d.sel = null; repintarTudo();
+        // O slide novo já nasce com um arranjo: um retângulo em branco não
+        // ensina nada, e o arranjo é o que se troca depois em um clique.
+        const novo = { tipo:'conteudo',
+          fundo:{ cor:null, src:null, ajuste:'cobrir', escurecer:0 }, elementos:[] };
+        aplicarLayout(novo, d, d.slides[d.slideAtual] && d.slides[d.slideAtual].layout === 'numero'
+          ? 'numero' : 'doisBlocos', d.slideAtual + 1);
+        d.slides.splice(d.slideAtual + 1, 0, novo);
+        d.slideAtual += 1; d.sel = null; mudou();
       }},'+');
       tira.appendChild(mais);
       if(d.slides.length > 1){
         tira.appendChild(el('button',{class:'mini add', title:'remover este slide', onclick:()=>{
           d.slides.splice(d.slideAtual, 1);
-          d.slideAtual = Math.max(0, d.slideAtual - 1); d.sel = null; repintarTudo();
+          d.slideAtual = Math.max(0, d.slideAtual - 1); d.sel = null; mudou();
         }},'−'));
       }
     }
@@ -5469,12 +7131,14 @@
            : e.tipo === 'imagem' ? 'Imagem selecionada' : 'Forma selecionada')
           : 'Nada selecionado'));
       if(!e){
+        ladoProp.appendChild(propArranjo());
         ladoProp.appendChild(propFundo());
         ladoProp.appendChild(propDeck());
         return;
       }
       ladoProp.appendChild(e.tipo === 'texto' ? propTexto(e)
         : e.tipo === 'imagem' ? propImagem(e) : propForma(e));
+      ladoProp.appendChild(propPosicao(e));
       ladoProp.appendChild(propOrdem(e));
     }
 
@@ -5490,31 +7154,68 @@
       const g = el('div',{class:'chips'});
       opcoes.forEach(([k, rot, ajuda])=>{
         g.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(valor() === k), title:ajuda || rot,
-          onclick:()=>{ aoTrocar(k); repintarTudo(); }}, esc(rot)));
+          onclick:()=>{ aoTrocar(k); mudou(); }}, esc(rot)));
       });
       return g;
     };
     const ctrlNum = (valor, aoTrocar, min, max, passo) => {
       const cx = el('div',{class:'num-lin'});
+      const assunto = 'n' + (++seqCtrl);
       const r = el('input',{type:'range', min:String(min), max:String(max), step:String(passo||1), value:String(valor())});
       const n = el('input',{type:'number', min:String(min), max:String(max), step:String(passo||1), value:String(valor())});
-      r.addEventListener('input', ()=>{ n.value = r.value; aoTrocar(Number(r.value)); pintar(); });
-      n.addEventListener('change', ()=>{ r.value = n.value; aoTrocar(Number(n.value)); pintar(); });
+      r.addEventListener('input', ()=>{ n.value = r.value; aoTrocar(Number(r.value)); registrar(assunto); pintar(); });
+      n.addEventListener('change', ()=>{ r.value = n.value; aoTrocar(Number(n.value)); registrar(assunto); pintar(); });
       cx.appendChild(r); cx.appendChild(n);
       return cx;
     };
+
+    // As cores que esta peça já tem: a do cliente, a do carrossel, a da faixa e
+    // as neutras. Escolher no quadradinho do sistema é o caminho pra peça sair
+    // com um azul que não é o azul dele.
+    function paleta(){
+      const vistas = [];
+      const por = (cor, nome) => {
+        if(!cor || !/^#[0-9a-f]{3,8}$/i.test(String(cor))) return;
+        const chave = String(cor).toUpperCase();
+        if(vistas.some(x => x[0].toUpperCase() === chave)) return;
+        vistas.push([cor, nome]);
+      };
+      if(cliente) por(cliente.cor, 'Cor de ' + cliente.nome);
+      por(d.cor, 'Cor do carrossel');
+      por(d.cor2, 'Cor da faixa');
+      const c2 = coresDoDeck(d);
+      por(c2.tinta, 'Tinta do visual');
+      por(c2.apoio, 'Apoio do visual');
+      por(c2.fundo, 'Fundo do visual');
+      por('#FFFFFF', 'Branco');
+      por('#141210', 'Preto da Bora');
+      return vistas;
+    }
     // `limpar` é o texto do botão que devolve o valor ao padrão. Cada controle
     // diz o que "sem cor" significa nele: no texto é a cor do tema, no realce é
     // não ter tarja nenhuma. Um rótulo genérico aqui ensinaria errado.
     const ctrlCor = (valor, aoTrocar, limpar) => {
-      const cx = el('div',{style:'display:flex;gap:8px;align-items:center'});
+      const cx = el('div',{class:'cor-cx'});
       const posto = valor();
+      const linha = el('div',{style:'display:flex;gap:8px;align-items:center'});
       const i = el('input',{type:'color', class:'cor-peca' + (posto ? '' : ' vazia'),
         value: posto || '#141210'});
-      i.addEventListener('input', ()=>{ aoTrocar(i.value); repintarTudo(); });
-      cx.appendChild(i);
-      if(limpar) cx.appendChild(el('button',{class:'linkbtn', disabled: posto ? null : 'disabled',
-        onclick:()=>{ aoTrocar(null); repintarTudo(); }}, esc(limpar)));
+      const assunto = 'c' + (++seqCtrl);
+      i.addEventListener('input', ()=>{ aoTrocar(i.value); registrar(assunto); pintar(); });
+      i.addEventListener('change', ()=>{ aoTrocar(i.value); mudou(); });
+      linha.appendChild(i);
+      if(limpar) linha.appendChild(el('button',{class:'linkbtn', disabled: posto ? null : 'disabled',
+        onclick:()=>{ aoTrocar(null); mudou(); }}, esc(limpar)));
+      cx.appendChild(linha);
+      const amostras = el('div',{class:'paleta'});
+      paleta().forEach(([cor, nome])=>{
+        const b = el('button',{class:'amostra', title:nome + ' · ' + cor,
+          'aria-label':nome, onclick:()=>{ aoTrocar(cor); mudou(); }});
+        b.style.background = cor;
+        if(posto && String(posto).toUpperCase() === String(cor).toUpperCase()) b.classList.add('on');
+        amostras.appendChild(b);
+      });
+      cx.appendChild(amostras);
       return cx;
     };
 
@@ -5522,7 +7223,7 @@
       const cx = el('div',{class:'prop-texto'});
       const ta = el('textarea',{rows:'3', placeholder:'O que este texto diz'});
       ta.value = e.txt || '';
-      ta.addEventListener('input', ()=>{ e.txt = ta.value; pintar(); });
+      ta.addEventListener('input', ()=>{ e.txt = ta.value; registrar('txt:' + e.id); pintar(); });
       cx.appendChild(linhaP('Conteúdo', ta));
       cx.appendChild(linhaP('Fonte', ctrlChips(FONTES.map(f=>[f[0], f[1], f[3]]), ()=>e.fonte, v=>e.fonte=v)));
       cx.appendChild(linhaP('Tamanho', ctrlNum(()=>e.tam, v=>e.tam=v, 16, 200, 2)));
@@ -5538,7 +7239,26 @@
       cx.appendChild(linhaP('Largura da caixa', ctrlNum(()=>e.w, v=>e.w=v, 100, 1080, 10),
         'Onde o texto quebra a linha.'));
       cx.appendChild(linhaP('Entrelinha', ctrlNum(()=>Math.round((e.alt||1.14)*100), v=>e.alt=v/100, 90, 200, 2)));
+      cx.appendChild(linhaP('Entre letras',
+        ctrlNum(()=>Math.round(trackingDe(e)*1000), v=>e.letra=v/1000, -60, 160, 2),
+        'Fonte grande pede menos espaço; maiúscula pede mais. Sai calculado pelo tamanho — mexa só se quiser outro.'));
       cx.appendChild(linhaP('Opacidade', ctrlNum(()=>Math.round((e.opac==null?1:e.opac)*100), v=>e.opac=v/100, 10, 100, 5)));
+      // O jeito deste texto vale pros outros textos do mesmo papel em todos os
+      // slides. É a repetição do arranjo que faz o carrossel parecer um só.
+      const iguais = () => (d.slides || []).reduce((n, sl)=>
+        n + (sl.elementos || []).filter(x => x.tipo === 'texto' && x.papel === e.papel
+          && x.id !== e.id).length, 0);
+      const quantos = iguais();
+      if(quantos) cx.appendChild(el('button',{class:'btn ghost small', style:'margin-top:16px',
+        onclick:()=>{
+          (d.slides || []).forEach(sl => (sl.elementos || []).forEach(x=>{
+            if(x.tipo !== 'texto' || x.papel !== e.papel || x.id === e.id) return;
+            Object.assign(x, { fonte:e.fonte, peso:e.peso, cor:e.cor, realce:e.realce,
+              alinha:e.alinha, caixa:e.caixa, alt:e.alt, opac:e.opac });
+          }));
+          mudou();
+          toast('Aplicado em mais ' + quantos + (quantos === 1 ? ' texto.' : ' textos.'));
+        }}, 'Usar este jeito nos outros ' + quantos + ' iguais'));
       return cx;
     }
 
@@ -5547,21 +7267,44 @@
       const troca = el('input',{type:'file', accept:'image/*', style:'display:none'});
       troca.addEventListener('change', ()=>{
         const f = troca.files && troca.files[0]; if(!f) return;
-        lerImagem(f, (url, w, h)=>{ e.src = url; e.h = Math.round(e.w * h / w); repintarTudo(); });
+        lerImagem(f, (url, w, h)=>{
+          e.src = url;
+          // Um lugar de foto do arranjo já tem a altura certa; só a imagem
+          // solta é que se ajusta à proporção do arquivo.
+          if(e.papel !== 'foto') e.h = Math.round(e.w * h / w);
+          mudou();
+        });
         troca.value = '';
       });
       const acoes = el('div',{style:'display:flex;gap:8px;flex-wrap:wrap'});
-      acoes.appendChild(el('button',{class:'btn ghost small', onclick:()=>troca.click()},'trocar a imagem'));
+      acoes.appendChild(el('button',{class:'btn ghost small', onclick:()=>troca.click()},
+        e.src ? 'trocar a imagem' : 'escolher a foto'));
       acoes.appendChild(el('button',{class:'btn ghost small', onclick:()=>{
         const s = slideAgora();
         s.fundo = Object.assign({ ajuste:'cobrir', escurecer:0.45 }, s.fundo, { src:e.src });
         s.elementos = s.elementos.filter(x => x.id !== e.id);
-        d.sel = null; repintarTudo();
+        d.sel = null; mudou();
       }},'virar fundo do slide'));
       cx.appendChild(acoes);
       cx.appendChild(troca);
+      cx.appendChild(linhaP('Tratamento', ctrlChips(TRATAMENTOS.map(t=>[t[0], t[1], t[2]]),
+        ()=>e.trat || 'nenhum', v=>e.trat = (v === 'nenhum' ? null : v)),
+        'Duas cores é o que faz foto de banco parecer arte do cliente.'));
       cx.appendChild(linhaP('Preenchimento', ctrlChips([['cobrir','Cobrir'],['conter','Caber inteira']],
         ()=>e.ajuste || 'cobrir', v=>e.ajuste=v)));
+      // O enquadramento só existe quando a foto é cortada; em "caber inteira"
+      // não sobra nada pra deslocar, e mostrar o controle ali seria mentira.
+      if((e.ajuste || 'cobrir') === 'cobrir' && e.src){
+        const f = ()=> e.foco || focoGuardado(e.src);
+        const mexer = (eixo, v)=>{ const a = f(); e.foco = { x:a.x, y:a.y }; e.foco[eixo] = v/100; };
+        cx.appendChild(linhaP('Enquadrar ⟷',
+          ctrlNum(()=>Math.round(f().x*100), v=>mexer('x', v), 0, 100, 2)));
+        cx.appendChild(linhaP('Enquadrar ↕',
+          ctrlNum(()=>Math.round(f().y*100), v=>mexer('y', v), 0, 100, 2),
+          'Começa no ponto que a Central achou mais interessante na foto.'));
+        cx.appendChild(el('button',{class:'linkbtn', style:'margin-top:4px',
+          onclick:()=>{ delete e.foco; mudou(); }},'voltar ao enquadramento automático'));
+      }
       cx.appendChild(linhaP('Largura', ctrlNum(()=>e.w, v=>e.w=v, 60, 1080, 10)));
       cx.appendChild(linhaP('Altura', ctrlNum(()=>e.h, v=>e.h=v, 60, 1920, 10)));
       cx.appendChild(linhaP('Cantos', ctrlNum(()=>e.raio || 0, v=>e.raio=v, 0, 300, 4)));
@@ -5581,6 +7324,16 @@
       return cx;
     }
 
+    // Onde o elemento está, em número. Arrastar resolve quase tudo, mas
+    // "o mesmo lugar do slide anterior" só se acerta digitando.
+    function propPosicao(e){
+      const [ , , L, A] = medidas(d.formato);
+      const cx = el('div',{class:'pos-el'});
+      cx.appendChild(linhaP('Posição ⟷', ctrlNum(()=>e.x, v=>e.x=v, -200, L + 200, 2)));
+      cx.appendChild(linhaP('Posição ↕', ctrlNum(()=>e.y, v=>e.y=v, -200, A + 200, 2)));
+      return cx;
+    }
+
     function propOrdem(e){
       const cx = el('div',{class:'ordem-el'});
       const els = () => slideAgora().elementos;
@@ -5588,18 +7341,50 @@
         const l = els(); const i = l.findIndex(x => x.id === e.id);
         const j = Math.max(0, Math.min(l.length-1, i + passo));
         if(i === j) return;
-        l.splice(j, 0, l.splice(i, 1)[0]); repintarTudo();
+        l.splice(j, 0, l.splice(i, 1)[0]); mudou();
       };
       cx.appendChild(el('button',{class:'btn ghost small', onclick:()=>mover(1)},'trazer pra frente'));
       cx.appendChild(el('button',{class:'btn ghost small', onclick:()=>mover(-1)},'mandar pra trás'));
       cx.appendChild(el('button',{class:'btn ghost small', onclick:()=>{
         const copia = Object.assign({}, e, { id:novoId(), x:e.x + 24, y:e.y + 24 });
-        els().push(copia); d.sel = copia.id; repintarTudo();
+        els().push(copia); d.sel = copia.id; mudou();
       }},'duplicar'));
       cx.appendChild(el('button',{class:'btn ghost small perigo', onclick:()=>{
         slideAgora().elementos = els().filter(x => x.id !== e.id);
-        d.sel = null; repintarTudo();
+        d.sel = null; mudou();
       }},'remover'));
+      return cx;
+    }
+
+    // O arranjo do slide. Trocar não apaga nada: o texto que está escrito é
+    // encaixado nos lugares do arranjo novo, e a foto vai pro lugar de foto.
+    function propArranjo(){
+      const s = slideAgora();
+      const cx = el('div');
+      cx.appendChild(el('p',{class:'rot laranja', style:'margin:0 0 8px'},'Arranjo deste slide'));
+      cx.appendChild(el('p',{class:'dica', style:'margin:0 0 12px'},
+        'Trocar o arranjo não apaga o que você escreveu — o texto muda de lugar, não some.'));
+      const grade = el('div',{class:'arranjos'});
+      LAYOUTS.forEach(lay=>{
+        const b = el('button',{class:'arranjo' + (s.layout === lay.k ? ' on' : ''),
+          'aria-pressed':String(s.layout === lay.k), title:lay.d,
+          onclick:()=>{ aplicarLayout(s, d, lay.k, d.slideAtual); d.sel = null; mudou(); }});
+        const mc = el('canvas');
+        // A miniatura é o arranjo desenhado de verdade com o texto deste
+        // slide: escolher pela figura é mais rápido que escolher pelo nome.
+        const ensaio = { tipo:s.tipo || 'conteudo',
+          fundo:Object.assign({ cor:null, src:null, ajuste:'cobrir', escurecer:0 }, s.fundo),
+          elementos:[] };
+        try {
+          aplicarLayout(ensaio, d, lay.k, d.slideAtual);
+          desenharSlide(mc, ensaio, Object.assign({}, d, { slides:d.slides }), d.slideAtual, 0.085,
+            { aoCarregar:pintar });
+        } catch(err){ /* um arranjo que não monta não derruba a lista */ }
+        b.appendChild(mc);
+        b.appendChild(el('span',{class:'nome'}, esc(lay.nome)));
+        grade.appendChild(b);
+      });
+      cx.appendChild(grade);
       return cx;
     }
 
@@ -5607,20 +7392,29 @@
       const s = slideAgora();
       s.fundo = s.fundo || { cor:null, src:null, ajuste:'cobrir', escurecer:0 };
       const f = s.fundo;
-      const cx = el('div');
-      cx.appendChild(el('p',{class:'dica', style:'margin:0 0 12px'},
-        'Clique em qualquer coisa na peça pra editar aquele elemento. Sem nada selecionado, você mexe no fundo deste slide e no visual do carrossel inteiro.'));
+      const cx = el('div',{style:'margin-top:20px;padding-top:16px;border-top:1px solid var(--linha2)'});
+      cx.appendChild(el('p',{class:'rot'},'O fundo deste slide'));
+      cx.appendChild(el('p',{class:'dica', style:'margin:8px 0 12px'},
+        'Clique em qualquer coisa na peça pra editar aquele elemento.'));
       cx.appendChild(linhaP('Cor do fundo', ctrlCor(()=>f.cor, v=>f.cor=v, 'voltar ao fundo do tema')));
       if(f.src){
         const acoes = el('div',{style:'display:flex;gap:8px;flex-wrap:wrap'});
         acoes.appendChild(el('button',{class:'btn ghost small',
-          onclick:()=>{ f.src = null; repintarTudo(); }},'tirar a foto de fundo'));
+          onclick:()=>{ f.src = null; mudou(); }},'tirar a foto de fundo'));
         cx.appendChild(acoes);
+        cx.appendChild(linhaP('Tratamento', ctrlChips(TRATAMENTOS.map(t=>[t[0], t[1], t[2]]),
+          ()=>f.trat || 'nenhum', v=>f.trat = (v === 'nenhum' ? null : v))));
         cx.appendChild(linhaP('Preenchimento', ctrlChips([['cobrir','Cobrir'],['conter','Caber inteira']],
           ()=>f.ajuste || 'cobrir', v=>f.ajuste=v)));
         cx.appendChild(linhaP('Escurecer', ctrlNum(()=>Math.round((f.escurecer||0)*100), v=>f.escurecer=v/100, 0, 85, 5),
           'Foto clara come o texto branco. Escurecer é o que devolve a leitura.'));
       }
+      if(d.slides.length > 1) cx.appendChild(el('button',{class:'btn ghost small', style:'margin-top:14px',
+        onclick:()=>{
+          d.slides.forEach(sl=>{ if(sl !== s) sl.fundo = JSON.parse(JSON.stringify(f)); });
+          mudou();
+          toast('Mesmo fundo nos ' + d.slides.length + ' slides.');
+        }}, 'Usar este fundo em todos os slides'));
       return cx;
     }
 
@@ -5640,12 +7434,12 @@
       const marcados = el('div',{class:'chips'});
       [['faixa','Faixa'],['numerar','Numeração']].forEach(([k, rot])=>{
         marcados.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(d[k] !== false),
-          onclick:()=>{ d[k] = d[k] === false; repintarTudo(); }}, rot));
+          onclick:()=>{ d[k] = d[k] === false; mudou(); }}, rot));
       });
       cx.appendChild(linhaP('Mostrar', marcados));
       const assin = el('input',{type:'text', value:d.assinatura || '',
         placeholder: conselhoDe(cliente) ? 'Nome · ' + conselhoDe(cliente) + ' 000000-G/CE' : 'Assinatura no rodapé'});
-      assin.addEventListener('input', ()=>{ d.assinatura = assin.value; pintar(); });
+      assin.addEventListener('input', ()=>{ d.assinatura = assin.value; registrar('assin'); pintar(); });
       cx.appendChild(linhaP('Assinatura', assin,
         conselhoDe(cliente) ? 'Profissão com conselho: o registro precisa aparecer na peça, não só na bio.' : ''));
       if(cliente) cx.appendChild(el('button',{class:'btn ghost small', style:'margin-top:12px',
@@ -5654,7 +7448,7 @@
           Object.assign(d, { preset:mc.preset, formato:mc.formato, margem:mc.margem,
             numerar:mc.numerar !== false, faixa:mc.faixa !== false, cor2:mc.cor2 || '',
             cor: cliente.cor || d.cor, assinatura: assinaturaDe(cliente) || d.assinatura });
-          repintarTudo(); toast('Voltou pro padrão de ' + cliente.nome + '.');
+          mudou(); toast('Voltou pro padrão de ' + cliente.nome + '.');
         }}, 'Voltar ao padrão de ' + esc(cliente.nome)));
       return cx;
     }
@@ -5664,7 +7458,7 @@
     legCx.appendChild(el('span',{},'Legenda do post'));
     const legTa = el('textarea',{rows:'3', placeholder:'O que vai escrito embaixo da peça, no feed.'});
     legTa.value = d.legenda || '';
-    legTa.addEventListener('input', ()=>{ d.legenda = legTa.value; pintarInsta(); });
+    legTa.addEventListener('input', ()=>{ d.legenda = legTa.value; registrar('legenda'); pintarInsta(); });
     legCx.appendChild(legTa);
     box.appendChild(legCx);
 
@@ -5676,12 +7470,38 @@
     const textoTodo = () => d.slides.map(s =>
       (s.elementos || []).filter(x => x.tipo === 'texto').map(x => x.txt).join(' ')).join('\n')
       + '\n' + (d.legenda || '');
-    const conf = el('div',{class:'bloco-conf'});
-    conf.appendChild(el('p',{class:'rot'},'Conferência'));
+    // A conferência recolhida. Ela continua rodando e continua travando a
+    // exportação — só não ocupa a tela enquanto o trabalho é desenho. O resumo
+    // no título é o que impede que "recolhida" vire "escondida".
+    const conf = el('details',{class:'bloco-conf dobra'});
+    const resumoConf = el('summary',{});
+    conf.appendChild(resumoConf);
     function conferir(){
       conf.querySelectorAll('.confere').forEach(n => n.remove());
-      const r = blocoConformidade(textoTodo(), cliente, d.assinatura);
+      const r = blocoConformidade(textoTodo(), cliente, d.assinatura,
+        { dados:d, aoMudar:()=>{ registrar('confirme'); conferir(); } });
+      // A outra metade da conferência: o texto pode dizer aquilo, mas dá pra
+      // ler? A conta é feita nos pixels da peça, não no olho de quem fez.
+      const legibilidade = contrastesDaPeca(d);
+      legibilidade.forEach(a=>{
+        const l = el('p',{class:'aviso-conf aviso'});
+        l.innerHTML = '<b>Confira antes</b> — no slide ' + a.slide + ', “' + esc(a.trecho)
+          + '” está ' + esc(a.motivo) + ' (' + a.razao.toFixed(1).replace('.', ',')
+          + ':1, e o mínimo pra esse tamanho é ' + String(a.minimo).replace('.', ',') + ':1). '
+          + 'No celular, com sol na tela, isso não se lê.';
+        r.box.appendChild(l);
+      });
+      if(!legibilidade.length && !r.achados.length){
+        const p2 = r.box.querySelector('.dica');
+        if(p2) p2.textContent = p2.textContent.replace(/\.$/, '') + ' E todo texto se lê em cima do que está atrás dele.';
+      }
       conf.appendChild(r.box);
+      const g = r.achados.length, a = (r.confira || []).length + legibilidade.length;
+      resumoConf.innerHTML = '';
+      resumoConf.appendChild(el('span',{class:'rot'},'Conferência'));
+      resumoConf.appendChild(el('span',{class:'resumo-conf' + (g ? ' trava' : '')},
+        g ? (g === 1 ? '1 impede a exportação' : g + ' impedem a exportação')
+          : (a ? (a === 1 ? '1 a conferir' : a + ' a conferir') : 'nada apanhado')));
       return r.achados;
     }
 
@@ -5693,7 +7513,7 @@
         const novo = elementoTexto({ x:92, y:Math.round(A*0.4), w:L-184, txt:s2.frase, tam:64 });
         slideAgora().elementos.push(novo); d.sel = novo.id;
       }
-      repintarTudo();
+      mudou();
     }));
     box.appendChild(blocoPrompt(p, cliente, ()=>repintarTudo()));
     box.appendChild(conf);
@@ -5702,6 +7522,7 @@
       const graves = conferir().filter(a => a.nivel === 'grave');
       if(graves.length){
         toast('Confira os avisos graves antes de exportar.');
+        conf.open = true;                 // barrou: abre sozinha, senão o aviso some
         conf.scrollIntoView({ block:'center' });
         return;
       }
@@ -5846,7 +7667,8 @@
     conf.appendChild(el('p',{class:'rot'},'Conferência'));
     function conferir(){
       conf.querySelectorAll('.confere').forEach(n => n.remove());
-      conf.appendChild(blocoConformidade(roteiroEmTexto(d), cliente, false).box);
+      conf.appendChild(blocoConformidade(roteiroEmTexto(d), cliente, false,
+        { dados:d, aoMudar:conferir }).box);
     }
     box.appendChild(blocoSugestoes(cliente, null, s2=>{
       d.partes = d.partes || [];
@@ -5910,7 +7732,7 @@
       conta.textContent = n + ' de 2.200 caracteres' + (n > 2200 ? ' — passou do limite do Instagram.' : '')
         + ' · gancho com ' + g + ' de 125 antes do "mais"' + (g > 125 ? ' — vai cortar no meio.' : '');
       conf.querySelectorAll('.confere').forEach(x => x.remove());
-      conf.appendChild(blocoConformidade(txt, cliente, false).box);
+      conf.appendChild(blocoConformidade(txt, cliente, false, { dados:d, aoMudar:medir }).box);
     }
 
     campos.forEach(([c, rot, ajuda])=>{
