@@ -176,6 +176,29 @@
     .card > .cta-row{ clear:both; }
   }
 
+  /* As duas trilhas. Cartão grande e clicável inteiro, e não um par de rádios:
+     é a primeira decisão do formulário e precisa parecer uma decisão. */
+  .trilhas{ display:grid; gap:12px; margin:20px 0 28px; }
+  @media (min-width:680px){ .trilhas{ grid-template-columns:1fr 1fr; } }
+  .trilha-op{
+    text-align:left; cursor:pointer; padding:18px 20px; border-radius:16px;
+    border:1.5px solid var(--black); background:transparent; color:var(--black);
+    display:grid; gap:6px; font-family:inherit;
+    transition:background .12s ease, color .12s ease, transform .12s ease, box-shadow .12s ease;
+  }
+  .trilha-op b{ font-family:'Space Grotesk',sans-serif; font-size:1.02rem; }
+  .trilha-op span{ font-size:0.88rem; line-height:1.45; opacity:0.72; }
+  .trilha-op:hover{ transform:translateY(-1px); box-shadow:var(--s1); }
+  .trilha-op[aria-pressed="true"]{ background:var(--black); color:var(--white); }
+  .trilha-op[aria-pressed="true"] span{ opacity:0.82; }
+  /* O cartão de abertura é escuro, e a regra de cima pinta preto sobre preto:
+     os dois cartões sumiam. O .btn já tinha esta inversão; o .trilha-op não é
+     um .btn e por isso não herdou nada. */
+  .card.dark .trilha-op{ border-color:var(--white); color:var(--white); }
+  .card.dark .trilha-op:hover{ background:rgba(255,255,255,.08); }
+  .card.dark .trilha-op[aria-pressed="true"]{ background:var(--white); color:var(--black); }
+  .card.dark .trilha-op[aria-pressed="true"] span{ opacity:0.7; }
+
   .btn{
     font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.92rem;
     letter-spacing:0.01em;
@@ -305,12 +328,28 @@
       <p class="eyebrow">Antes de qualquer proposta</p>
       <h1 class="hero">Vamos <span class="stripe">conhecer</span> você(s) melhor?</h1>
       <p class="lede">Sem burocracia por enquanto — nada de CNPJ, acesso ou número aqui ainda. Só queremos entender você(s) e o trabalho de vocês. Leva de 10 a 15 minutos, no seu tempo, e não tem resposta errada.</p>
+
+      <p class="eyebrow" style="margin-top:34px">Primeiro, uma só</p>
+      <h2 class="section-title" style="margin-top:6px">Quem está respondendo?</h2>
+      <p class="lede small">As perguntas mudam conforme a resposta. Num trabalho solo elas falam da sua rotina e do seu preço; numa empresa falam de quem decide a compra e de como a venda acontece.</p>
+
+      <div class="trilhas">
+        <button class="trilha-op" data-trilha="solo" aria-pressed="false">
+          <b>Trabalho por conta</b>
+          <span>Sou eu, ou eu e mais alguém. Quem fecha comigo costuma ser a pessoa que vai usar.</span>
+        </button>
+        <button class="trilha-op" data-trilha="empresa" aria-pressed="false">
+          <b>Represento uma empresa</b>
+          <span>Temos time, e do outro lado quase nunca é uma pessoa só que decide a compra.</span>
+        </button>
+      </div>
+
       <div class="cta-row">
-        <button class="btn btn-primary" id="startBtn">Começar
+        <button class="btn btn-primary" id="startBtn" disabled>Começar
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><line x1="6" y1="18" x2="18" y2="6"/><polyline points="10 6 18 6 18 14"/></svg>
         </button>
       </div>
-      <p class="foot-note">4 partes rápidas + um resumo no final pra você(s) revisar antes de nos enviar.</p>
+      <p class="foot-note" id="introFoot">Escolha uma das duas acima pra começar.</p>
     </section>
 
     <div id="sectionsHost"></div>
@@ -344,56 +383,123 @@
 
 <script>
 (function(){
-  const sections = [
-    {
-      id:'voce', title:'Sobre você(s)',
-      questions:[
-        {key:'nome_pref', label:'Como você(s) prefere ser chamado(a)?', ph:'Ex.: Dani'},
-        {key:'tempo_trabalho', label:'Há quanto tempo você(s) faz esse trabalho?', ph:''},
-        {key:'motivo_comeco', label:'O que fez você(s) começar nisso?', ph:''},
-        {key:'gosta_mais', label:'O que você(s) mais gosta no que faz?', ph:''},
-        {key:'pesa_cansa', label:'O que mais pesa ou cansa no dia a dia de vocês?', ph:''},
-        {key:'descricao_outros', label:'Como as pessoas que conhecem você(s) bem descreveriam o jeito de vocês trabalhar?', ph:''},
-      ]
-    },
-    {
-      id:'trabalho', title:'Sobre o trabalho de vocês',
-      questions:[
-        {key:'o_que_faz', label:'Em poucas palavras, o que você(s) faz ou oferece?', ph:''},
-        {key:'cliente_ideal', label:'Como é o cliente ideal de vocês?', ph:''},
-        {key:'faz_procurar', label:'O que geralmente faz alguém procurar você(s)? (a situação, o problema ou o desejo por trás)', ph:''},
-        {key:'diferencial', label:'O que diferencia você(s) de outras pessoas que fazem algo parecido?', ph:''},
-        {key:'como_encontram', label:'Como as pessoas encontram você(s) hoje?', ph:''},
-        {key:'entrega_orgulho', label:'Qual foi um resultado ou entrega que deixou você(s) mais orgulhoso(a)?', ph:''},
-        {key:'elogio_frequente', label:'Existe algo que as pessoas sempre elogiam no trabalho de vocês?', ph:''},
-      ]
-    },
-    {
-      id:'publico', title:'Sobre público e valores',
-      questions:[
-        {key:'preco_atual', label:'Quanto você(s) cobra hoje pelo que faz? (valor ou faixa de preço)', ph:''},
-        {key:'forma_precificacao', label:'Como você(s) decide o preço de um produto ou serviço? (por hora, por pacote, por resultado, tabela fixa, feeling...)', ph:''},
-        {key:'ticket_medio', label:'Qual costuma ser o ticket médio dos clientes de vocês? (quanto a maioria paga, em média)', ph:''},
-        {key:'forma_pagamento', label:'Existe alguma forma de pagamento ou parcelamento que você(s) oferece hoje?', ph:''},
-        {key:'percepcao_preco', label:'Na percepção de vocês, o preço cobrado é justo, está abaixo ou acima do mercado?', ph:''},
-        {key:'cliente_mais_lucro', label:'Que tipo de cliente costuma pagar mais ou dar mais lucro pra você(s)?', ph:''},
-      ]
-    },
-    {
-      id:'futuro', title:'Olhando pra frente',
-      questions:[
-        {key:'visao_futuro', label:'Se pudesse escolher, como seria o trabalho de vocês daqui a 2 anos?', ph:''},
-        {key:'sonho_maior', label:'Existe algum sonho maior por trás desse trabalho, além do dinheiro?', ph:''},
-        {key:'ajuda_esperada', label:'O que você(s) imagina que a gente poderia ajudar a alcançar?', ph:''},
-        {key:'referencia_inspiracao', label:'Tem alguma referência (pessoa, marca, estilo) que inspira você(s) profissionalmente?', ph:''},
-        {key:'espaco_livre', label:'Tem mais alguma coisa que você(s) queira contar sobre você(s) ou o trabalho de vocês?', ph:''},
-      ]
-    }
+  // Duas trilhas, escolhidas no primeiro passo.
+  //
+  // O formulário nasceu pra profissional que trabalha sozinho — "há quanto
+  // tempo VOCÊ faz esse trabalho", "quanto VOCÊ cobra". Numa empresa de
+  // tecnologia metade dessas perguntas não tem resposta: quem decide a compra
+  // não é quem usa, o ciclo leva meses e o preço é modelo, não tabela.
+  //
+  // As chaves compartilhadas têm o MESMO nome nas duas trilhas de propósito: o
+  // Estúdio lê `o_que_faz`, `cliente_ideal`, `elogio_frequente` e as outras pra
+  // montar tom, sugestões e o pedido pra IA. Trilha que renomeia chave é trilha
+  // que quebra tudo que já existe do outro lado.
+  const NUCLEO_FUTURO = [
+    {key:'visao_futuro', label:'Se pudesse escolher, como seria o trabalho de vocês daqui a 2 anos?', ph:''},
+    {key:'sonho_maior', label:'Existe algum sonho maior por trás desse trabalho, além do dinheiro?', ph:''},
+    {key:'ajuda_esperada', label:'O que você(s) imagina que a gente poderia ajudar a alcançar?', ph:''},
+    {key:'referencia_inspiracao', label:'Tem alguma referência (pessoa, marca, estilo) que inspira você(s) profissionalmente?', ph:''},
+    {key:'espaco_livre', label:'Tem mais alguma coisa que você(s) queira contar sobre você(s) ou o trabalho de vocês?', ph:''},
   ];
 
-  const allKeys = sections.flatMap(s => s.questions.map(q => q.key));
-  const REVIEW_STEP = sections.length + 1;
-  document.getElementById('reviewStep').dataset.step = String(REVIEW_STEP);
+  const TRILHAS = {
+    solo: [
+      {
+        id:'voce', title:'Sobre você(s)',
+        questions:[
+          {key:'nome_pref', label:'Como você(s) prefere ser chamado(a)?', ph:'Ex.: Dani'},
+          {key:'tempo_trabalho', label:'Há quanto tempo você(s) faz esse trabalho?', ph:''},
+          {key:'motivo_comeco', label:'O que fez você(s) começar nisso?', ph:''},
+          {key:'gosta_mais', label:'O que você(s) mais gosta no que faz?', ph:''},
+          {key:'pesa_cansa', label:'O que mais pesa ou cansa no dia a dia de vocês?', ph:''},
+          {key:'descricao_outros', label:'Como as pessoas que conhecem você(s) bem descreveriam o jeito de vocês trabalhar?', ph:''},
+        ]
+      },
+      {
+        id:'trabalho', title:'Sobre o trabalho de vocês',
+        questions:[
+          {key:'o_que_faz', label:'Em poucas palavras, o que você(s) faz ou oferece?', ph:''},
+          {key:'cliente_ideal', label:'Como é o cliente ideal de vocês?', ph:''},
+          {key:'faz_procurar', label:'O que geralmente faz alguém procurar você(s)? (a situação, o problema ou o desejo por trás)', ph:''},
+          {key:'diferencial', label:'O que diferencia você(s) de outras pessoas que fazem algo parecido?', ph:''},
+          {key:'como_encontram', label:'Como as pessoas encontram você(s) hoje?', ph:''},
+          {key:'entrega_orgulho', label:'Qual foi um resultado ou entrega que deixou você(s) mais orgulhoso(a)?', ph:''},
+          {key:'elogio_frequente', label:'Existe algo que as pessoas sempre elogiam no trabalho de vocês?', ph:''},
+        ]
+      },
+      {
+        id:'publico', title:'Sobre público e valores',
+        questions:[
+          {key:'preco_atual', label:'Quanto você(s) cobra hoje pelo que faz? (valor ou faixa de preço)', ph:''},
+          {key:'forma_precificacao', label:'Como você(s) decide o preço de um produto ou serviço? (por hora, por pacote, por resultado, tabela fixa, feeling...)', ph:''},
+          {key:'ticket_medio', label:'Qual costuma ser o ticket médio dos clientes de vocês? (quanto a maioria paga, em média)', ph:''},
+          {key:'forma_pagamento', label:'Existe alguma forma de pagamento ou parcelamento que você(s) oferece hoje?', ph:''},
+          {key:'percepcao_preco', label:'Na percepção de vocês, o preço cobrado é justo, está abaixo ou acima do mercado?', ph:''},
+          {key:'cliente_mais_lucro', label:'Que tipo de cliente costuma pagar mais ou dar mais lucro pra você(s)?', ph:''},
+        ]
+      },
+      { id:'futuro', title:'Olhando pra frente', questions: NUCLEO_FUTURO },
+    ],
+
+    empresa: [
+      {
+        id:'voce', title:'Sobre a empresa',
+        questions:[
+          {key:'nome_pref', label:'Como a empresa se chama, e como vocês preferem ser chamados no dia a dia?', ph:'Ex.: Virtuex — pode chamar de Virtuex mesmo'},
+          {key:'tempo_trabalho', label:'Há quanto tempo a empresa existe, e quantas pessoas são hoje?', ph:''},
+          {key:'motivo_comeco', label:'O que fez vocês começarem? Que problema estava na frente de vocês?', ph:''},
+          {key:'gosta_mais', label:'Do que o time mais se orgulha no que vocês construíram até aqui?', ph:''},
+          {key:'pesa_cansa', label:'O que mais trava ou consome tempo hoje na operação de vocês?', ph:''},
+          {key:'descricao_outros', label:'Como um cliente que já trabalhou com vocês descreveria o jeito de vocês trabalhar?', ph:''},
+        ]
+      },
+      {
+        id:'trabalho', title:'O que vocês vendem',
+        questions:[
+          {key:'o_que_faz', label:'Em poucas palavras, o que a empresa faz ou oferece?', ph:''},
+          {key:'cliente_ideal', label:'Como é o cliente ideal de vocês? (setor, tamanho, maturidade)', ph:''},
+          {key:'faz_procurar', label:'O que costuma estar acontecendo na empresa do cliente quando ela procura vocês?', ph:''},
+          {key:'diferencial', label:'O que vocês fazem que um concorrente não consegue copiar em seis meses?', ph:''},
+          {key:'como_encontram', label:'Como os clientes chegam até vocês hoje? (indicação, edital, evento, busca, prospecção ativa)', ph:''},
+          {key:'entrega_orgulho', label:'Qual entrega deixou vocês mais orgulhosos? Se tiver número, traga o número.', ph:'Ex.: 300 alunos usaram em 2 meses'},
+          {key:'elogio_frequente', label:'O que os clientes sempre elogiam depois que o projeto entra em operação?', ph:''},
+        ]
+      },
+      {
+        // Esta é a parte que a trilha solo não tem, e é de onde sai quase tudo
+        // que o plano do mês consegue concluir sobre venda B2B.
+        id:'venda', title:'Como a venda acontece',
+        questions:[
+          {key:'quem_decide', label:'Do outro lado, quem decide a compra? E quem mais precisa dizer sim antes?', ph:'Ex.: quem usa é o professor, quem assina é a secretaria'},
+          {key:'ciclo_venda', label:'Quanto tempo costuma passar entre o primeiro contato e a assinatura?', ph:''},
+          {key:'objecao_comum', label:'Qual é a objeção que aparece quase sempre? E o que vocês respondem?', ph:''},
+          {key:'prova_tecnica', label:'Como vocês provam que funciona antes de o cliente comprar? (piloto, demo, dado, referência)', ph:''},
+          {key:'alternativa_cliente', label:'Se o cliente não comprar de vocês, o que ele faz? (outro fornecedor, solução interna, não fazer nada)', ph:''},
+          {key:'canal_venda', label:'A venda é direta, por edital/licitação, por parceiro, ou uma mistura?', ph:''},
+          {key:'porta_voz', label:'Quem da empresa pode aparecer, falar em vídeo ou assinar um texto técnico?', ph:''},
+        ]
+      },
+      {
+        id:'publico', title:'Preço e contrato',
+        questions:[
+          {key:'preco_atual', label:'Qual é o modelo de cobrança? (licença, projeto fechado, por usuário, por aluno, mensalidade)', ph:''},
+          {key:'forma_precificacao', label:'Como vocês chegam no preço de uma proposta?', ph:''},
+          {key:'ticket_medio', label:'Qual é o ticket médio de um contrato de vocês?', ph:''},
+          {key:'forma_pagamento', label:'Como é o pagamento na prática? (prazo, nota, empenho, parcelamento)', ph:''},
+          {key:'percepcao_preco', label:'Na percepção de vocês, o preço está justo, abaixo ou acima do que o mercado pratica?', ph:''},
+          {key:'cliente_mais_lucro', label:'Que tipo de contrato dá mais lucro ou menos dor de cabeça pra vocês?', ph:''},
+        ]
+      },
+      { id:'futuro', title:'Olhando pra frente', questions: NUCLEO_FUTURO },
+    ],
+  };
+
+  // Escolhida no primeiro passo; até lá não há seção montada.
+  let trilha = null;
+  let sections = [];
+
+  const allKeys = () => sections.flatMap(s => s.questions.map(q => q.key));
+  let REVIEW_STEP = 1;
   let currentStep = 0;
 
   const host = document.getElementById('sectionsHost');
@@ -402,37 +508,60 @@
   const cardEl = document.getElementById('card');
   const progressFill = document.getElementById('progressFill');
 
-  sections.forEach((sec, idx) => {
-    const el = document.createElement('section');
-    el.className = 'step';
-    el.dataset.step = String(idx + 1);
+  // Monta as seções só depois que a trilha é escolhida. Antes disso o host
+  // fica vazio: montar as duas e esconder uma faria o Tab passear por
+  // perguntas invisíveis, e o rascunho gravaria campo de trilha que ninguém viu.
+  function montarSecoes(){
+    host.innerHTML = '';
+    sections.forEach((sec, idx) => {
+      const el = document.createElement('section');
+      el.className = 'step';
+      el.dataset.step = String(idx + 1);
 
-    let qHtml = '';
-    sec.questions.forEach(q => {
-      qHtml += `
-        <div class="qgroup">
-          <label for="${q.key}">${q.label}</label>
-          <textarea id="${q.key}" data-key="${q.key}" rows="1" placeholder="${q.ph || 'Escreva aqui...'}"></textarea>
-        </div>`;
+      let qHtml = '';
+      sec.questions.forEach(q => {
+        qHtml += `
+          <div class="qgroup">
+            <label for="${q.key}">${q.label}</label>
+            <textarea id="${q.key}" data-key="${q.key}" rows="1" placeholder="${q.ph || 'Escreva aqui...'}"></textarea>
+          </div>`;
+      });
+
+      el.innerHTML = `
+        <p class="eyebrow">Parte ${idx + 1} de ${sections.length}</p>
+        <h2 class="section-title">${sec.title}</h2>
+        <p class="lede small">Pode responder com suas palavras, do seu jeito. Se não souber algo agora, siga em frente.</p>
+        <div style="margin-top:22px;">${qHtml}</div>
+        <div class="nav-row">
+          <button class="btn btn-ghost" data-action="back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><line x1="18" y1="12" x2="6" y2="12"/><polyline points="11 6 6 12 11 18"/></svg>
+            Voltar</button>
+          <span class="answered-note" data-counter></span>
+          <button class="btn btn-primary" data-action="next">Continuar
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><line x1="6" y1="18" x2="18" y2="6"/><polyline points="10 6 18 6 18 14"/></svg>
+          </button>
+        </div>
+      `;
+      host.appendChild(el);
     });
 
-    el.innerHTML = `
-      <p class="eyebrow">Parte ${idx + 1} de ${sections.length}</p>
-      <h2 class="section-title">${sec.title}</h2>
-      <p class="lede small">Pode responder com suas palavras, do seu jeito. Se não souber algo agora, siga em frente.</p>
-      <div style="margin-top:22px;">${qHtml}</div>
-      <div class="nav-row">
-        <button class="btn btn-ghost" data-action="back">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><line x1="18" y1="12" x2="6" y2="12"/><polyline points="11 6 6 12 11 18"/></svg>
-          Voltar</button>
-        <span class="answered-note" data-counter></span>
-        <button class="btn btn-primary" data-action="next">Continuar
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><line x1="6" y1="18" x2="18" y2="6"/><polyline points="10 6 18 6 18 14"/></svg>
-        </button>
-      </div>
-    `;
-    host.appendChild(el);
-  });
+    REVIEW_STEP = sections.length + 1;
+    document.getElementById('reviewStep').dataset.step = String(REVIEW_STEP);
+    const fn = document.getElementById('introFoot');
+    if(fn) fn.textContent = sections.length + ' partes rápidas + um resumo no final pra você(s) revisar antes de nos enviar.';
+    attachTextareaBehavior();
+  }
+
+  function escolherTrilha(qual, opts){
+    if(!TRILHAS[qual]) return;
+    trilha = qual;
+    sections = TRILHAS[qual];
+    montarSecoes();
+    document.querySelectorAll('[data-trilha]').forEach(b=>{
+      b.setAttribute('aria-pressed', String(b.dataset.trilha === qual));
+    });
+    if(!(opts && opts.silencioso)) salvarRascunho();
+  }
 
   const allSteps = () => Array.from(document.querySelectorAll('.step'));
   const textareas = () => Array.from(document.querySelectorAll('textarea[data-key]'));
@@ -469,7 +598,7 @@
       textareas().forEach(ta => {
         if(ta.value.trim()){ dados[ta.id] = ta.value; algum = true; }
       });
-      if(algum) localStorage.setItem(RASCUNHO, JSON.stringify({ em: Date.now(), dados }));
+      if(algum || trilha) localStorage.setItem(RASCUNHO, JSON.stringify({ em: Date.now(), trilha, dados }));
       else localStorage.removeItem(RASCUNHO);
     }catch(err){ /* segue sem rascunho */ }
   }
@@ -482,6 +611,10 @@
     let salvo = null;
     try{ salvo = JSON.parse(localStorage.getItem(RASCUNHO) || 'null'); }catch(err){ return; }
     if(!salvo || !salvo.dados) return;
+
+    // A trilha vem antes das respostas: sem as seções montadas não há campo
+    // onde pôr o que foi digitado.
+    if(salvo.trilha && !trilha) escolherTrilha(salvo.trilha, { silencioso:true });
 
     let n = 0;
     Object.keys(salvo.dados).forEach(id => {
@@ -512,7 +645,12 @@
   }
 
   function updateProgress(){
-    const pct = Math.round((Math.min(currentStep, sections.length) / sections.length) * 100);
+    // Antes de escolher a trilha não há seção nenhuma, e dividir por zero aqui
+    // deixaria a barra com width:NaN — que o navegador ignora em silêncio, e aí
+    // a tarja da marca some sem ninguém entender por quê.
+    const pct = sections.length
+      ? Math.round((Math.min(currentStep, sections.length) / sections.length) * 100)
+      : 0;
     // Um naco mínimo de laranja em todo passo: no primeiro, com 0%, o cartão
     // ficaria sem a tarja da marca, que é o que ele tem de identidade.
     progressFill.style.width = Math.max(pct, 7) + '%';
@@ -555,7 +693,15 @@
     updateProgress();
   }
 
-  document.getElementById('startBtn').addEventListener('click', () => goTo(1));
+  const btIniciar = document.getElementById('startBtn');
+  document.querySelectorAll('[data-trilha]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      escolherTrilha(b.dataset.trilha);
+      btIniciar.disabled = false;
+      updateProgress();
+    });
+  });
+  btIniciar.addEventListener('click', () => { if(trilha) goTo(1); });
 
   host.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
@@ -643,8 +789,8 @@
           secret: SHARED_SECRET,
           nome: nome || null,
           formulario: 'conhecendo-voce',
-          versao: 'v1',
-          respostas: coletarRespostas(),
+          versao: trilha === 'empresa' ? 'v2-empresa' : 'v2-solo',
+          respostas: Object.assign({ trilha: trilha || 'solo' }, coletarRespostas()),
         }),
       }).catch(err => console.warn('Não deu pra gravar as respostas:', err));
     } catch(err){
@@ -680,7 +826,7 @@
     let y = 0;
 
     const nome = (document.getElementById('nome_pref')?.value || '').trim();
-    const answered = allKeys.filter(k => (document.getElementById(k)?.value || '').trim().length > 0).length;
+    const answered = allKeys().filter(k => (document.getElementById(k)?.value || '').trim().length > 0).length;
 
     const fill = (c) => doc.setFillColor(c[0],c[1],c[2]);
     const draw = (c) => doc.setDrawColor(c[0],c[1],c[2]);
@@ -813,7 +959,7 @@
 
       const d = new Date();
       const meses = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
-      metaItem(M, 'PERGUNTAS', String(allKeys.length));
+      metaItem(M, 'PERGUNTAS', String(allKeys().length));
       metaItem(M + 150, 'RESPONDIDAS', String(answered));
       metaItem(M + 320, 'DATA', String(d.getDate()).padStart(2,'0') + ' ' + meses[d.getMonth()] + ' ' + d.getFullYear());
 
