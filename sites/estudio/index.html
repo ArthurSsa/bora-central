@@ -1327,6 +1327,71 @@
   }
   .toast .desfazer:hover{ background:rgba(255,255,255,.15); }
 
+  /* ---------- identidade visual do cliente ---------- */
+  /* A caixa de mandar o manual. Ela é grande de propósito: é a única parte do
+     Estúdio onde entra um arquivo que veio de fora, e onde o texto do que se
+     espera precisa caber inteiro. Caixa pequena com letra miúda é como se
+     manda o arquivo errado. */
+  .idv-solta{
+    border:1.5px dashed var(--linha); border-radius:10px; background:var(--sup2);
+    padding:18px; margin-top:12px; transition:border-color .15s ease, background .15s ease;
+  }
+  .idv-solta.sobre{ border-color:var(--laranja); background:var(--laranja-fraco); }
+  .idv-espera{ margin:0 0 14px; font-size:0.82rem; line-height:1.55; color:var(--fraco); }
+  .idv-espera b{ color:var(--tinta); }
+  .idv-espera ul{ margin:8px 0 0; padding-left:18px; }
+  .idv-espera li{ margin-top:4px; }
+  .idv-arqs{ display:grid; gap:8px; margin-top:14px; }
+  .idv-arq{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    border:1px solid var(--linha2); border-radius:10px; background:var(--sup);
+    padding:9px 12px; font-size:0.82rem;
+  }
+  .idv-arq .nm{ flex:1 1 180px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .idv-arq .pq{ color:var(--fraco); font-size:0.74rem; }
+
+  /* Uma linha da paleta: a bolinha da cor, o nome que o manual dá a ela, e
+     pra que o manual manda usar. As três coisas juntas, porque cor sem o uso
+     é só um hexadecimal — e hexadecimal solto é exatamente o que faz alguém
+     usar o roxo de posicionamento numa peça de rua. */
+  .pal-linha{
+    display:grid; grid-template-columns:44px minmax(0,1fr) minmax(0,1.6fr) 32px;
+    gap:8px; align-items:center; margin-top:8px;
+  }
+  .pal-linha input[type=color]{ width:44px; height:34px; padding:2px; }
+  .pal-linha input[type=text]{
+    width:100%; border:1px solid var(--linha); border-radius:10px; background:var(--sup2);
+    padding:8px 10px; font:inherit; font-size:0.82rem; color:var(--tinta);
+  }
+  .pal-linha input[type=text]:focus{ border-color:var(--laranja); background:var(--sup); }
+  .lixo{
+    border:1px solid var(--linha); border-radius:10px; background:var(--sup);
+    color:var(--fraco); width:32px; height:32px; line-height:1; font-size:1rem;
+  }
+  .lixo:hover{ border-color:var(--al); color:var(--al); }
+
+  .conj-grade{ display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px; margin-top:12px; }
+  .conj-cartao{ border:1px solid var(--linha); border-radius:10px; background:var(--sup); overflow:hidden; }
+  .conj-amostra{ padding:16px 14px; min-height:86px; display:grid; gap:6px; align-content:center; }
+  .conj-amostra .t{ font-family:var(--display); font-weight:700; font-size:0.94rem; line-height:1.2; }
+  .conj-amostra .a{ font-size:0.76rem; opacity:.92; }
+  .conj-amostra .f{ height:6px; width:52px; border-radius:100px; }
+  .conj-corpo{ padding:12px; display:grid; gap:8px; }
+  .conj-corpo input[type=text]{
+    width:100%; border:1px solid var(--linha); border-radius:10px; background:var(--sup2);
+    padding:8px 10px; font:inherit; font-size:0.82rem; color:var(--tinta);
+  }
+  .conj-cores{ display:flex; gap:8px; flex-wrap:wrap; }
+  .conj-cor{ display:grid; gap:3px; justify-items:center; }
+  .conj-cor span{ font-size:0.66rem; color:var(--fraco); letter-spacing:.04em; text-transform:uppercase; }
+  .conj-cor input[type=color]{ width:42px; height:30px; padding:2px; }
+  .conj-pe{ display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+
+  @media (max-width:680px){
+    .pal-linha{ grid-template-columns:44px minmax(0,1fr) 32px; }
+    .pal-linha input[type=text].uso{ grid-column:1 / -1; }
+  }
+
   /* ---------- celular: a lateral vira gaveta ---------- */
   @media (max-width:900px){
     .shell{ grid-template-columns:minmax(0,1fr); padding:14px; gap:14px; }
@@ -3544,6 +3609,24 @@
     const cor = deck.cor || '#FF5E00';
     const c2 = deck.cor2 || cor;
     const e = escadaDe(cor);
+
+    // Conjunto do manual escolhido: as cores vêm prontas, e a derivação não
+    // opina. Só o que o conjunto NÃO traz é calculado — porque um manual que
+    // define fundo e texto raramente define também a cor de apoio.
+    if(deck.conjunto && deck.conjunto.fundo){
+      const j = deck.conjunto;
+      const fundo = j.fundo;
+      const tinta = j.tinta || tintaPara(fundo, cor, 7);
+      return {
+        fundo, tinta,
+        apoio: j.apoio || tintaPara(fundo, j.tinta ? j.tinta : cor, 4.5),
+        destaque: j.destaque || (contraste(cor, fundo) >= 3 ? cor : tintaPara(fundo, cor, 3.2)),
+        faixa: j.faixa || j.destaque || tintaPara(fundo, cor, 3.2),
+        escada: escadaDe(j.destaque || cor),
+        breu: escadaDe(j.destaque || cor).breu,
+        doManual: true,
+      };
+    }
     const monta = fundo => {
       const destaque = contraste(cor, fundo) >= 3 ? cor : tintaPara(fundo, cor, 3.2);
       return {
@@ -4362,6 +4445,9 @@
     window.__elementoImagem = elementoImagem;
     window.__desenharSlide = (...a) => desenharSlide(...a);
     window.__aplicarLayout = (...a) => aplicarLayout(...a);
+    window.__pecaNova = (...a) => pecaNova(...a);
+    window.__conjuntoPadraoDe = (...a) => conjuntoPadraoDe(...a);
+    window.__cliente = id => (state.clientes || []).find(c => c.id === id) || null;
   }
 
   // Troca o arranjo do slide mantendo o que estava escrito e as fotos.
@@ -5282,13 +5368,42 @@
   // Toda peça começa com o jeito daquele cliente já aplicado. Sem isto, cada
   // carrossel sai um pouco diferente do anterior — e é justamente a repetição
   // visual que faz um perfil parecer profissional sem parecer publicidade.
+  // A marca do cliente, como o Estúdio a conhece.
+  //
+  // `paleta` e `conjuntos` são a parte que veio depois, e são a diferença entre
+  // um sistema que ADIVINHA a paleta e um que APLICA o manual.
+  //
+  //   paleta    — as cores com nome e com o uso que o manual dá a cada uma.
+  //   conjuntos — as combinações prontas, já aprovadas: qual fundo com qual
+  //               texto, e em que tipo de assunto se usa cada uma.
+  //
+  // Um manual de marca decente nunca diz "a cor da marca é esta". Ele diz "roxo
+  // e rosa em tema leve, cinzas em posicionamento, amarelo e azul quando o
+  // assunto é a coligação". Derivar tudo de uma cor só, por mais bem feita que
+  // seja a derivação, joga essa instrução fora.
   const MARCA_PADRAO = {
     cor2:'', preset:'papel', formato:'4:5', alinha:'esq', margem:'folgada',
     numerar:true, faixa:true,
     tom:'', evitar:'', chamada:'', hashtags:'', publico:'',
+    paleta:[],      // [{ nome, cor, uso }]
+    conjuntos:[],   // [{ k, nome, quando, fundo, tinta, destaque, faixa }]
+    conjuntoPadrao:'', // o k de qual conjunto abre em peça nova
+    fonteMarca:'',  // o nome da fonte do manual, mesmo que não esteja aqui
+    fonteFalback:'',// qual das cinco do Estúdio substitui ela
+    obrigatorios:'',// o que não pode faltar em nenhuma peça
   };
   function marcaDe(c){
     return Object.assign({}, MARCA_PADRAO, (c && c.marca) || {});
+  }
+  const conjuntosDe = c => (marcaDe(c).conjuntos || []).filter(j => j && j.k);
+  // A peça leva uma CÓPIA do conjunto, não o apelido dele. É de propósito, e é
+  // a mesma decisão que já valia pra cor e pro preset: um carrossel aprovado em
+  // setembro não pode mudar de cara sozinho porque alguém mexeu no manual em
+  // outubro. Quem quiser a versão nova aperta "Voltar ao padrão".
+  function conjuntoPadraoDe(c){
+    const k = marcaDe(c).conjuntoPadrao;
+    const j = k && conjuntosDe(c).find(x => x.k === k);
+    return j ? JSON.parse(JSON.stringify(j)) : null;
   }
   async function salvarMarca(c, campos){
     const nova = Object.assign({}, marcaDe(c), campos);
@@ -5916,6 +6031,14 @@
     L.push('## COMO ELE FALA');
     L.push(m.tom ? m.tom : 'Tom: direto, sem jargão, sem frase motivacional. Escreva como quem explica pra um conhecido.');
     if(m.evitar) L.push('NÃO use, em hipótese alguma: ' + m.evitar);
+    // O manual entra como CONTEXTO, e o texto do pedido diz isso. Parte do que
+    // está aqui é da arte e não do texto ("a estrela amarela em toda peça"):
+    // mandar sem avisar faria a IA tentar escrever a estrela.
+    if(String(m.obrigatorios || '').trim()){
+      L.push('');
+      L.push('O manual da marca exige, em toda peça: ' + m.obrigatorios.replace(/\n+/g,' '));
+      L.push('Parte disso é da arte, não do texto. Escreva só o que for texto; o resto quem põe é o Estúdio.');
+    }
     L.push('');
 
     const conselho = conselhoDe(cliente);
@@ -6212,6 +6335,7 @@
     // preta sem nada pra clicar não ensina ninguém que o editor é de clicar.
     const dados = { formato:m.formato, preset:m.preset, cor:(c && c.cor) || null, cor2:m.cor2 || '',
       alinha:m.alinha, margem:m.margem, numerar:m.numerar !== false, faixa:m.faixa !== false,
+      conjunto: conjuntoPadraoDe(c),
       assinatura:assinaturaDe(c), legenda:'', slides:[] };
     dados.slides = [
       { tipo:'capa',     titulo:'O título da capa',  texto:'A linha de apoio' },
@@ -6840,6 +6964,7 @@
       const sug = sugestoesDe(c)[0];
       const deck = { formato:mm.formato, preset:mm.preset, cor:c.cor || '#FF5E00', cor2:mm.cor2,
         alinha:mm.alinha, margem:mm.margem, numerar:mm.numerar !== false, faixa:mm.faixa !== false,
+        conjunto: conjuntoPadraoDe(c),
         assinatura:assinaturaDe(c) || (c.nome_preferido || c.nome),
         slides:[{}, {}, {}] };
       desenharSlide(cv, { tipo:'capa',
@@ -6924,6 +7049,412 @@
       const atual = String(marcaDe(c).tom || '').trim();
       if(await grava({ tom: atual ? atual + ' ' + s.frase : s.frase })) render();
     }));
+
+    box.appendChild(blocoIdentidade(c, pintarExemplo));
+    return box;
+  }
+
+  // ---------- identidade visual ----------
+
+  // O que esta parte é, e por que ela não é "o Estúdio lê o PDF".
+  //
+  // Um manual de marca é um documento pra pessoa. Ele diz "roxo e rosa em tema
+  // leve", "cinzas quando o assunto for posicionamento", "a estrela amarela
+  // nunca some". Nada disso é campo de banco, e um programa que tentasse
+  // adivinhar isso de um PDF ia acertar a cor e errar a instrução — que é a
+  // parte que importa.
+  //
+  // Então a divisão é honesta e está escrita na tela: o ARQUIVO fica guardado
+  // como referência, e o que o Estúdio aplica é o que estiver preenchido
+  // abaixo. Preencher é trabalho de uma vez só, por cliente. Depois disso,
+  // toda peça nova dele já nasce com o manual aplicado, e é aí que a mudança
+  // rápida fica rápida de verdade.
+
+  const TIPOS_ARQUIVO = [
+    ['manual', 'Manual da marca'],
+    ['logo',   'Logo'],
+    ['fonte',  'Fonte'],
+    ['foto',   'Foto oficial'],
+    ['outro',  'Outro'],
+  ];
+
+  // O navegador manda fonte com tipo vazio ou com um tipo antigo que o balde
+  // recusa. O balde tem lista de tipos permitidos de propósito — é o que
+  // impede alguém de guardar um executável ali — então quem corrige é aqui,
+  // pela extensão, e não a lista lá.
+  const MIME_POR_EXT = {
+    pdf:'application/pdf', png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg',
+    svg:'image/svg+xml', webp:'image/webp', ttf:'font/ttf', otf:'font/otf',
+    woff:'font/woff', woff2:'font/woff2', zip:'application/zip',
+  };
+  const extDe = nome => String(nome || '').split('.').pop().toLowerCase();
+  const mimeDe = f => MIME_POR_EXT[extDe(f.name)] || f.type || 'application/octet-stream';
+  const peso = b => !b ? '' : b < 1048576 ? Math.max(1, Math.round(b/1024)) + ' KB'
+    : (b/1048576).toFixed(b < 10485760 ? 1 : 0) + ' MB';
+
+  function blocoIdentidade(c, aoMudar){
+    const box = el('div',{class:'bloco', style:'margin-top:18px'});
+    box.appendChild(el('p',{class:'rot'},'Identidade visual'));
+    box.appendChild(el('p',{class:'intro', style:'margin:6px 0 4px'},
+      'O manual dele, traduzido pro que a peça usa. Preenchido uma vez, vale pra todas as peças: '
+      + 'é o que faz “mudar rápido” ser mudar rápido, e não refazer tudo.'));
+
+    const m0 = marcaDe(c);
+    const grava = async campos => {
+      if(await salvarMarca(c, campos)){ toast('Salvo.'); if(aoMudar) aoMudar(); return true; }
+      return false;
+    };
+
+    // ---- 1. o arquivo ----
+
+    box.appendChild(el('p',{class:'rot laranja', style:'margin-top:22px'},'O arquivo da identidade'));
+
+    const solta = el('div',{class:'idv-solta'});
+    const espera = el('div',{class:'idv-espera'});
+    espera.innerHTML =
+      '<b>O que mandar aqui</b>'
+      + '<ul>'
+      + '<li>O <b>manual / identidade visual</b> em PDF — o arquivo do Canva exportado serve.</li>'
+      + '<li>O <b>logo</b> em PNG com fundo transparente, ou em SVG.</li>'
+      + '<li>A <b>fonte</b> da marca em .otf ou .ttf, se vocês tiverem o direito de uso dela.</li>'
+      + '<li>As <b>fotos oficiais</b> que se repetem: retrato, bastidor, o que sempre volta.</li>'
+      + '</ul>'
+      + '<p style="margin:12px 0 0"><b>O que o Estúdio faz com ele:</b> guarda como referência, e só. '
+      + 'Ele não lê o PDF nem adivinha regra nenhuma de dentro dele. '
+      + 'O que o Estúdio <b>aplica</b> nas peças é o que estiver preenchido logo abaixo — a paleta, os '
+      + 'conjuntos, a tipografia e os obrigatórios. O arquivo serve pra preencher isso uma vez e pra '
+      + 'conferir depois, quando alguém perguntar de onde saiu aquela cor.</p>'
+      + '<p style="margin:10px 0 0">Até 100 MB por arquivo. Fica guardado em pasta fechada: '
+      + 'só quem entra no Estúdio abre.</p>';
+    solta.appendChild(espera);
+
+    const escolhaTipo = el('div',{class:'chips', style:'margin-bottom:10px'});
+    let tipoAtual = 'manual';
+    TIPOS_ARQUIVO.forEach(([k, nome])=>{
+      escolhaTipo.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(k === tipoAtual),
+        onclick:()=>{ tipoAtual = k;
+          escolhaTipo.querySelectorAll('.chip-p').forEach((b,i)=>
+            b.setAttribute('aria-pressed', String(TIPOS_ARQUIVO[i][0] === k))); }}, esc(nome)));
+    });
+    solta.appendChild(el('p',{class:'dica', style:'margin:0 0 6px'},'O que é este arquivo:'));
+    solta.appendChild(escolhaTipo);
+
+    const entrada = el('input',{type:'file', style:'display:none',
+      accept:'.pdf,.png,.jpg,.jpeg,.svg,.webp,.ttf,.otf,.woff,.woff2,.zip'});
+    const btnMandar = el('button',{class:'btn small', onclick:()=>entrada.click()},'Escolher arquivo');
+    solta.appendChild(btnMandar);
+    solta.appendChild(entrada);
+    solta.appendChild(el('span',{class:'dica', style:'margin-top:8px'},
+      'Ou arraste o arquivo pra cima desta caixa.'));
+
+    const lista = el('div',{class:'idv-arqs'});
+    solta.appendChild(lista);
+    box.appendChild(solta);
+
+    // Arrastar pra cima da caixa. O preventDefault no dragover é obrigatório:
+    // sem ele o navegador abre o PDF numa aba e o arquivo não chega aqui.
+    ['dragenter','dragover'].forEach(ev => solta.addEventListener(ev, e=>{
+      e.preventDefault(); solta.classList.add('sobre'); }));
+    ['dragleave','drop'].forEach(ev => solta.addEventListener(ev, e=>{
+      e.preventDefault(); solta.classList.remove('sobre'); }));
+    solta.addEventListener('drop', e=>{
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f) mandar(f);
+    });
+    entrada.addEventListener('change', ()=>{
+      if(entrada.files && entrada.files[0]) mandar(entrada.files[0]);
+      entrada.value = '';
+    });
+
+    async function mandar(f){
+      const mime = mimeDe(f);
+      if(!Object.values(MIME_POR_EXT).includes(mime)){
+        toast('Esse tipo de arquivo não entra aqui: ' + extDe(f.name)); return;
+      }
+      if(f.size > 100 * 1048576){ toast('Passa de 100 MB. Exporte em qualidade menor.'); return; }
+      btnMandar.disabled = true;
+      btnMandar.textContent = 'Mandando ' + peso(f.size) + '…';
+      // O caminho leva o id do cliente na frente: é isso que deixa a política
+      // do balde e a limpeza por cliente serem uma coisa só.
+      const limpo = f.name.replace(/[^\w.\-]+/g,'-').slice(-80);
+      const caminho = c.id + '/' + Date.now() + '-' + limpo;
+      const up = await sb.storage.from('identidades').upload(caminho, f, { contentType:mime, upsert:false });
+      if(up.error){
+        btnMandar.disabled = false; btnMandar.textContent = 'Escolher arquivo';
+        toast('Não subiu: ' + up.error.message); return;
+      }
+      const { data, error } = await sb.from('marca_arquivos').insert({
+        cliente_id:c.id, tipo:tipoAtual, caminho, nome:f.name, bytes:f.size, mime,
+      }).select().single();
+      btnMandar.disabled = false; btnMandar.textContent = 'Escolher arquivo';
+      if(error){
+        // A linha não entrou: o arquivo solto no balde vira lixo que ninguém
+        // mais enxerga. Tira ele de volta em vez de deixar acumular.
+        await sb.storage.from('identidades').remove([caminho]);
+        toast('Não deu: ' + error.message); return;
+      }
+      arquivos.unshift(data);
+      toast('Guardado.');
+      pintarLista();
+    }
+
+    let arquivos = [];
+    function pintarLista(){
+      lista.innerHTML = '';
+      if(!arquivos.length){
+        lista.appendChild(el('p',{class:'dica', style:'margin-top:12px'},
+          'Nada guardado ainda para ' + esc(c.nome_preferido || c.nome) + '.'));
+        return;
+      }
+      arquivos.forEach(a=>{
+        const l = el('div',{class:'idv-arq'});
+        l.appendChild(el('span',{class:'tag'},
+          esc((TIPOS_ARQUIVO.find(t => t[0] === a.tipo) || ['','—'])[1])));
+        l.appendChild(el('span',{class:'nm'}, esc(a.nome)));
+        l.appendChild(el('span',{class:'pq'}, esc(peso(a.bytes))));
+        l.appendChild(el('button',{class:'btn ghost small', onclick:async()=>{
+          // Link assinado, curto. O balde é fechado: sem isto não há URL que
+          // abra, e é assim que tem que ser — manual de cliente não fica
+          // servido num endereço que qualquer um adivinha.
+          const { data, error } = await sb.storage.from('identidades').createSignedUrl(a.caminho, 120);
+          if(error){ toast('Não consegui abrir: ' + error.message); return; }
+          window.open(data.signedUrl, '_blank', 'noopener');
+        }},'Abrir'));
+        l.appendChild(el('button',{class:'lixo', 'aria-label':'Apagar ' + esc(a.nome), onclick:async()=>{
+          if(!confirm('Apagar "' + a.nome + '"? Isso não volta.')) return;
+          const r = await sb.from('marca_arquivos').delete().eq('id', a.id);
+          if(r.error){ toast('Não deu: ' + r.error.message); return; }
+          await sb.storage.from('identidades').remove([a.caminho]);
+          arquivos = arquivos.filter(x => x.id !== a.id);
+          toast('Apagado.'); pintarLista();
+        }},'×'));
+        lista.appendChild(l);
+      });
+    }
+    pintarLista();
+    sb.from('marca_arquivos').select('*').eq('cliente_id', c.id)
+      .order('enviado_em', { ascending:false })
+      .then(({ data, error })=>{
+        if(error) return;
+        arquivos = data || [];
+        pintarLista();
+      });
+
+    // ---- 2. a paleta ----
+
+    box.appendChild(el('p',{class:'rot laranja', style:'margin-top:26px'},'A paleta do manual'));
+    box.appendChild(el('p',{class:'dica', style:'margin:6px 0 0'},
+      'Cada cor com o nome que o manual dá a ela e com o uso que o manual manda. '
+      + 'O uso é a parte que vale: cor sem uso é só um código, e código solto é como alguém '
+      + 'acaba usando a cor de posicionamento numa peça de rua.'));
+    const palCx = el('div');
+    box.appendChild(palCx);
+
+    function pintarPaleta(){
+      palCx.innerHTML = '';
+      const pal = (marcaDe(c).paleta || []).slice();
+      const salvar = () => grava({ paleta: pal });
+      pal.forEach((p, i)=>{
+        const l = el('div',{class:'pal-linha'});
+        const cor = el('input',{type:'color', value: p.cor || '#000000'});
+        cor.addEventListener('change', ()=>{ pal[i].cor = cor.value; salvar().then(pintarConjuntos); });
+        const nome = el('input',{type:'text', value:p.nome || '', placeholder:'Nome (ex.: Roxo)'});
+        nome.addEventListener('change', ()=>{ pal[i].nome = nome.value.trim(); salvar(); });
+        const uso = el('input',{type:'text', class:'uso', value:p.uso || '',
+          placeholder:'Pra que o manual manda usar'});
+        uso.addEventListener('change', ()=>{ pal[i].uso = uso.value.trim(); salvar(); });
+        const x = el('button',{class:'lixo', 'aria-label':'Tirar esta cor', onclick:()=>{
+          pal.splice(i,1); salvar().then(()=>{ pintarPaleta(); pintarConjuntos(); });
+        }},'×');
+        [cor, nome, uso, x].forEach(n => l.appendChild(n));
+        palCx.appendChild(l);
+      });
+      palCx.appendChild(el('button',{class:'btn ghost small', style:'margin-top:12px', onclick:()=>{
+        pal.push({ nome:'', cor: c.cor || '#FF5E00', uso:'' });
+        salvar().then(()=>{ pintarPaleta(); pintarConjuntos(); });
+      }}, pal.length ? '+ outra cor' : '+ primeira cor'));
+    }
+    pintarPaleta();
+
+    // ---- 3. os conjuntos ----
+
+    box.appendChild(el('p',{class:'rot laranja', style:'margin-top:28px'},'Conjuntos prontos'));
+    box.appendChild(el('p',{class:'dica', style:'margin:6px 0 0'},
+      'Um conjunto é uma combinação já aprovada: qual fundo com qual texto, e em que tipo de assunto. '
+      + 'É o que o manual realmente diz — ele quase nunca diz “a cor da marca é esta”, ele diz em que '
+      + 'situação usa qual. Com os conjuntos preenchidos, a peça deixa de ser derivada de uma cor só e '
+      + 'passa a ser escolhida numa lista de três ou quatro.'));
+    const conjCx = el('div');
+    box.appendChild(conjCx);
+
+    function pintarConjuntos(){
+      conjCx.innerHTML = '';
+      const mm = marcaDe(c);
+      const cjs = (mm.conjuntos || []).slice();
+      const pal = mm.paleta || [];
+      const salvar = () => grava({ conjuntos: cjs });
+      const grade = el('div',{class:'conj-grade'});
+
+      cjs.forEach((j, i)=>{
+        const cart = el('div',{class:'conj-cartao'});
+
+        const am = el('div',{class:'conj-amostra'});
+        function pintarAmostra(){
+          const fundo = j.fundo || '#F5F2EC';
+          const tinta = j.tinta || tintaPara(fundo, j.destaque || c.cor || '#FF5E00', 7);
+          am.style.background = fundo;
+          am.innerHTML = '';
+          const t = el('div',{class:'t'}, esc(j.nome || 'Sem nome ainda'));
+          t.style.color = tinta;
+          const a = el('div',{class:'a'}, esc(j.quando || 'em que assunto se usa'));
+          // O "quando" usa a cor do TEXTO, não a de destaque. Parece detalhe e
+          // não é: rosa sobre roxo é uma combinação legítima do manual pra uma
+          // faixa, e ilegível pra uma linha de texto — pintar a linha com a cor
+          // de destaque fazia o próprio cartão do conjunto virar exemplo do
+          // erro que ele existe pra evitar.
+          a.style.color = tinta;
+          const barras = el('div',{style:'display:flex;gap:6px;align-items:center'});
+          [j.destaque, j.faixa].filter(Boolean).forEach(cor=>{
+            const f = el('div',{class:'f'});
+            f.style.background = cor;
+            barras.appendChild(f);
+          });
+          am.appendChild(t); am.appendChild(a); am.appendChild(barras);
+          // A conta de contraste é a mesma da norma, e aparece aqui porque um
+          // conjunto do manual pode simplesmente não ler — manual feito pra
+          // cartaz de rua não pensou em texto de 28px no celular. O Estúdio
+          // não conserta a escolha dele; avisa, e quem decide é a pessoa.
+          const r = contraste(tinta, fundo);
+          const av = el('div',{class:'a', style:'margin-top:4px;opacity:.85'},
+            r >= 4.5 ? '✓ lê bem (' + r.toFixed(1) + ':1)'
+                     : '⚠ contraste baixo (' + r.toFixed(1) + ':1) — o mínimo da norma é 4,5:1');
+          av.style.color = r >= 4.5 ? tinta : (contraste('#B00020', fundo) >= 3 ? '#B00020' : tinta);
+          am.appendChild(av);
+        }
+        pintarAmostra();
+        cart.appendChild(am);
+
+        const corpo = el('div',{class:'conj-corpo'});
+        const nome = el('input',{type:'text', value:j.nome || '', placeholder:'Nome (ex.: Tema leve)'});
+        nome.addEventListener('input', ()=>{ j.nome = nome.value; pintarAmostra(); });
+        nome.addEventListener('change', ()=>{ j.nome = nome.value.trim(); salvar(); });
+        corpo.appendChild(nome);
+        const quando = el('input',{type:'text', value:j.quando || '',
+          placeholder:'Quando usar (ex.: dia a dia, pauta leve)'});
+        quando.addEventListener('input', ()=>{ j.quando = quando.value; pintarAmostra(); });
+        quando.addEventListener('change', ()=>{ j.quando = quando.value.trim(); salvar(); });
+        corpo.appendChild(quando);
+
+        const cores = el('div',{class:'conj-cores'});
+        [['fundo','Fundo'],['tinta','Texto'],['destaque','Destaque'],['faixa','Faixa']].forEach(([k, rot])=>{
+          const cx = el('div',{class:'conj-cor'});
+          cx.appendChild(el('span',{}, rot));
+          const inp = el('input',{type:'color', value: j[k] || (k === 'fundo' ? '#F5F2EC' : '#1A1815')});
+          inp.addEventListener('input', ()=>{ j[k] = inp.value; pintarAmostra(); });
+          inp.addEventListener('change', ()=>{ j[k] = inp.value; salvar(); });
+          cx.appendChild(inp);
+          cores.appendChild(cx);
+        });
+        corpo.appendChild(cores);
+
+        // Puxar da paleta. Sem isto, as cores do conjunto são digitadas de novo
+        // e acabam divergindo por um dígito do que está lá em cima — e paleta
+        // que diverge do conjunto é pior do que paleta nenhuma.
+        if(pal.length){
+          corpo.appendChild(el('p',{class:'dica', style:'margin:2px 0 0'},'Pôr uma cor da paleta no fundo:'));
+          const puxa = el('div',{class:'chips'});
+          pal.forEach(p=>{
+            const b = el('button',{class:'chip-p', title: esc(p.uso || ''), onclick:()=>{
+              j.fundo = p.cor;
+              // O texto acompanha, calculado em cima do fundo novo: trocar o
+              // fundo e deixar o texto velho é o jeito mais rápido de gerar
+              // um conjunto ilegível sem perceber.
+              j.tinta = tintaPara(p.cor, j.destaque || c.cor || p.cor, 7);
+              salvar().then(pintarConjuntos);
+            }}, esc(p.nome || p.cor));
+            b.style.borderLeft = '10px solid ' + p.cor;
+            puxa.appendChild(b);
+          });
+          corpo.appendChild(puxa);
+        }
+
+        const pe = el('div',{class:'conj-pe'});
+        const ehPadrao = (marcaDe(c).conjuntoPadrao || '') === j.k;
+        pe.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(ehPadrao), onclick:()=>{
+          grava({ conjuntoPadrao: ehPadrao ? '' : j.k }).then(pintarConjuntos);
+        }}, ehPadrao ? 'É o padrão dele' : 'Usar como padrão'));
+        pe.appendChild(el('button',{class:'lixo', 'aria-label':'Tirar este conjunto', onclick:()=>{
+          cjs.splice(i,1);
+          const extra = (marcaDe(c).conjuntoPadrao || '') === j.k ? { conjuntoPadrao:'' } : {};
+          salvarMarca(c, Object.assign({ conjuntos:cjs }, extra)).then(ok=>{
+            if(ok){ toast('Salvo.'); if(aoMudar) aoMudar(); pintarConjuntos(); }
+          });
+        }},'×'));
+        corpo.appendChild(pe);
+
+        cart.appendChild(corpo);
+        grade.appendChild(cart);
+      });
+      conjCx.appendChild(grade);
+
+      conjCx.appendChild(el('button',{class:'btn ghost small', style:'margin-top:12px', onclick:()=>{
+        const base = pal[0] ? pal[0].cor : (c.cor || '#FF5E00');
+        cjs.push({
+          k: 'j' + Date.now().toString(36),
+          nome:'', quando:'',
+          fundo:'#F5F2EC',
+          tinta: tintaPara('#F5F2EC', base, 7),
+          destaque: base,
+          faixa: base,
+        });
+        salvar().then(pintarConjuntos);
+      }}, cjs.length ? '+ outro conjunto' : '+ primeiro conjunto'));
+
+      if(!cjs.length) conjCx.appendChild(el('p',{class:'dica', style:'margin-top:10px'},
+        'Sem conjunto, a peça continua funcionando: o Estúdio deriva tudo da cor principal, '
+        + 'como sempre fez. O conjunto só entra quando existe manual dizendo outra coisa.'));
+    }
+    pintarConjuntos();
+
+    // ---- 4. tipografia e obrigatórios ----
+
+    box.appendChild(el('p',{class:'rot laranja', style:'margin-top:28px'},'Tipografia e obrigatórios'));
+
+    const linhaCampo = (rot, dentro, dica)=>{
+      const l = el('div',{class:'campo-p'});
+      l.appendChild(el('span',{}, esc(rot)));
+      l.appendChild(dentro);
+      box.appendChild(l);
+      if(dica) box.appendChild(el('p',{class:'dica campo-dica'}, esc(dica)));
+    };
+
+    const fm = el('input',{type:'text', value:m0.fonteMarca || '', placeholder:'Ex.: Garet'});
+    fm.addEventListener('change', ()=>grava({ fonteMarca: fm.value.trim() }));
+    linhaCampo('Fonte da marca', fm,
+      'O nome que está no manual. Escrever aqui não instala a fonte no Estúdio — serve pra você saber '
+      + 'o que pedir quando a peça for pro Canva, e pra ninguém chutar outra.');
+
+    const gf = el('div',{class:'chips'});
+    [['','Nenhuma']].concat(FONTES.map(f=>[f[0], f[1]])).forEach(([k, nome])=>{
+      gf.appendChild(el('button',{class:'chip-p', 'aria-pressed':String((marcaDe(c).fonteFalback || '') === k),
+        onclick:()=>{ grava({ fonteFalback:k }).then(()=>render()); }}, esc(nome)));
+    });
+    linhaCampo('Substituta aqui', gf,
+      'Das cinco do Estúdio, qual fica mais perto da fonte da marca. É essa que sai nas peças daqui.');
+
+    const ob = el('div',{class:'campo-longo', style:'margin-top:14px'});
+    ob.appendChild(el('span',{},'O que não pode faltar'));
+    const obT = el('textarea',{rows:'3',
+      placeholder:'Ex.: a estrela amarela em toda peça; o número sempre no canto; o logo no último slide.'});
+    obT.value = m0.obrigatorios || '';
+    obT.addEventListener('change', ()=>grava({ obrigatorios: obT.value.trim() }));
+    ob.appendChild(obT);
+    box.appendChild(ob);
+    box.appendChild(el('p',{class:'dica campo-dica'},
+      'Esta lista o Estúdio não desenha sozinho — ela aparece pra você conferir antes de exportar, '
+      + 'e entra no pedido pra IA. Prometer que o programa põe a estrela seria mentira; lembrar que '
+      + 'ela falta é o que dá pra fazer de verdade e é o que evita a peça voltar.'));
+
     return box;
   }
 
@@ -7524,6 +8055,21 @@
       cx.appendChild(el('p',{class:'rot'},'O carrossel inteiro'));
       cx.appendChild(linhaP('Formato', ctrlChips(FORMATOS_PECA.map(f=>[f[0], f[1] + ' ' + f[2] + '×' + f[3], f[4]]),
         ()=>d.formato, v=>d.formato=v)));
+      // O conjunto do manual, quando o cliente tem um. Ele vem ANTES do
+      // "Visual" de propósito: escolhido um conjunto, o preset deixa de mandar
+      // no fundo, e a dica abaixo diz isso em vez de deixar a pessoa clicando
+      // em "Papel" e "Tinta" sem entender por que nada muda.
+      const cjs = cliente ? conjuntosDe(cliente) : [];
+      if(cjs.length){
+        cx.appendChild(linhaP('Conjunto do manual',
+          ctrlChips([['','Derivar da cor']].concat(cjs.map(j=>[j.k, j.nome || 'sem nome', j.quando || ''])),
+            ()=>(d.conjunto && d.conjunto.k) || '',
+            v=>{
+              const j = cjs.find(x => x.k === v);
+              d.conjunto = j ? JSON.parse(JSON.stringify(j)) : null;
+            }),
+          'Com um conjunto escolhido, o fundo e o texto vêm do manual e o "Visual" abaixo para de valer.'));
+      }
       cx.appendChild(linhaP('Visual', ctrlChips(PRESETS_PECA.map(x=>[x[0], x[1], x[2]]),
         ()=>d.preset, v=>d.preset=v)));
       cx.appendChild(linhaP('Cor principal', ctrlCor(()=>d.cor, v=>d.cor=v)));
@@ -7548,6 +8094,7 @@
           const mc = marcaDe(cliente);
           Object.assign(d, { preset:mc.preset, formato:mc.formato, margem:mc.margem,
             numerar:mc.numerar !== false, faixa:mc.faixa !== false, cor2:mc.cor2 || '',
+            conjunto: conjuntoPadraoDe(cliente),
             cor: cliente.cor || d.cor, assinatura: assinaturaDe(cliente) || d.assinatura });
           mudou(); toast('Voltou pro padrão de ' + cliente.nome + '.');
         }}, 'Voltar ao padrão de ' + esc(cliente.nome)));
@@ -8328,7 +8875,12 @@
 
     return [
       { rot:'Respostas', aba:'respostas', feito: d.onboarding ? 1 : 0, total:1,
-        cifra: d.onboarding ? respondidas + '/24' : '—',
+        // O total é o da trilha que ELE respondeu. Fixar 24 fazia a ficha de
+        // uma empresa dizer "31/24", que é pior que não dizer nada.
+        cifra: d.onboarding
+          ? respondidas + '/' + SECOES_POR_TRILHA[trilhaDa(d.onboarding.respostas)]
+              .reduce((n, sec)=> n + sec.perguntas.length, 0)
+          : '—',
         qual: d.onboarding ? 'respondidas' : 'nada vinculado' },
       { rot:'Marca', aba:'respostas', feito: marca, total:5,
         cifra: marca + '/5', qual: marca === 5 ? 'campos cheios' : 'campos cheios' },
