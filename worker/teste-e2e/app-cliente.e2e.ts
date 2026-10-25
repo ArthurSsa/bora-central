@@ -11,14 +11,20 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createServer, type Server } from 'node:http';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { chromium, type Browser, type Page } from 'playwright-core';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { RAIZ_REPO, RAIZ_WORKER } from '../src/config.ts';
 import { montarBrutoDeTeste, temTudoProReel } from '../teste/bruto.ts';
-import { acharCli } from '../src/config.ts';
+import { acharCli, type Config } from '../src/config.ts';
+import { fontesInstaladas } from '../src/apps.ts';
+import type { ClienteParaMarca } from '../src/marca.ts';
+import { rodarRoteiro } from '../src/roteiro.ts';
+import { carregarSkills } from '../src/skills.ts';
+import { produzir } from '../src/worker.ts';
 
 const temEffectCraft = existsSync(acharCli('effectcraft'));
 
@@ -27,6 +33,7 @@ const CHAVE_PUBLICA = 'sb_publishable_G_FuzadzmX2BwkRO81H3mw_xoYnthod';
 const CONTA = 'b0a00000-0000-4000-8000-00000000e2e0';
 const CLIENTE = 'b0a00000-0000-4000-8000-00000000e2e1';
 const EMAIL = 'cliente-teste@fabrica-bora.test';
+const EMAIL_EQUIPE = 'equipe-teste@fabrica-bora.test';
 
 const admin: SupabaseClient = createClient(URL_SB, process.env.SUPABASE_SERVICE_ROLE_KEY ?? '', { auth: { persistSession: false } });
 let navegador: Browser;
@@ -91,6 +98,27 @@ async function prepararCliente() {
   sessao = data.session!;
 }
 
+/**
+ * Alguém da equipe, de mentira: entra no Estúdio e vê a Fábrica. Senha nova a
+ * cada rodada, só na memória; o acesso de equipe sai no fim do teste.
+ */
+let sessaoEquipe: object;
+let uidEquipe: string | null = null;
+async function prepararEquipe() {
+  const senha = randomBytes(24).toString('base64url');
+  const lista = await admin.auth.admin.listUsers({ perPage: 1000 });
+  let uid = lista.data.users.find((u) => u.email === EMAIL_EQUIPE)?.id;
+  if (uid) await admin.auth.admin.updateUserById(uid, { password: senha });
+  else uid = (await admin.auth.admin.createUser({ email: EMAIL_EQUIPE, password: senha, email_confirm: true })).data.user!.id;
+  uidEquipe = uid;
+  const { error } = await admin.from('profiles').upsert({ id: uid, is_agency: true });
+  if (error) throw new Error(`perfil da equipe: ${error.message}`);
+  const c = createClient(URL_SB, CHAVE_PUBLICA, { auth: { persistSession: false } });
+  const { data, error: e } = await c.auth.signInWithPassword({ email: EMAIL_EQUIPE, password: senha });
+  if (e) throw e;
+  sessaoEquipe = data.session!;
+}
+
 async function listarTudo(prefixo: string): Promise<string[]> {
   const { data } = await admin.storage.from('pedidos').list(prefixo, { limit: 1000 });
   const saida: string[] = [];
@@ -105,8 +133,14 @@ before(async () => {
   assert.ok(process.env.SUPABASE_SERVICE_ROLE_KEY, 'falta SUPABASE_SERVICE_ROLE_KEY no worker/.env');
   await prepararCliente();
 
+  await prepararEquipe();
+  // O app do cliente na raiz e o Estúdio da equipe em /estudio/, no mesmo servidor.
   const html = readFileSync(path.join(RAIZ_REPO, 'sites', 'app', 'index.html'));
-  servidor = createServer((_, res) => { res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); res.end(html); });
+  const estudio = readFileSync(path.join(RAIZ_REPO, 'sites', 'estudio', 'index.html'));
+  servidor = createServer((req, res) => {
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    res.end((req.url ?? '').startsWith('/estudio') ? estudio : html);
+  });
   await new Promise<void>((ok) => servidor.listen(0, '127.0.0.1', ok));
   origem = `http://localhost:${(servidor.address() as { port: number }).port}`;
 
@@ -141,6 +175,8 @@ function hojeIso(mais = 0) {
 
 after(async () => {
   await limparAgenda().catch((e) => console.error(e.message));
+  // A conta de equipe de teste só é da equipe enquanto o teste roda.
+  if (uidEquipe) await admin.from('profiles').update({ is_agency: false }).eq('id', uidEquipe);
   await navegador?.close();
   worker?.kill();
   servidor?.close();
@@ -746,4 +782,116 @@ test('plano do mês: "Criar isso" vira pedido escrito, e o calendário e a agend
   assert.equal(await page.getByRole('button', { name: /Mudar a data/ }).count(), 0, 'peça publicada não muda de data');
   await semErroNaTela(page);
   await page.context().close();
+});
+
+// ---------- passo 7: Visão Bora ----------
+
+/** Espera o banco chegar num estado, olhando de segundo em segundo. */
+async function esperar<T>(ler: () => Promise<T>, pronto: (v: T) => boolean, ms: number, oque: string): Promise<T> {
+  const ate = Date.now() + ms;
+  for (;;) {
+    const v = await ler();
+    if (pronto(v)) return v;
+    if (Date.now() > ate) throw new Error(`não chegou a tempo: ${oque} (${JSON.stringify(v)})`);
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+}
+
+async function abrirEstudio(): Promise<Page> {
+  const ctx = await navegador.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.addInitScript(([chave, valor]) => localStorage.setItem(chave, valor), ['sb-yxewmauwnxnrrhevlbtc-auth-token', JSON.stringify(sessaoEquipe)]);
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => { throw e; });
+  page.on('dialog', (d) => d.accept());
+  await page.goto(origem + '/estudio/#/fabrica');
+  return page;
+}
+
+test('Visão Bora: a fábrica refaz duas vezes, a equipe assume, entrega, a conferência barra o que falta, e o cliente aprova', { timeout: 300_000 }, async () => {
+  // Só a equipe vê a fila e assume.
+  assert.ok((await comoCliente.rpc('fila_da_fabrica')).error, 'cliente viu a fila da fábrica');
+  assert.ok((await comoCliente.rpc('custos_da_fabrica', { p_de: '2026-01-01', p_ate: '2026-12-31' })).error, 'cliente viu os custos');
+
+  // Um pedido que a fábrica não consegue fazer: a skill forçada não tem roteiro.
+  const { data: ped, error } = await admin.from('pedidos').insert({
+    cliente_id: CLIENTE, tipo: 'post-feed', titulo: 'Pedido que a fábrica não dá conta', briefing: { texto: 'Pedido que a fábrica não dá conta' }, estado: 'produzindo',
+  }).select('id').single();
+  assert.ifError(error);
+  const pedidoId = ped!.id as string;
+  assert.ok((await comoCliente.rpc('assumir_pedido', { p_pedido: pedidoId })).error, 'cliente assumiu pedido');
+  await admin.from('jobs').insert({ pedido_id: pedidoId, rodada: 'producao', skill: 'copy-e-hashtags' });
+
+  // Refaz sozinha duas vezes; na terceira, falha de vez.
+  const job = await esperar(
+    async () => (await admin.from('jobs').select('id, estado, tentativas').eq('pedido_id', pedidoId).single()).data!,
+    (j) => j.estado === 'falhou', 90_000, 'o job falhar de vez',
+  );
+  assert.equal(job.tentativas, 3);
+  const { data: erros } = await admin.from('job_eventos').select('mensagem').eq('job_id', job.id).eq('nivel', 'erro');
+  assert.equal(erros!.length, 3, 'cada tentativa deixa o motivo');
+
+  // A Fábrica, no Estúdio: o número aceso, o pedido em "Precisa da equipe" com os três motivos.
+  const est = await abrirEstudio();
+  await est.getByRole('heading', { name: 'Fábrica', exact: true, level: 1 }).waitFor();
+  const cartao = est.locator(`.card.fab[data-pedido="${pedidoId}"]`);
+  await cartao.waitFor();
+  assert.match((await cartao.locator('.chip').textContent())!, /Precisa da equipe/);
+  assert.equal(await cartao.locator('.fab-motivos li').count(), 3);
+  assert.match((await cartao.locator('.fab-motivos').textContent())!, /o roteiro não sabe fazer a skill copy-e-hashtags/);
+  assert.match((await cartao.locator('.fab-linha').textContent())!, /tentativa 3 de 3/);
+  assert.ok(Number(await est.locator('.navtopo .conta').first().textContent()) >= 1, 'o número da aba Fábrica não acendeu');
+  if (process.env.E2E_FOTOS) await est.screenshot({ path: path.join(process.env.E2E_FOTOS, 'fabrica.png'), fullPage: true });
+
+  // Assumir: o cliente passa a ver que a equipe está finalizando.
+  await cartao.getByRole('button', { name: 'Assumir o pedido' }).click();
+  await cartao.locator('.chip', { hasText: 'Com a equipe' }).waitFor();
+  const cli = await abrir();
+  await cli.goto(origem + '/#/pedido/' + pedidoId);
+  await cli.getByText('A equipe da Bora está finalizando este pedido.').first().waitFor();
+
+  // A versão corrigida, feita aqui como a designer faria no editor dela.
+  const { data: linha } = await admin.from('clientes').select('nome, nome_preferido, cor, marca, registro_profissional, instagram').eq('id', CLIENTE).single();
+  const skills = carregarSkills(path.join(RAIZ_REPO, 'skills'));
+  const feito = await produzir({
+    cfg: { pastaJobs: mkdtempSync(path.join(tmpdir(), 'equipe-')), tetoUsd: 1 } as Config, job: { id: 'correcao' },
+    skill: skills.get('post-feed')!, skills, pedido: { id: pedidoId, tipo: 'post-feed', titulo: null, briefing: { texto: 'Pedido que a equipe terminou' }, publicar_em: null },
+    cliente: linha as ClienteParaMarca, instaladas: fontesInstaladas(), agente: rodarRoteiro,
+    abortar: new AbortController(), aoMudarEtapa: async () => {}, aoUsarFerramenta: () => {},
+  });
+  const arq = (c: string) => path.join(feito.pastaJob, c);
+
+  // Primeira entrega sem o editável e sem a legenda: a conferência barra, e diz o que faltou.
+  await cartao.locator('input[type=file]').setInputFiles([arq('saida/post.png')]);
+  await cartao.getByRole('button', { name: 'Entregar pro cliente' }).click();
+  const barrada = await esperar(
+    async () => (await admin.from('jobs').select('estado, erro, skill').eq('pedido_id', pedidoId).eq('rodada', 'da_bora').order('criado_em')).data?.[0] ?? null,
+    (j) => j?.estado === 'falhou', 60_000, 'a entrega incompleta ser barrada',
+  );
+  assert.equal(barrada!.skill, 'post-feed', 'a entrega da equipe usou a skill da rodada que travou');
+  assert.match(barrada!.erro!, /faltou na entrega da equipe: post\.psd, legenda\.txt/);
+  await cartao.locator('.fab-motivos', { hasText: 'faltou na entrega da equipe' }).waitFor();
+
+  // A entrega completa passa, e chega no cliente.
+  await cartao.locator('input[type=file]').setInputFiles([arq('saida/post.png'), arq('editavel/post.psd'), arq('saida/legenda.txt')]);
+  await cartao.getByRole('button', { name: 'Entregar pro cliente' }).click();
+  await esperar(
+    async () => (await admin.from('pedidos').select('estado').eq('id', pedidoId).single()).data!.estado,
+    (e) => e === 'para_aprovar', 60_000, 'a entrega da equipe chegar no cliente',
+  );
+  await cli.locator('.selo.para_aprovar').first().waitFor({ timeout: 30_000 });
+  await cli.waitForFunction(() => (document.querySelector('img.previa') as HTMLImageElement)?.naturalWidth > 0);
+  assert.match((await cli.locator('section[aria-labelledby=historico]').textContent())!, /Versão da equipe da Bora/);
+  await cli.getByRole('button', { name: 'Aprovar' }).click();
+  await cli.locator('.aviso.ok').filter({ hasText: 'Aprovado' }).first().waitFor();
+  await semErroNaTela(cli);
+
+  // Nos custos do mês, o cliente de teste com a rodada da equipe contada.
+  await est.reload();
+  await est.getByRole('heading', { name: 'Custos do mês' }).waitFor();
+  const linhaCusto = est.locator('.fab-custos tr', { hasText: 'Cliente de Teste' });
+  await linhaCusto.waitFor();
+  const celulas = await linhaCusto.locator('td').allTextContents();
+  assert.ok(Number(celulas[5]) >= 2, `rodadas da equipe: ${celulas.join(' | ')}`);
+  await est.context().close();
+  await cli.context().close();
 });

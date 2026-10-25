@@ -70,7 +70,7 @@ export async function renovarLease(sb: SupabaseClient, cfg: Config, job: Job): P
 }
 
 export async function anotar(sb: SupabaseClient, cfg: Config, job: Job, campos: { etapa?: string; progresso?: number; previsto_para?: string | null; restam_segundos?: number | null }) {
-  ok(await sb.from('jobs').update(campos).eq('id', job.id).eq('worker_id', cfg.workerId), 'anotar etapa');
+  ok(await sb.from('jobs').update(campos).eq('id', job.id).eq('worker_id', cfg.workerId).eq('estado', 'rodando'), 'anotar etapa');
 }
 
 export async function evento(
@@ -165,6 +165,22 @@ export async function baixarSlides(sb: SupabaseClient, pedido: Pedido): Promise<
   return arquivos;
 }
 
+/** O que a equipe subiu na pasta da Bora do pedido, como entrada/da_bora/<nome>. */
+export async function baixarDaBora(sb: SupabaseClient, job: Job): Promise<ArquivoDeEntrada[]> {
+  const pasta = job.entrada.pasta_da_bora;
+  if (typeof pasta !== 'string' || !pasta) throw new Error('a entrega da Bora não diz a pasta');
+  const { data: lista, error } = await sb.storage.from(BALDE).list(pasta, { limit: 200 });
+  if (error) throw new Error(`listar a entrega da Bora: ${error.message}`);
+  const arquivos: ArquivoDeEntrada[] = [];
+  for (const o of (lista ?? []).filter((x) => x.id)) {
+    const { data, error: e } = await sb.storage.from(BALDE).download(`${pasta}/${o.name}`);
+    if (e) throw new Error(`baixar ${o.name} da entrega da Bora: ${e.message}`);
+    arquivos.push({ nome: `da_bora/${o.name}`, conteudo: Buffer.from(await data.arrayBuffer()) });
+  }
+  if (!arquivos.length) throw new Error('a pasta da entrega da Bora está vazia');
+  return arquivos;
+}
+
 /** O vídeo que o cliente mandou pelo app (briefing.anexo), como entrada/bruto.<ext>. */
 export async function baixarAnexo(sb: SupabaseClient, pedido: Pedido): Promise<ArquivoDeEntrada[]> {
   const caminho = pedido.briefing?.anexo;
@@ -233,9 +249,21 @@ async function somarCustos(sb: SupabaseClient, job: Job, custos: Custos): Promis
   ) as Custos;
 }
 
+/**
+ * O job ainda é deste worker e está rodando? Se a Bora assumiu o pedido no
+ * meio, o job foi cancelado — e o que o worker terminou depois disso não
+ * pode passar por cima: nem a versão, nem o estado do pedido.
+ */
+class JobPerdido extends Error {}
+const aindaMeu = (r: { data: unknown[] | null; error: { message: string } | null }, onde: string) => {
+  ok(r as { data: unknown; error: { message: string } | null }, onde);
+  if (!r.data?.length) throw new JobPerdido(`${onde}: o job não é mais deste worker (cancelado ou assumido pela Bora)`);
+};
+export const ehJobPerdido = (e: unknown) => e instanceof JobPerdido;
+
 export async function concluir(sb: SupabaseClient, cfg: Config, job: Job, saidas: object[], custos: Custos) {
   const somados = await somarCustos(sb, job, custos);
-  ok(
+  aindaMeu(
     await sb.from('jobs').update({
       estado: 'pronto',
       etapa: 'pronto',
@@ -243,8 +271,9 @@ export async function concluir(sb: SupabaseClient, cfg: Config, job: Job, saidas
       saidas,
       erro: null,
       lease_ate: null,
+      restam_segundos: null,
       ...somados,
-    }).eq('id', job.id).eq('worker_id', cfg.workerId),
+    }).eq('id', job.id).eq('worker_id', cfg.workerId).eq('estado', 'rodando').select('id'),
     'concluir job',
   );
   ok(await sb.from('pedidos').update({ estado: 'para_aprovar' }).eq('id', job.pedido_id), 'pedido para aprovar');
@@ -254,15 +283,17 @@ export async function concluir(sb: SupabaseClient, cfg: Config, job: Job, saidas
 export async function devolverOuFalhar(sb: SupabaseClient, cfg: Config, job: Job, erro: string, custos: Custos) {
   const somados = await somarCustos(sb, job, custos);
   const acabou = job.tentativas >= job.max_tentativas;
-  ok(
+  aindaMeu(
     await sb.from('jobs').update({
       estado: acabou ? 'falhou' : 'na_fila',
       etapa: acabou ? 'precisa da equipe' : 'tentando de novo',
       erro,
       worker_id: null,
       lease_ate: null,
+      restam_segundos: null,
+      ...(acabou ? { terminado_em: new Date().toISOString() } : {}),
       ...somados,
-    }).eq('id', job.id).eq('worker_id', cfg.workerId),
+    }).eq('id', job.id).eq('worker_id', cfg.workerId).eq('estado', 'rodando').select('id'),
     'devolver job',
   );
   // Ajuste que falhou de vez não tira do cliente a versão que ele já tinha:

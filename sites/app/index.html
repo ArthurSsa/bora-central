@@ -517,7 +517,7 @@
   // O "!jobs_pedido_id_fkey" diz por qual ligação trazer as rodadas: desde que
   // o pedido guarda a rodada aprovada (job_aprovado), há dois caminhos entre
   // as tabelas, e sem a indicação o banco recusa a consulta inteira.
-  const COLUNAS_PEDIDO = 'id, cliente_id, tipo, titulo, briefing, estado, publicar_em, ajustes, job_aprovado, escolha, aprovado_em, criado_em, atualizado_em, '
+  const COLUNAS_PEDIDO = 'id, cliente_id, tipo, titulo, briefing, estado, publicar_em, ajustes, job_aprovado, escolha, aprovado_em, assumido_em, criado_em, atualizado_em, '
     + 'jobs!jobs_pedido_id_fkey(id, rodada, estado, etapa, progresso, restam_segundos, saidas, erro, criado_em, atualizado_em)';
 
   async function carregarClientes(){
@@ -1258,7 +1258,8 @@
       const pct = Math.round(Number(andamento.progresso) || 0);
       const etapa = andamento.estado === 'na_fila' ? 'Esperando a vez' : (andamento.etapa === 'preparando' || !andamento.etapa ? 'Preparando' : andamento.etapa.charAt(0).toUpperCase() + andamento.etapa.slice(1));
       blocos.push(h('div', { class:'cartao pilha' },
-        h('p', { class:'rot' }, andamento.rodada === 'ajuste' ? 'Fazendo o ajuste'
+        h('p', { class:'rot' }, andamento.rodada === 'da_bora' ? 'A equipe da Bora terminou'
+          : andamento.rodada === 'ajuste' ? 'Fazendo o ajuste'
           : formatoDe(p) === 'abertura' ? 'Fazendo a sua abertura'
           : formatoDe(p) === 'carrossel' ? 'Fazendo o vídeo do carrossel'
           : { carrossel:'Fazendo o seu carrossel', capa:'Fazendo as suas capas', reel:'Fazendo o seu reel' }[p.tipo] || 'Fazendo o seu post'),
@@ -1279,7 +1280,10 @@
           h('figcaption', { class:'fraco', style:{ textAlign:'center', fontSize:'0.9rem' } }, 'Prévia: os primeiros ' + seg + '. O vídeo inteiro vem logo depois.')));
       }
     }
-    if(p.estado === 'produzindo' && !andamento && falhouDeVez){
+    // A equipe assumiu: a fábrica parou, e quem termina é gente.
+    if(p.estado === 'produzindo' && !andamento && p.assumido_em){
+      blocos.push(h('div', { class:'aviso info' }, 'A equipe da Bora está finalizando este pedido. Você recebe aqui assim que estiver pronto.'));
+    } else if(p.estado === 'produzindo' && !andamento && falhouDeVez){
       blocos.push(h('div', { class:'aviso info' }, 'A equipe da Bora vai finalizar este pedido e te avisa quando estiver pronto.'));
     }
     const jaAprovado = ['aprovado', 'agendado', 'publicado'].includes(p.estado);
@@ -1428,7 +1432,8 @@
     const rodadas = jobsDe(p).filter(j => eventos.some(e => e.job_id === j.id)).reverse();
     const nomeRodada = (j) => {
       const i = jobsDe(p).indexOf(j);
-      return j.rodada === 'ajuste' ? 'Ajuste ' + jobsDe(p).slice(0, i + 1).filter(x => x.rodada === 'ajuste').length : 'Primeira versão';
+      return j.rodada === 'da_bora' ? 'Versão da equipe da Bora'
+        : j.rodada === 'ajuste' ? 'Ajuste ' + jobsDe(p).slice(0, i + 1).filter(x => x.rodada === 'ajuste').length : 'Primeira versão';
     };
     return h('div', { class:'pilha-g' },
       h('div', { class:'pilha' },

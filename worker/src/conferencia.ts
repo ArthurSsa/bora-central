@@ -18,6 +18,7 @@ import path from 'node:path';
 import { acharCli } from './config.ts';
 import { contraste } from './marca.ts';
 import { fontesDoProjeto, quadroDoProjeto } from './motion.ts';
+import { lerSrt } from './reel.ts';
 import { lerPng, type Imagem } from './png.ts';
 import { lerWav, listar, loudnessIntegrado, silencioMaisLongo, sondar } from './video.ts';
 import type { SaidaConferida } from './verificar.ts';
@@ -36,7 +37,18 @@ const rgbParaHex = (c: number[]) => '#' + c.map((v) => Math.round(v).toString(16
 const distancia = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 
 /** O que o PhotoCraft sabe de cada camada de texto do PSD. */
-type Texto = { layer: number; caixa: Caixa; trechos: Array<{ familia: string; peso: number; tamanho: number; cor: Rgb }> };
+type Texto = { layer: number; caixa: Caixa; trechos: Array<{ familia: string; peso: number; tamanho: number; cor: Rgb }>; cortado: string | null };
+
+/**
+ * Texto de caixa que não coube: o PhotoCraft diz até que letra cada linha vai,
+ * e a última linha acaba antes do fim do texto. Devolve o que ficou de fora.
+ */
+export function sobraDaCaixa(r: { text: string; shape?: unknown; lines?: Array<{ end: number }> }): string | null {
+  if (!r.shape || typeof r.shape !== 'object' || !('Box' in r.shape) || !r.lines?.length) return null;
+  const fim = Math.max(...r.lines.map((l) => l.end));
+  const sobra = r.text.slice(fim).trim();
+  return sobra ? sobra : null;
+}
 
 function lerPsd(psd: string): { textos: Texto[]; fotos: Caixa[] } {
   const cli = acharCli('photocraft');
@@ -63,6 +75,7 @@ function lerPsd(psd: string): { textos: Texto[]; fotos: Caixa[] } {
         tamanho: t.style.size_pt,
         cor: t.style.color.c.slice(0, 3).map((v) => v * 255) as Rgb,
       })),
+      cortado: sobraDaCaixa(r),
     };
   });
   return { textos, fotos };
@@ -132,6 +145,7 @@ export function conferirMarca(pastaJob: string, saidas: SaidaConferida[], regra:
     const nome = png.caminho;
 
     for (const t of textos) {
+      if (t.cortado) erros.push(`${nome}: texto cortado — não coube na caixa: "…${t.cortado.slice(0, 40)}"`);
       for (const tr of t.trechos) {
         if (!fontes.has(tr.familia.toLowerCase())) erros.push(`${nome}: texto em "${tr.familia}"; a fonte da marca é ${regra.fontes.map((f) => `"${f}"`).join(' ou ')}`);
         if (tr.peso < 300) erros.push(`${nome}: texto no peso ${tr.peso}, fino demais pra ler no celular`);
@@ -208,6 +222,11 @@ export function conferirVideo(
   const mudo = silencioMaisLongo(som);
   if (mudo > 1.2) erros.push(`sobrou um trecho mudo de ${mudo} s`);
 
+  // Duas legendas na tela ao mesmo tempo ficam uma em cima da outra: as
+  // caixas são desenhadas no mesmo lugar. Folga de 20 ms pro arredondamento.
+  const srt = path.join(pastaJob, 'saida', 'legendas.srt');
+  if (existsSync(srt)) erros.push(...legendasSobrepostas(lerSrt(readFileSync(srt, 'utf8'))));
+
   const paleta = regra.cores.map(hexParaRgb);
   for (const arq of listar(path.join(pastaJob, 'editavel', 'legendas'), /\.png$/)) {
     const img = lerPng(readFileSync(arq));
@@ -244,6 +263,19 @@ export function conferirVideo(
     }
   }
   return { erros: [...new Set(erros)], avisos };
+}
+
+/** As legendas que entram antes da anterior sair. */
+export function legendasSobrepostas(legendas: Array<{ inicio: number; fim: number; texto: string }>): string[] {
+  const erros: string[] = [];
+  const ordem = [...legendas].sort((a, b) => a.inicio - b.inicio);
+  for (let i = 1; i < ordem.length; i++) {
+    const [a, b] = [ordem[i - 1], ordem[i]];
+    if (b.inicio < a.fim - 0.02) {
+      erros.push(`legendas sobrepostas: "${a.texto}" vai até ${a.fim.toFixed(2)} s e "${b.texto}" entra em ${b.inicio.toFixed(2)} s`);
+    }
+  }
+  return erros;
 }
 
 // ---------- motion ----------

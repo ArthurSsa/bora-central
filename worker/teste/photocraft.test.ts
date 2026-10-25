@@ -138,6 +138,8 @@ for (const [caso, fundo, texto, esperado] of [
   ['peso fino demais', '#1E2A3A', { font: 'Manrope', weight: 200, color: '#FFFFFF' }, /peso 200/],
   ['verde-limão sobre branco', '#FFFFFF', { font: 'Manrope', weight: 700, color: '#A4E830' }, /1\.5:1; precisa de 3:1/],
   ['texto na borda', '#1E2A3A', { font: 'Manrope', weight: 700, color: '#FFFFFF', box: [10, 400, 1060, 400] }, /encostado na borda/],
+  ['texto cortado na caixa', '#1E2A3A', { font: 'Manrope', weight: 700, color: '#FFFFFF', box: [96, 400, 888, 120],
+    text: 'Não existe atalho pra liderar um time de produto sem errar antes' }, /texto cortado — não coube na caixa: "…pra liderar um time/],
 ] as Array<[string, string, Record<string, unknown>, RegExp]>) {
   test(`conferência reprova: ${caso}`, { skip: semFontes }, () => {
     const pasta = mkdtempSync(path.join(tmpdir(), 'conf-'));

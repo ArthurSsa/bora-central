@@ -19,11 +19,12 @@ import { lerConfig, type Config } from './config.ts';
 import { rodarAgente, FalhaDoAgente, CUSTO_ZERO, type Agente, type Etapa, type ResultadoAgente } from './agente.ts';
 import {
   conectar, pegarJob, renovarLease, anotar, evento, carregarContexto, subir, concluir, devolverOuFalhar,
-  historicoDeAjustes, baixarEditaveisBase, baixarElementos, baixarAnexo, baixarSlides, juntarSaida,
+  historicoDeAjustes, baixarEditaveisBase, baixarElementos, baixarAnexo, baixarSlides, baixarDaBora, juntarSaida, ehJobPerdido,
   type Ajuste, type ArquivoDeEntrada, type Elemento, type Job, type Pedido,
 } from './fila.ts';
 import { montarSistema, montarPedido } from './instrucoes.ts';
 import { rodarRoteiro } from './roteiro.ts';
+import { agenteDaBora } from './da-bora.ts';
 import { coresDaMarca, ehImpacto, marcaParaAgente, resolverFonte, type ClienteParaMarca, type FonteResolvida } from './marca.ts';
 import { carregarSkills, escolherSkill, expandirSaidas, type Skill } from './skills.ts';
 import { conferirSaida, type SaidaConferida } from './verificar.ts';
@@ -61,6 +62,8 @@ export async function produzir(a: {
   elementos?: Elemento[];
   /** Sobe na hora uma saída pronta (a prévia). Fora do worker (testes), não faz nada. */
   entregarParcial?: (caminho: string) => Promise<void>;
+  /** Entrega da equipe: o vídeo já está editado, não há o que transcrever. */
+  semPreparo?: boolean;
 }): Promise<Producao> {
   const pastaJob = path.join(a.cfg.pastaJobs, a.job.id);
   // Tentativa anterior pode ter deixado arquivo pela metade: começa limpo.
@@ -79,6 +82,8 @@ export async function produzir(a: {
   if (a.skill.entrada === 'video') {
     bruto = listar(path.join(pastaJob, 'entrada'), /^bruto\./)[0] ?? null;
     if (!bruto) throw new FalhaDoAgente('o pedido não trouxe o vídeo', CUSTO_ZERO);
+  }
+  if (bruto && !a.semPreparo) {
     await a.aoMudarEtapa({ etapa: 'ouvindo o vídeo', progresso: 4 });
     const trabalho = path.join(pastaJob, '.trabalho');
     mkdirSync(trabalho, { recursive: true });
@@ -199,12 +204,16 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     await anotar(sb, cfg, job, { etapa: 'preparando', progresso: 3 });
     // A primeira linha que o cliente lê, uma por rodada — e só na primeira
     // tentativa: um job que volta pra fila não "começa" de novo pra quem espera.
+    const daBora = job.rodada === 'da_bora';
     if (job.tentativas === 1) {
-      await evento(sb, job, job.rodada === 'ajuste' ? 'Recebemos o seu pedido de ajuste.' : 'Começamos a produzir o seu pedido.', { visivel: true });
+      await evento(sb, job, daBora ? 'A equipe da Bora terminou. Estamos conferindo antes de te mostrar.'
+        : job.rodada === 'ajuste' ? 'Recebemos o seu pedido de ajuste.' : 'Começamos a produzir o seu pedido.', { visivel: true });
     }
 
     const { pedido, cliente } = await carregarContexto(sb, job);
-    const skill = escolherSkill(skills, pedido.tipo, job.skill, pedido.briefing);
+    // Na entrega da equipe, o que entregar vem do tipo do pedido, não da skill
+    // da rodada que travou — ela pode ter sido justamente o problema.
+    const skill = escolherSkill(skills, pedido.tipo, daBora ? null : job.skill, pedido.briefing);
     if (job.skill !== skill.nome) await sb.from('jobs').update({ skill: skill.nome }).eq('id', job.id);
     await sb.from('pedidos').update({ estado: 'produzindo' }).eq('id', job.pedido_id).in('estado', ['rascunho', 'produzindo']);
     log(`skill ${skill.nome}, apps ${skill.apps.join(', ')}${job.rodada === 'ajuste' ? ' (ajuste)' : ''}`);
@@ -214,6 +223,7 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     const { elementos, arquivos } = await baixarElementos(sb, job);
     const anexo = skill.entrada === 'video' ? await baixarAnexo(sb, pedido)
       : skill.entrada === 'slides' ? await baixarSlides(sb, pedido) : [];
+    const daEquipe = daBora ? await baixarDaBora(sb, job) : [];
 
     let etapaAtual = '';
     const p = await produzir({
@@ -226,8 +236,10 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
         await evento(sb, job, 'A prévia está pronta.', { visivel: true });
         log(`entregue antes: ${caminho}`);
       },
-      cfg, job, skill, skills, pedido, cliente, instaladas, agente, abortar, ajustes, elementos,
-      arquivos: [...anteriores, ...arquivos, ...anexo],
+      cfg, job, skill, skills, pedido, cliente, instaladas, abortar, ajustes, elementos,
+      agente: daBora ? agenteDaBora : agente,
+      semPreparo: daBora,
+      arquivos: [...anteriores, ...arquivos, ...anexo, ...daEquipe],
       // O render de motion manda a mesma etapa a cada dois segundos, com quanto
       // falta: o histórico do cliente ganha uma linha só por etapa.
       aoMudarEtapa: async ({ etapa, progresso, restamSegundos }) => {
@@ -262,14 +274,24 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     const msg = (e as Error).message;
     pararLease();
     if (perdido) return;
+    // A Bora assumiu no meio: o job já está cancelado e a versão dela vale.
+    if (ehJobPerdido(e)) { log(msg); return; }
     const custos = e instanceof FalhaDoAgente ? e.custos : CUSTO_ZERO;
-    const acabou = await devolverOuFalhar(sb, cfg, job, msg, custos);
+    let acabou: boolean;
+    try {
+      acabou = await devolverOuFalhar(sb, cfg, job, msg, custos);
+    } catch (e2) {
+      if (ehJobPerdido(e2)) { log((e2 as Error).message); return; }
+      throw e2;
+    }
     await evento(sb, job, msg, { nivel: 'erro', dados: { tentativa: job.tentativas } });
     const paraOCliente = !acabou
       ? 'Estamos refazendo uma parte.'
-      : job.rodada === 'ajuste'
-        ? 'Não conseguimos fazer esse ajuste. A versão anterior continua aqui, e a equipe da Bora já foi avisada.'
-        : 'A equipe da Bora vai finalizar este pedido.';
+      : job.rodada === 'da_bora'
+        ? 'A equipe da Bora está revendo um detalhe antes de te mostrar.'
+        : job.rodada === 'ajuste'
+          ? 'Não conseguimos fazer esse ajuste. A versão anterior continua aqui, e a equipe da Bora já foi avisada.'
+          : 'A equipe da Bora vai finalizar este pedido.';
     await evento(sb, job, paraOCliente, { visivel: true });
     log(`${acabou ? 'FALHOU de vez' : 'volta pra fila'}: ${msg}`);
   } finally {

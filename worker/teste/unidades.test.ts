@@ -9,8 +9,25 @@ import { caminhoNoBalde, type Job } from '../src/fila.ts';
 import { servidorMcp } from '../src/apps.ts';
 import { montarPedido, montarSistema } from '../src/instrucoes.ts';
 import { RAIZ_REPO } from '../src/config.ts';
+import { legendasSobrepostas, sobraDaCaixa } from '../src/conferencia.ts';
 import { mkdtempSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+
+test('nada cortado: texto de caixa que acaba antes do fim é pego; texto de ponto e caixa inteira, não', () => {
+  const caixa = { Box: { width: 200, height: 80, x: 0, y: 0 } };
+  assert.equal(sobraDaCaixa({ text: 'Um texto que não coube', shape: caixa, lines: [{ end: 9 }, { end: 13 }] }), 'não coube');
+  assert.equal(sobraDaCaixa({ text: 'Coube tudo  ', shape: caixa, lines: [{ end: 10 }] }), null, 'espaço no fim não conta');
+  assert.equal(sobraDaCaixa({ text: 'Ponto não tem caixa', shape: 'Point', lines: [{ end: 3 }] }), null);
+});
+
+test('legenda sem sobreposição: entrar antes da anterior sair é erro; encostar, não', () => {
+  const l = (inicio: number, fim: number, texto: string) => ({ inicio, fim, texto });
+  assert.deepEqual(legendasSobrepostas([l(0, 1, 'a'), l(1, 2, 'b'), l(2.01, 3, 'c')]), []);
+  assert.deepEqual(legendasSobrepostas([l(0, 1, 'a'), l(1.005, 2, 'b')]), [], 'arredondamento do SRT');
+  const erros = legendasSobrepostas([l(0, 1.5, 'Mas não'), l(1.2, 2, 'precisa')]);
+  assert.equal(erros.length, 1);
+  assert.match(erros[0], /"Mas não" vai até 1\.50 s e "precisa" entra em 1\.20 s/);
+});
 
 test('cabeçalho: escalar, lista entre colchetes, lista com hífen, comentário', () => {
   const { campos, corpo } = lerCabecalho('---\nname: x\n# nota\ntipos: [a, b]\nvazia: []\nsaidas:\n  - saida/a.png 10x20\n  - editavel/a.psd\n---\ncorpo aqui\n');
