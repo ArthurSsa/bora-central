@@ -1,0 +1,26 @@
+{
+  "name": "bora-fabrica",
+  "private": true,
+  "type": "module",
+  "description": "Worker da fábrica do Estúdio Bora: consome a fila de jobs e roda o agente com os apps da ArtCraft.",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/worker.ts",
+    "roteiro": "node --env-file-if-exists=.env src/worker.ts --uma-vez --roteiro",
+    "enfileirar-teste": "node --env-file-if-exists=.env scripts/enfileirar-teste.ts",
+    "ensaio": "node scripts/ensaio-sdk.ts",
+    "test": "node --test teste/*.test.ts",
+    "tipos": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.310",
+    "@supabase/supabase-js": "^2.118.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
+  }
+}
