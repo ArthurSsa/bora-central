@@ -13,10 +13,11 @@
 // Reprovou, o job volta pra fila com o motivo escrito, e a próxima tentativa
 // recebe esse motivo. É o "refaz sozinho antes de chamar a Bora".
 import { execFileSync } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { acharCli } from './config.ts';
 import { contraste } from './marca.ts';
+import { fontesDoProjeto, quadroDoProjeto } from './motion.ts';
 import { lerPng, type Imagem } from './png.ts';
 import { lerWav, listar, loudnessIntegrado, silencioMaisLongo, sondar } from './video.ts';
 import type { SaidaConferida } from './verificar.ts';
@@ -25,7 +26,7 @@ export type RegraDeMarca = { cores: string[]; fontes: string[] };
 export type Resultado = { erros: string[]; avisos: string[] };
 
 type Rgb = [number, number, number];
-type Caixa = [number, number, number, number]; // x0, y0, x1, y1
+export type Caixa = [number, number, number, number]; // x0, y0, x1, y1
 
 const hexParaRgb = (hex: string): Rgb => {
   const h = hex.replace('#', '');
@@ -240,6 +241,76 @@ export function conferirVideo(
       if (razao < 3) erros.push(`${nome}: texto sobre a caixa dá ${razao.toFixed(1)}:1; precisa de 3:1`);
     } else {
       avisos.push(`${nome}: só uma cor — sem texto?`);
+    }
+  }
+  return { erros: [...new Set(erros)], avisos };
+}
+
+// ---------- motion ----------
+
+/**
+ * A conferência do motion. O vídeo não tem PSD nem som; o que se mede:
+ *   - formato: 1080×1920, a duração que a cena manda (±0,25 s), até 50 MB,
+ *     a prévia até 3,5 s;
+ *   - fonte: todo texto do projeto (.ecproj é JSON) na família da marca;
+ *   - quadros: o EffectCraft desenha do projeto os momentos em que a tela
+ *     está parada, e neles toda cor que ocupa espaço é da paleta, o que não é
+ *     fundo fica entre 5% e 95% da largura e 10% e 80% da altura, e o texto
+ *     tem contraste com o fundo. No carrossel em vídeo, a área da imagem
+ *     aprovada não conta — ela já passou pela conferência como post.
+ */
+export function conferirMotion(
+  pastaJob: string,
+  saidas: SaidaConferida[],
+  regra: { cores: string[]; fonte: string; projeto: string; segundos: number; momentos: number[]; areaDaImagem?: Caixa | null },
+): Resultado {
+  const erros: string[] = [];
+  const avisos: string[] = [];
+  for (const s of saidas.filter((x) => x.caminho.endsWith('.mp4'))) {
+    const v = sondar(path.join(pastaJob, s.caminho));
+    if (v.bytes > 50 * 1024 * 1024) erros.push(`${s.caminho}: ${(v.bytes / 1048576).toFixed(0)} MB; o Storage aceita até 50 MB por arquivo`);
+    if (s.caminho.endsWith('previa.mp4') && v.segundos > 3.5) erros.push(`${s.caminho}: a prévia tem ${v.segundos} s; são 3`);
+    if (s.caminho.endsWith('reel.mp4') && Math.abs(v.segundos - regra.segundos) > 0.25) erros.push(`${s.caminho}: ${v.segundos} s; a cena tem ${regra.segundos}`);
+  }
+
+  const familia = regra.fonte.replace(/\s+/g, '').toLowerCase();
+  for (const f of fontesDoProjeto(readFileSync(regra.projeto, 'utf8'))) {
+    if (!f.replace(/\s+/g, '').toLowerCase().startsWith(familia)) erros.push(`texto em "${f}"; a fonte da marca é "${regra.fonte}"`);
+  }
+
+  const paleta = regra.cores.map(hexParaRgb);
+  const aceita = (c: number[]) => paleta.some((p) => distancia(p, c) <= 16)
+    || paleta.some((a, i) => paleta.slice(i + 1).some((b) => distanciaAoSegmento(c, a, b) <= 14));
+  const trabalho = path.join(pastaJob, '.trabalho');
+  mkdirSync(trabalho, { recursive: true });
+  for (const t of regra.momentos) {
+    const arq = path.join(trabalho, `quadro-${t}.png`);
+    quadroDoProjeto(regra.projeto, t, arq);
+    const img = lerPng(readFileSync(arq));
+    const nome = `quadro em ${t} s`;
+    const fora = regra.areaDaImagem ? [regra.areaDaImagem] : [];
+    // Num quadro de motion os detalhes são pequenos: a barra de destaque é
+    // 0,14% da tela. O mínimo aqui é 0,05% — uns mil pixels.
+    const cores = coresQueOcupam(img, fora, 0.0005);
+    for (const { cor, fatia } of cores) {
+      if (!aceita(cor)) erros.push(`${nome}: a cor ${rgbParaHex(cor)} ocupa ${(fatia * 100).toFixed(1)}% e não é da paleta`);
+    }
+    // O que não é fundo: onde está, e se lê sobre ele.
+    const fundo = cores[0]?.cor;
+    if (!fundo) continue;
+    let x0 = img.largura, y0 = img.altura, x1 = 0, y1 = 0;
+    for (let y = 0; y < img.altura; y++) for (let x = 0; x < img.largura; x++) {
+      const i = (y * img.largura + x) * 3;
+      if (distancia([img.rgb[i], img.rgb[i + 1], img.rgb[i + 2]], fundo) < 40) continue;
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    }
+    if (x1 < x0) { erros.push(`${nome}: só tem o fundo`); continue; }
+    if (x0 < img.largura * 0.05 || x1 > img.largura * 0.95 || y0 < img.altura * 0.1 || y1 > img.altura * 0.8) {
+      erros.push(`${nome}: fora da área segura (${x0}, ${y0}, ${x1}, ${y1}); o Instagram cobre o topo e a parte de baixo`);
+    }
+    if (!regra.areaDaImagem && cores.length >= 2) {
+      const razao = contraste(rgbParaHex(cores[1].cor), rgbParaHex(fundo));
+      if (razao < 3) erros.push(`${nome}: ${rgbParaHex(cores[1].cor)} sobre ${rgbParaHex(fundo)} dá ${razao.toFixed(1)}:1; precisa de 3:1`);
     }
   }
   return { erros: [...new Set(erros)], avisos };

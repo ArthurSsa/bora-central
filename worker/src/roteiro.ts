@@ -18,6 +18,7 @@ import { servidorMcp } from './apps.ts';
 import { abrirMcp } from './mcp-cru.ts';
 import { desenharLegendas, exportarReel, lerSrt, lerTranscricao, trechosACortar } from './reel.ts';
 import { TICKS_POR_SEGUNDO, listar, sondar, transcricaoParaFilmCraft } from './video.ts';
+import { montarCenaDoPedido, renderizarDoPedido } from './motion.ts';
 import { CUSTO_ZERO, FalhaDoAgente, salvarTexto, type Agente, type ParametrosAgente } from './agente.ts';
 import type { Ajuste } from './fila.ts';
 import type { Conjunto } from './marca.ts';
@@ -315,7 +316,31 @@ async function reelDeBruto(x: Contexto) {
   salvarTexto(p.pastaJob, p.dados.saidas, 'saida/legenda.txt', legenda(pDeLegenda));
 }
 
+/** A abertura: o título que o roteiro sabe tirar sem interpretar, o @ embaixo. */
+async function aberturaComMotion({ p, c, maxPalavras }: Contexto) {
+  await p.aoMudarEtapa({ etapa: 'montando a cena', progresso: 10 });
+  montarCenaDoPedido(p, { conjunto: c, titulo: tituloDoTexto(p.dados.textoDoCliente, maxPalavras), rotulo: p.dados.instagram });
+  await motionAteOFim(p);
+}
+
+async function carrosselEmVideo({ p, c }: Contexto) {
+  await p.aoMudarEtapa({ etapa: 'montando a cena', progresso: 10 });
+  montarCenaDoPedido(p, { conjunto: c });
+  await motionAteOFim(p);
+}
+
+async function motionAteOFim(p: ParametrosAgente) {
+  await p.aoMudarEtapa({ etapa: 'preparando a prévia', progresso: 20 });
+  await renderizarDoPedido(p, true);
+  await p.aoMudarEtapa({ etapa: 'animando', progresso: 30 });
+  await renderizarDoPedido(p, false);
+  await p.aoMudarEtapa({ etapa: 'escrevendo a legenda', progresso: 90 });
+  salvarTexto(p.pastaJob, p.dados.saidas, 'saida/legenda.txt', legenda(p));
+}
+
 const ROTEIROS: Record<string, (x: Contexto) => Promise<void>> = {
+  'abertura-com-motion': aberturaComMotion,
+  'carrossel-em-video': carrosselEmVideo,
   'post-feed-teste': postDeTeste,
   'post-feed': postFeed,
   carrossel,

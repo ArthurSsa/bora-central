@@ -33,6 +33,7 @@ export const MIME: Record<string, string> = {
   '.mp4': 'video/mp4',
   '.mov': 'video/quicktime',
   '.fcproj': 'application/octet-stream',
+  '.ecproj': 'application/json',
   '.srt': 'application/x-subrip',
   '.txt': 'text/plain; charset=utf-8',
   '.json': 'application/json',

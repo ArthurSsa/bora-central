@@ -11,14 +11,15 @@ import path from 'node:path';
 import { setTimeout as esperar } from 'node:timers/promises';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { fontesInstaladas, pesoMaisPerto } from './apps.ts';
-import { conferirMarca, conferirTextos, conferirVideo } from './conferencia.ts';
+import { conferirMarca, conferirMotion, conferirTextos, conferirVideo, type Caixa } from './conferencia.ts';
+import { projetoDoMotion, SEGUNDOS_ABERTURA, SEGUNDOS_POR_SLIDE } from './motion.ts';
 import { exportarAudioFinal } from './reel.ts';
 import { listar, sondar, transcrever } from './video.ts';
 import { lerConfig, type Config } from './config.ts';
 import { rodarAgente, FalhaDoAgente, CUSTO_ZERO, type Agente, type Etapa, type ResultadoAgente } from './agente.ts';
 import {
   conectar, pegarJob, renovarLease, anotar, evento, carregarContexto, subir, concluir, devolverOuFalhar,
-  historicoDeAjustes, baixarEditaveisBase, baixarElementos, baixarAnexo, juntarSaida,
+  historicoDeAjustes, baixarEditaveisBase, baixarElementos, baixarAnexo, baixarSlides, juntarSaida,
   type Ajuste, type ArquivoDeEntrada, type Elemento, type Job, type Pedido,
 } from './fila.ts';
 import { montarSistema, montarPedido } from './instrucoes.ts';
@@ -139,13 +140,28 @@ export async function produzir(a: {
   }
   const daMarca = conferirMarca(pastaJob, conferidas, { cores: coresDaMarca(a.cliente), fontes: [fonte.usada] });
   const dosTextos = conferirTextos(pastaJob, conferidas, { semEmoji: /emoji/i.test(m.evitar ?? '') });
+  const slides = listar(path.join(pastaJob, 'entrada', 'slides'), /^slide-\d+\.png$/).length;
   const doVideo = bruto
     ? conferirVideo(pastaJob, conferidas, {
         cores: coresDaMarca(a.cliente),
         segundosBruto: sondar(bruto).segundos,
         medirSom: (wav) => exportarAudioFinal(path.join(pastaJob, 'editavel', 'reel.fcproj'), wav),
       })
-    : { erros: [], avisos: [] };
+    : a.skill.apps.includes('effectcraft')
+      ? conferirMotion(pastaJob, conferidas, {
+          cores: coresDaMarca(a.cliente),
+          fonte: fonte.usada,
+          projeto: projetoDoMotion({ pastaJob, skill: a.skill }),
+          ...(a.skill.entrada === 'slides'
+            ? {
+                segundos: slides * SEGUNDOS_POR_SLIDE + 0.5,
+                // Cada imagem parada no meio do tempo dela; a área da imagem não conta.
+                momentos: Array.from({ length: slides }, (_, i) => i * SEGUNDOS_POR_SLIDE + 1.5),
+                areaDaImagem: [40, 220, 1040, 1480] as Caixa,
+              }
+            : { segundos: SEGUNDOS_ABERTURA, momentos: [3.5, SEGUNDOS_ABERTURA - 0.1] }),
+        })
+      : { erros: [], avisos: [] };
   const erros = [...daMarca.erros, ...dosTextos.erros, ...doVideo.erros];
   if (erros.length) {
     throw new FalhaDoAgente(`reprovado na conferência de marca: ${erros.slice(0, 6).join('; ')}`, resultado.custos);
@@ -188,7 +204,7 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     }
 
     const { pedido, cliente } = await carregarContexto(sb, job);
-    const skill = escolherSkill(skills, pedido.tipo, job.skill);
+    const skill = escolherSkill(skills, pedido.tipo, job.skill, pedido.briefing);
     if (job.skill !== skill.nome) await sb.from('jobs').update({ skill: skill.nome }).eq('id', job.id);
     await sb.from('pedidos').update({ estado: 'produzindo' }).eq('id', job.pedido_id).in('estado', ['rascunho', 'produzindo']);
     log(`skill ${skill.nome}, apps ${skill.apps.join(', ')}${job.rodada === 'ajuste' ? ' (ajuste)' : ''}`);
@@ -196,8 +212,10 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     const ajustes = await historicoDeAjustes(sb, job);
     const anteriores = job.rodada === 'ajuste' ? await baixarEditaveisBase(sb, job) : [];
     const { elementos, arquivos } = await baixarElementos(sb, job);
-    const anexo = skill.entrada === 'video' ? await baixarAnexo(sb, pedido) : [];
+    const anexo = skill.entrada === 'video' ? await baixarAnexo(sb, pedido)
+      : skill.entrada === 'slides' ? await baixarSlides(sb, pedido) : [];
 
+    let etapaAtual = '';
     const p = await produzir({
       entregarParcial: async (caminho) => {
         const esperada = expandirSaidas(skill, pedido.briefing).find((s) => s.caminho === caminho);
@@ -210,10 +228,14 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
       },
       cfg, job, skill, skills, pedido, cliente, instaladas, agente, abortar, ajustes, elementos,
       arquivos: [...anteriores, ...arquivos, ...anexo],
-      aoMudarEtapa: async ({ etapa, progresso }) => {
-        log(`etapa: ${etapa} (${progresso}%)`);
-        await anotar(sb, cfg, job, { etapa, progresso });
-        await evento(sb, job, etapa, { visivel: true });
+      // O render de motion manda a mesma etapa a cada dois segundos, com quanto
+      // falta: o histórico do cliente ganha uma linha só por etapa.
+      aoMudarEtapa: async ({ etapa, progresso, restamSegundos }) => {
+        const nova = etapa !== etapaAtual;
+        etapaAtual = etapa;
+        if (nova) log(`etapa: ${etapa} (${progresso}%)`);
+        await anotar(sb, cfg, job, { etapa, progresso, restam_segundos: restamSegundos ?? null });
+        if (nova) await evento(sb, job, etapa, { visivel: true });
       },
       aoUsarFerramenta: (nome, ms, falhou) => {
         void evento(sb, job, `${nome} ${falhou ? 'falhou' : 'ok'} em ${ms} ms`, { nivel: falhou ? 'aviso' : 'info', dados: { ferramenta: nome, ms } });
@@ -225,7 +247,7 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     }
     for (const a of p.avisos) await evento(sb, job, a, { nivel: 'aviso' });
 
-    await anotar(sb, cfg, job, { etapa: 'finalizando', progresso: 95 });
+    await anotar(sb, cfg, job, { etapa: 'finalizando', progresso: 95, restam_segundos: null });
     const saidas = [];
     for (const c of p.conferidas) {
       saidas.push({ ...c, caminho: await subir(sb, job, path.join(p.pastaJob, c.caminho), c) });

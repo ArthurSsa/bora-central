@@ -18,6 +18,9 @@ import { chromium, type Browser, type Page } from 'playwright-core';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { RAIZ_REPO, RAIZ_WORKER } from '../src/config.ts';
 import { montarBrutoDeTeste, temTudoProReel } from '../teste/bruto.ts';
+import { acharCli } from '../src/config.ts';
+
+const temEffectCraft = existsSync(acharCli('effectcraft'));
 
 const URL_SB = 'https://yxewmauwnxnrrhevlbtc.supabase.co';
 const CHAVE_PUBLICA = 'sb_publishable_G_FuzadzmX2BwkRO81H3mw_xoYnthod';
@@ -414,6 +417,99 @@ test('carrossel: escolhe 3 imagens, desliza pelas três, copia a legenda e aprov
   assert.equal(pedido!.estado, 'aprovado');
   assert.equal((pedido!.briefing as { slides: number }).slides, 3);
   await semErroNaTela(page);
+
+  // O carrossel aprovado vira vídeo, com as mesmas três imagens.
+  if (temEffectCraft) {
+    await page.getByRole('button', { name: 'Transformar em vídeo' }).click();
+    await page.waitForURL((u) => !u.href.endsWith(pedidoId));
+    const videoId = page.url().split('/').pop()!;
+    const { data: novo } = await admin.from('pedidos').select('tipo, briefing').eq('id', videoId).single();
+    assert.equal(novo!.tipo, 'reel');
+    assert.deepEqual([(novo!.briefing as { formato: string }).formato, (novo!.briefing as { de_pedido: string }).de_pedido], ['carrossel', pedidoId]);
+    await page.getByText('Fazendo o vídeo do carrossel').waitFor();
+    await page.locator('.selo.para_aprovar').first().waitFor({ timeout: 120_000 });
+    await page.waitForFunction(() => {
+      const v = document.querySelector('video.previa') as HTMLVideoElement;
+      return v && /reel\.mp4/.test(v.src) && v.readyState >= 1;
+    });
+    const v = await page.locator('video.previa').evaluate((x: HTMLVideoElement) => ({ w: x.videoWidth, h: x.videoHeight, s: x.duration }));
+    assert.deepEqual([v.w, v.h], [1080, 1920]);
+    assert.ok(Math.abs(v.s - 8) < 0.3, `vídeo de ${v.s}s; 3 imagens × 2,5 s + 0,5 s`);
+    await foto(page, 'carrossel-em-video');
+    await semErroNaTela(page);
+  }
+  await page.context().close();
+});
+
+test('abertura animada: sem gravar nada, com prévia antes, a barra andando e o vídeo de 10 s', {
+  skip: !temEffectCraft && 'falta o EffectCraft', timeout: 240_000,
+}, async () => {
+  const page = await abrir();
+  await page.getByRole('heading', { name: 'O que você quer criar hoje?' }).waitFor();
+  await page.locator('a.tipo', { hasText: 'Reel ou vídeo curto' }).click();
+  await page.getByRole('button', { name: 'Quero uma abertura animada' }).click();
+  await page.getByRole('heading', { name: 'O que a abertura vai dizer?' }).waitFor();
+  assert.equal(await page.locator('#video').count(), 0, 'pediu vídeo pra abertura');
+  await page.locator('#texto').fill('Turma nova do laboratório, inscrições abertas');
+  assert.ok(await semRolagemLateral(page));
+  assert.deepEqual(await varrerContraste(page), []);
+  await foto(page, 'abertura-passo-1');
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByRole('heading', { name: 'Algumas escolhas' }).waitFor();
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  const resumo = (await page.locator('.resumo').textContent())!;
+  assert.match(resumo, /1 abertura animada de 10 segundos/);
+  assert.doesNotMatch(resumo, /Com o seu vídeo|arquivo das legendas/);
+
+  await page.getByRole('button', { name: 'Pedir abertura' }).click();
+  await page.waitForURL(/#\/pedido\//);
+  const pedidoId = page.url().split('/').pop()!;
+  // Tudo o que a barra mostrou, e a frase de quanto falta.
+  await page.evaluate(() => {
+    const w = window as unknown as { _vistos: number[]; _falta: string[] };
+    w._vistos = []; w._falta = [];
+    new MutationObserver(() => {
+      const b = document.querySelector('[role=progressbar][aria-label=Andamento]');
+      if (b) w._vistos.push(Number(b.getAttribute('aria-valuenow')));
+      const f = document.querySelector('.falta');
+      if (f) w._falta.push(f.textContent || '');
+    }).observe(document.getElementById('app')!, { subtree: true, childList: true, attributes: true });
+  });
+  await page.getByText('Prévia: os primeiros 3 segundos').waitFor({ timeout: 120_000 });
+  await page.locator('.selo.para_aprovar').first().waitFor({ timeout: 120_000 });
+  const { vistos, falta } = await page.evaluate(() => {
+    const w = window as unknown as { _vistos: number[]; _falta: string[] };
+    return { vistos: w._vistos, falta: w._falta };
+  });
+  for (let i = 1; i < vistos.length; i++) assert.ok(vistos[i] >= vistos[i - 1], `barra voltou: ${vistos.join(' → ')}`);
+  assert.ok(new Set(vistos).size >= 3, `a barra quase não andou: ${[...new Set(vistos)].join(', ')}`);
+  console.log(`  barra: ${[...new Set(vistos)].join(' → ')}; texto: ${[...new Set(falta)].join(' | ')}`);
+
+  await page.waitForFunction(() => {
+    const v = document.querySelector('video.previa') as HTMLVideoElement;
+    return v && /reel\.mp4/.test(v.src) && v.readyState >= 1;
+  });
+  const v = await page.locator('video.previa').evaluate((x: HTMLVideoElement) => ({ w: x.videoWidth, h: x.videoHeight, s: x.duration }));
+  assert.deepEqual([v.w, v.h], [1080, 1920]);
+  assert.ok(Math.abs(v.s - 10) < 0.3, `abertura de ${v.s}s`);
+  await page.getByRole('heading', { name: 'Legenda' }).waitFor();
+  const historico = (await page.locator('.linha-tempo').textContent())!;
+  assert.match(historico, /Montando a cena.*/s);
+  assert.equal((historico.match(/Animando/g) || []).length, 1, 'o "animando" repetiu no histórico');
+  assert.ok(await semRolagemLateral(page));
+  assert.deepEqual(await varrerContraste(page), []);
+  await foto(page, 'abertura-para-aprovar');
+
+  await page.getByRole('button', { name: 'Aprovar' }).click();
+  await page.locator('.aviso.ok').filter({ hasText: 'Aprovado' }).first().waitFor();
+  assert.equal(await page.getByRole('link', { name: 'Baixar o reel' }).count(), 1);
+  assert.equal(await page.getByRole('link', { name: /legendas \(\.srt\)/ }).count(), 0, 'abertura não tem legenda de fala');
+  const { data: pedido } = await admin.from('pedidos').select('estado, briefing').eq('id', pedidoId).single();
+  assert.equal(pedido!.estado, 'aprovado');
+  assert.equal((pedido!.briefing as { formato: string }).formato, 'abertura');
+  const { data: jobs } = await admin.from('jobs').select('skill').eq('pedido_id', pedidoId);
+  assert.deepEqual(jobs!.map((j) => j.skill), ['abertura-com-motion']);
+  await semErroNaTela(page);
   await page.context().close();
 });
 
@@ -468,12 +564,21 @@ test('envio de vídeo: só na pasta do próprio cliente, e o pedido só aceita v
   assert.ok((await comoCliente.rpc('pasta_de_envio', { p_cliente: moacyr!.id })).error, 'deu a pasta do Moacyr');
 
   // O pedido de reel: sem vídeo, com vídeo que não subiu, ou com o vídeo de outro cliente — recusado.
-  const pedir = (anexo?: string) => comoCliente.rpc('criar_pedido', { p_cliente: CLIENTE, p_tipo: 'reel', p_briefing: { texto: 'Um reel', anexo } });
+  const contarReels = async () => (await admin.from('pedidos').select('id', { count: 'exact', head: true }).eq('cliente_id', CLIENTE).eq('tipo', 'reel')).count;
+  const antes = await contarReels();
+  const pedir =(anexo?: string) => comoCliente.rpc('criar_pedido', { p_cliente: CLIENTE, p_tipo: 'reel', p_briefing: { texto: 'Um reel', anexo } });
   assert.match((await pedir()).error?.message ?? '', /falta o vídeo/);
   assert.match((await pedir(`${pasta}/bruto.mp4`)).error?.message ?? '', /não chegou/);
   assert.match((await pedir(`${moacyr!.conta_id}/${moacyr!.id}/uploads/x/bruto.mp4`)).error?.message ?? '', /não chegou/);
-  const { count } = await admin.from('pedidos').select('id', { count: 'exact', head: true }).eq('cliente_id', CLIENTE).eq('tipo', 'reel');
-  assert.equal(count, 0);
+  // Os formatos sem vídeo: formato inventado, ou carrossel que não é do cliente / não foi aprovado.
+  const comFormato = (b: Record<string, unknown>) => comoCliente.rpc('criar_pedido', { p_cliente: CLIENTE, p_tipo: 'reel', p_briefing: { texto: 'Um reel', ...b } });
+  assert.match((await comFormato({ formato: 'holograma' })).error?.message ?? '', /formato de reel não existe/);
+  assert.match((await comFormato({ formato: 'carrossel' })).error?.message ?? '', /falta o carrossel/);
+  assert.match((await comFormato({ formato: 'carrossel', de_pedido: 'x; drop table pedidos' })).error?.message ?? '', /falta o carrossel/);
+  const { data: alheio } = await admin.from('pedidos').select('id').neq('cliente_id', CLIENTE).eq('tipo', 'carrossel').limit(1).maybeSingle();
+  if (alheio) assert.match((await comFormato({ formato: 'carrossel', de_pedido: alheio.id })).error?.message ?? '', /não foi aprovado/);
+  assert.match((await comFormato({ formato: 'carrossel', de_pedido: crypto.randomUUID() })).error?.message ?? '', /não foi aprovado/);
+  assert.equal(await contarReels(), antes, 'algum pedido recusado entrou');
 });
 
 test('reel: sobe o vídeo pelo celular, vê a prévia antes, depois o reel inteiro, e aprova', {
@@ -482,7 +587,7 @@ test('reel: sobe o vídeo pelo celular, vê a prévia antes, depois o reel intei
   const bruto = montarBrutoDeTeste();
   const page = await abrir();
   await page.getByRole('heading', { name: 'O que você quer criar hoje?' }).waitFor();
-  await page.getByRole('link', { name: /Reel ou vídeo curto/ }).click();
+  await page.locator('a.tipo', { hasText: 'Reel ou vídeo curto' }).click();
 
   // Passo 1: o vídeo sobe enquanto a pessoa escreve.
   await page.getByRole('heading', { name: 'Mande o vídeo que você gravou' }).waitFor();

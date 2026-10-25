@@ -10,6 +10,7 @@ import { servidorMcp, prefixoFerramentas, ferramentasBloqueadas } from './apps.t
 import type { Config } from './config.ts';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { desenharLegendas, exportarReel, lerSrt } from './reel.ts';
+import { montarCenaDoPedido, projetoDoMotion, renderizarDoPedido } from './motion.ts';
 import path from 'node:path';
 import type { Ajuste, Custos, Elemento } from './fila.ts';
 import type { Conjunto } from './marca.ts';
@@ -31,7 +32,8 @@ export function salvarTexto(pastaJob: string, saidas: SaidaEsperada[], caminho: 
   return destino;
 }
 
-export type Etapa = { etapa: string; progresso: number };
+/** restamSegundos: quanto falta, quando dá pra medir (o render de motion conta os quadros). */
+export type Etapa = { etapa: string; progresso: number; restamSegundos?: number | null };
 
 export type DadosDaPeca = {
   conjunto: Conjunto;
@@ -155,6 +157,41 @@ export const rodarAgente: Agente = async (p) => {
             renderMs += performance.now() - t;
             if (previa) await p.entregarParcial('saida/previa.mp4');
             return { content: [{ type: 'text', text: previa ? 'prévia pronta e entregue' : 'reel exportado' }] };
+          } catch (e) {
+            return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
+          }
+        },
+      ),
+      // Motion: a cena base na marca e o render com quanto falta. O agente
+      // pode mexer na cena pelo EffectCraft antes de renderizar.
+      tool(
+        'cena_da_marca',
+        'Monta a cena base do motion no EffectCraft e salva o projeto em editavel/ (abertura.ecproj ou carrossel.ecproj, pela skill). Na abertura, passe o título e o rótulo; no carrossel em vídeo, as imagens de entrada/slides/ entram sozinhas.',
+        {
+          titulo: z.string().max(120).optional().describe('Abertura: o tema, em até oito palavras.'),
+          rotulo: z.string().max(60).optional().describe('Abertura: o @ da conta ou o nome, embaixo do título.'),
+          conjunto: z.string().optional().describe('Nome do conjunto de cor; sem ele, o da peça.'),
+        },
+        async ({ titulo, rotulo, conjunto }) => {
+          try {
+            const c = p.dados.conjuntos.find((x) => x.nome === conjunto) ?? p.dados.conjunto;
+            const r = montarCenaDoPedido(p, { conjunto: c, titulo, rotulo: rotulo ?? null });
+            return { content: [{ type: 'text', text: `cena salva em ${path.relative(p.pastaJob, projetoDoMotion(p))}: ${JSON.stringify(r)}` }] };
+          } catch (e) {
+            return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
+          }
+        },
+      ),
+      tool(
+        'renderizar_motion',
+        'Renderiza o projeto de motion em H.264 1080×1920, sem som. Com previa: true, saem os 3 primeiros segundos em meia resolução em saida/previa.mp4 e o cliente já vê; sem, o vídeo inteiro em saida/reel.mp4, com a tela do cliente mostrando quanto falta.',
+        { previa: z.boolean() },
+        async ({ previa }) => {
+          try {
+            const t = performance.now();
+            await renderizarDoPedido(p, previa);
+            renderMs += performance.now() - t;
+            return { content: [{ type: 'text', text: previa ? 'prévia pronta e entregue' : 'vídeo renderizado' }] };
           } catch (e) {
             return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
           }

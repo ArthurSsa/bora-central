@@ -69,7 +69,7 @@ export async function renovarLease(sb: SupabaseClient, cfg: Config, job: Job): P
   ) === true;
 }
 
-export async function anotar(sb: SupabaseClient, cfg: Config, job: Job, campos: { etapa?: string; progresso?: number; previsto_para?: string | null }) {
+export async function anotar(sb: SupabaseClient, cfg: Config, job: Job, campos: { etapa?: string; progresso?: number; previsto_para?: string | null; restam_segundos?: number | null }) {
   ok(await sb.from('jobs').update(campos).eq('id', job.id).eq('worker_id', cfg.workerId), 'anotar etapa');
 }
 
@@ -138,6 +138,29 @@ export async function baixarEditaveisBase(sb: SupabaseClient, job: Job): Promise
     const { data, error } = await sb.storage.from(BALDE).download(s.caminho);
     if (error) throw new Error(`baixar a versão anterior (${s.caminho}): ${error.message}`);
     arquivos.push({ nome: `anterior/${s.caminho.split('/').pop()}`, conteudo: Buffer.from(await data.arrayBuffer()) });
+  }
+  return arquivos;
+}
+
+/**
+ * As imagens do carrossel que vira vídeo (briefing.de_pedido): as da versão
+ * que o cliente aprovou, na ordem, como entrada/slides/slide-NN.png. O banco
+ * já conferiu, ao criar o pedido, que o carrossel é dele e está aprovado.
+ */
+export async function baixarSlides(sb: SupabaseClient, pedido: Pedido): Promise<ArquivoDeEntrada[]> {
+  const de = pedido.briefing?.de_pedido;
+  if (typeof de !== 'string' || !de) return [];
+  const { data: origem } = await sb.from('pedidos').select('job_aprovado').eq('id', de).single();
+  if (!origem?.job_aprovado) throw new Error('o carrossel de origem não tem versão aprovada');
+  const { data: rodada } = await sb.from('jobs').select('saidas').eq('id', origem.job_aprovado).single();
+  const slides = ((rodada?.saidas ?? []) as Array<{ caminho: string; papel: string }>)
+    .filter((s) => s.papel === 'saida' && /\/slide-\d+\.png$/.test(s.caminho))
+    .sort((a, b) => a.caminho.localeCompare(b.caminho));
+  const arquivos: ArquivoDeEntrada[] = [];
+  for (const s of slides) {
+    const { data, error } = await sb.storage.from(BALDE).download(s.caminho);
+    if (error) throw new Error(`baixar a imagem do carrossel (${s.caminho}): ${error.message}`);
+    arquivos.push({ nome: `slides/${s.caminho.split('/').pop()}`, conteudo: Buffer.from(await data.arrayBuffer()) });
   }
   return arquivos;
 }

@@ -5,6 +5,7 @@ tipos: [reel]
 apps: [filmcraft]
 usa: [copy-e-hashtags]
 entrada: video
+formato: bruto
 saidas:
   - saida/previa.mp4 1080x1920
   - saida/reel.mp4 1080x1920

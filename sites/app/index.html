@@ -337,7 +337,7 @@
     { k:'post-feed',    nome:'Post para feed',          sub:'Uma imagem para o feed do Instagram', icone:'post',        ativo:true },
     { k:'carrossel',    nome:'Carrossel',               sub:'Várias imagens em sequência',         icone:'carrossel',   ativo:true },
     { k:'story',        nome:'Story',                   sub:'Em pé, some em 24 horas',             icone:'story',       ativo:false },
-    { k:'reel',         nome:'Reel ou vídeo curto',     sub:'A partir do vídeo que você gravou',   icone:'reel',        ativo:true },
+    { k:'reel',         nome:'Reel ou vídeo curto',     sub:'Do vídeo que você gravou, ou uma abertura animada', icone:'reel', ativo:true },
     { k:'capa',         nome:'Capa ou thumbnail',       sub:'Três opções de capa pro seu vídeo',   icone:'capa',        ativo:true },
     { k:'apresentacao', nome:'Vídeo de apresentação',   sub:'Contando o que o seu negócio faz',    icone:'apresentacao', ativo:false },
   ];
@@ -366,7 +366,13 @@
     carrossel:   { titulo:'Sobre o que é o carrossel?', ajuda:'Conte as ideias que ele precisa passar, uma por frase. Cada ideia vira uma imagem.', exemplo:'Ex.: Não existe atalho pra liderar. Liderança se aprende fazendo. Organização vem antes de talento.' },
     capa:        { titulo:'Sobre o que é o vídeo?', ajuda:'Uma ou duas frases sobre o vídeo. A Bora faz três opções de capa pra você escolher.', exemplo:'Ex.: Como montei um time de produto sem saber programar.' },
     reel:        { titulo:'Mande o vídeo que você gravou', ajuda:'Em pé, com você falando, de até 1 minuto e meio. A Bora corta as pausas e as repetições, aproxima a câmera e põe legenda nas cores da sua marca.', exemplo:'Ex.: Turma nova do laboratório, inscrições até sexta.', campo:'Em uma frase, sobre o que é o vídeo?' },
+    abertura:    { titulo:'O que a abertura vai dizer?', ajuda:'Um vídeo de 10 segundos com o seu tema entrando na tela, nas cores e na fonte da sua marca. Não precisa gravar nada.', exemplo:'Ex.: Turma nova do laboratório, inscrições abertas.' },
   };
+  // O reel tem três jeitos de nascer: do vídeo gravado, de uma abertura
+  // animada, ou de um carrossel aprovado (esse, pelo botão no próprio carrossel).
+  const FORMATOS_REEL = [['bruto', 'Tenho um vídeo gravado'], ['abertura', 'Quero uma abertura animada']];
+  const perguntaDe = (n) => n.tipo === 'reel' && n.formato === 'abertura' ? PERGUNTA.abertura : PERGUNTA[n.tipo];
+  const formatoDe = (p) => (p.briefing && p.briefing.formato) || (p.tipo === 'reel' ? 'bruto' : null);
   // O plano grátis do banco recusa arquivo acima de 50 MB — é mais ou menos
   // um minuto e meio filmado no celular. Avisar antes de subir poupa a espera.
   const LIMITE_VIDEO_MB = 50;
@@ -379,7 +385,9 @@
     'post-feed': () => ({ peca:'1 post para o feed do Instagram, em pé', botao:'Pedir post' }),
     carrossel:   (n) => ({ peca:`1 carrossel de ${n.slides} imagens para o feed, em pé`, botao:'Pedir carrossel' }),
     capa:        () => ({ peca:'3 opções de capa para vídeo do YouTube, deitada, e 2 sugestões de título pro vídeo', botao:'Pedir capas' }),
-    reel:        () => ({ peca:'1 reel em pé, sem as pausas e com legenda na sua marca', botao:'Pedir reel' }),
+    reel:        (n) => n.formato === 'abertura'
+      ? { peca:'1 abertura animada de 10 segundos, em pé, nas cores da sua marca', botao:'Pedir abertura' }
+      : { peca:'1 reel em pé, sem as pausas e com legenda na sua marca', botao:'Pedir reel' },
   };
   const TONS = ['Como sempre', 'Mais sério', 'Mais leve'];
   const ATALHOS = ['mais curto', 'outra cor da marca', 'mais sério', 'troca a foto'];
@@ -446,6 +454,8 @@
   const hojeIso = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
   /** O dia (AAAA-MM-DD) de um horário, no fuso de quem está olhando. */
   const diaDe = (iso) => { const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+  /** "Falta menos de um minuto." / "Faltam uns 3 minutos." — arredonda pra cima, nunca promete antes. */
+  const faltam = (s) => s < 60 ? 'Falta menos de um minuto.' : 'Faltam uns ' + Math.max(2, Math.ceil(s / 60)) + ' minutos.';
   const fmtDiaCurto = (iso) => new Date(iso).toLocaleDateString('pt-BR', { weekday:'short', day:'numeric', month:'short' });
 
   // A mensagem das funções do banco já é escrita pra quem pede ("espere uma
@@ -490,7 +500,7 @@
       if(!tipo){ ir('#/hoje'); return; }
       if(!state.novo || state.novo.tipo !== tipo.k){
         if(state.novo && state.novo.video && state.novo.video.xhr) state.novo.video.xhr.abort();
-        state.novo = { tipo:tipo.k, passo:1, texto:'', objetivo:null, tom:'Como sempre', data:'', slides:5, video:null };
+        state.novo = { tipo:tipo.k, passo:1, texto:'', objetivo:null, tom:'Como sempre', data:'', slides:5, video:null, formato:'bruto' };
       }
     }
     if(nome === 'pedido' && arg){
@@ -508,7 +518,7 @@
   // o pedido guarda a rodada aprovada (job_aprovado), há dois caminhos entre
   // as tabelas, e sem a indicação o banco recusa a consulta inteira.
   const COLUNAS_PEDIDO = 'id, cliente_id, tipo, titulo, briefing, estado, publicar_em, ajustes, job_aprovado, escolha, aprovado_em, criado_em, atualizado_em, '
-    + 'jobs!jobs_pedido_id_fkey(id, rodada, estado, etapa, progresso, saidas, erro, criado_em, atualizado_em)';
+    + 'jobs!jobs_pedido_id_fkey(id, rodada, estado, etapa, progresso, restam_segundos, saidas, erro, criado_em, atualizado_em)';
 
   async function carregarClientes(){
     const { data, error } = await sb.rpc('meus_clientes');
@@ -686,7 +696,10 @@
     if(n.objetivo) briefing.objetivo = n.objetivo;
     if(n.tom && n.tom !== 'Como sempre') briefing.tom = n.tom;
     if(n.tipo === 'carrossel') briefing.slides = n.slides;
-    if(n.tipo === 'reel') briefing.anexo = n.video.caminho;
+    if(n.tipo === 'reel'){
+      briefing.formato = n.formato;
+      if(n.formato === 'bruto') briefing.anexo = n.video.caminho;
+    }
     const publicarEm = n.data ? new Date(n.data + 'T12:00:00').toISOString() : null;
     const { data, error } = await sb.rpc('criar_pedido', {
       p_cliente: state.clienteId, p_tipo: n.tipo, p_briefing: briefing, p_publicar_em: publicarEm,
@@ -773,6 +786,20 @@
     }
   }
 
+  /** O carrossel aprovado vira um pedido de reel novo, com as mesmas imagens. */
+  async function virarVideo(p){
+    state.ocupado = true; render();
+    const { data, error } = await sb.rpc('criar_pedido', {
+      p_cliente: p.cliente_id, p_tipo: 'reel',
+      p_briefing: { texto: (p.briefing && p.briefing.texto) || p.titulo || 'Carrossel em vídeo', formato: 'carrossel', de_pedido: p.id },
+    });
+    state.ocupado = false;
+    if(error){ avisar('erro', mensagemDeErro(error)); return; }
+    await carregarPedido(data);
+    await carregarEventos(data);
+    ir('#/pedido/' + data);
+  }
+
   async function aprovar(p){
     state.ocupado = true; render();
     const { error } = await sb.rpc('aprovar_pedido', { p_pedido: p.id, p_escolha: p.tipo === 'capa' ? state.escolha[p.id] : null });
@@ -799,7 +826,7 @@
 
   /** "Criar isso": o tema da pauta vira um pedido já escrito, no formato escolhido. */
   function criarDaSugestao(s, tipo){
-    state.novo = { tipo, passo:1, texto:s.tema, objetivo:null, tom:'Como sempre', data:'', slides:5, origem:{ plano:s.plano_id, tema:s.tema } };
+    state.novo = { tipo, passo:1, texto:s.tema, objetivo:null, tom:'Como sempre', data:'', slides:5, video:null, formato:'bruto', origem:{ plano:s.plano_id, tema:s.tema } };
     state.sugestaoAberta = null;
     ir('#/novo/' + tipo);
   }
@@ -1121,11 +1148,12 @@
 
     if(n.passo === 1){
       const ehReel = n.tipo === 'reel';
-      const pode = () => n.texto.trim().length >= 3 && (!ehReel || (n.video && n.video.estado === 'pronto'));
+      const comVideo = ehReel && n.formato === 'bruto';
+      const pode = () => n.texto.trim().length >= 3 && (!comVideo || (n.video && n.video.estado === 'pronto'));
       const contador = h('p', { class:'contador', 'aria-live':'polite' }, n.texto.length + ' / 800');
       const continuar = h('button', { id:'continuar', class:'btn pri cheio', disabled: !pode(),
         onclick: () => { n.passo = 2; render(); window.scrollTo(0, 0); } },
-        ehReel && n.video && n.video.estado === 'enviando' ? 'Esperando o vídeo subir…' : 'Continuar');
+        comVideo && n.video && n.video.estado === 'enviando' ? 'Esperando o vídeo subir…' : 'Continuar');
       const area = h('textarea', { id:'texto', maxlength:'800', placeholder:'Ex.: Abrimos turma nova no laboratório, inscrições até sexta.',
         style: ehReel ? { minHeight:'90px' } : null,
         oninput: (e) => {
@@ -1134,15 +1162,18 @@
           continuar.disabled = !pode();
         } });
       area.value = n.texto;
-      const pergunta = PERGUNTA[n.tipo];
+      const pergunta = perguntaDe(n);
       area.placeholder = pergunta.exemplo;
       return h('div', { class:'pilha-g' }, cabeca,
+        ehReel && h('div', { class:'chips', role:'group', 'aria-label':'Como vai ser o reel' }, FORMATOS_REEL.map(([k, rotulo]) =>
+          h('button', { class:'chip', type:'button', 'aria-pressed': String(n.formato === k),
+            onclick: () => { n.formato = k; render(); } }, rotulo))),
         h('div', { class:'pilha' },
           h('h1', {}, pergunta.titulo),
-          h('p', { class:'fraco' }, n.origem && !ehReel
+          h('p', { class:'fraco' }, n.origem && !comVideo
             ? 'Este tema veio do seu plano do mês. Mude o que quiser — ou só continue.'
             : pergunta.ajuda)),
-        ehReel && campoDoVideo(n),
+        comVideo && campoDoVideo(n),
         h('div', { class:'campo' },
           h('label', { for:'texto', class: pergunta.campo ? null : 'sr' }, pergunta.campo || pergunta.titulo), area, contador),
         continuar);
@@ -1175,6 +1206,7 @@
     const conj = (m.conjuntos || []).find(c => c.k === m.conjuntoPadrao) || (m.conjuntos || [])[0];
     const cores = conj ? [conj.fundo, conj.tinta || '#FFFFFF', conj.faixa || conj.destaque].filter(Boolean) : (m.paleta || []).slice(0, 3).map(p => p.cor);
     const sai = SAI[n.tipo](n);
+    const comVideo = n.tipo === 'reel' && n.formato === 'bruto';
     return h('div', { class:'pilha-g' }, cabeca,
       h('h1', {}, 'Confere antes de pedir'),
       h('dl', { class:'cartao resumo' },
@@ -1182,11 +1214,11 @@
         h('dd', {}, sai.peca),
         h('dt', {}, 'Junto'),
         h('dd', {}, n.tipo === 'capa' ? 'A descrição do vídeo, com hashtags'
-          : n.tipo === 'reel' ? 'A legenda e as hashtags, prontas pra colar, e o arquivo das legendas do vídeo'
+          : comVideo ? 'A legenda e as hashtags, prontas pra colar, e o arquivo das legendas do vídeo'
           : 'A legenda e as hashtags, prontas pra colar'),
-        n.tipo === 'reel' && h('dt', {}, 'Com o seu vídeo'),
-        n.tipo === 'reel' && h('dd', { style:{ overflowWrap:'anywhere' } }, n.video.nome),
-        h('dt', {}, n.tipo === 'reel' ? 'Sobre' : 'Com o seu texto'),
+        comVideo && h('dt', {}, 'Com o seu vídeo'),
+        comVideo && h('dd', { style:{ overflowWrap:'anywhere' } }, n.video.nome),
+        h('dt', {}, comVideo ? 'Sobre' : 'Com o seu texto'),
         h('dd', {}, '“' + n.texto.trim() + '”'),
         (n.objetivo || n.tom !== 'Como sempre') && h('dt', {}, 'Do jeito que você escolheu'),
         (n.objetivo || n.tom !== 'Como sempre') && h('dd', {}, [n.objetivo, n.tom !== 'Como sempre' ? n.tom.toLowerCase() : null].filter(Boolean).join(' · ')),
@@ -1195,9 +1227,11 @@
         n.data && h('dt', {}, 'Vai ao ar'),
         n.data && h('dd', {}, fmtDia(n.data)),
         h('dt', {}, 'Quando fica pronto'),
-        h('dd', {}, n.tipo === 'reel'
+        h('dd', {}, comVideo
           ? 'Uns 10 minutos. Os primeiros 15 segundos aparecem antes, pra você já ir vendo. Nada vai ao ar sem a sua aprovação.'
-          : 'Em poucos minutos. Você vê e aprova antes de qualquer coisa ir ao ar.')),
+          : n.tipo === 'reel'
+            ? 'Em poucos minutos. Os primeiros segundos aparecem antes, e a tela mostra quanto falta. Nada vai ao ar sem a sua aprovação.'
+            : 'Em poucos minutos. Você vê e aprova antes de qualquer coisa ir ao ar.')),
       h('div', { class:'botoes' },
         h('button', { class:'btn sec', onclick: () => { n.passo = 2; render(); } }, 'Voltar'),
         h('button', { class:'btn pri', disabled: state.ocupado, onclick: pedir }, state.ocupado ? 'Enviando…' : sai.botao)));
@@ -1225,18 +1259,24 @@
       const etapa = andamento.estado === 'na_fila' ? 'Esperando a vez' : (andamento.etapa === 'preparando' || !andamento.etapa ? 'Preparando' : andamento.etapa.charAt(0).toUpperCase() + andamento.etapa.slice(1));
       blocos.push(h('div', { class:'cartao pilha' },
         h('p', { class:'rot' }, andamento.rodada === 'ajuste' ? 'Fazendo o ajuste'
+          : formatoDe(p) === 'abertura' ? 'Fazendo a sua abertura'
+          : formatoDe(p) === 'carrossel' ? 'Fazendo o vídeo do carrossel'
           : { carrossel:'Fazendo o seu carrossel', capa:'Fazendo as suas capas', reel:'Fazendo o seu reel' }[p.tipo] || 'Fazendo o seu post'),
         h('p', { class:'etapa', 'aria-live':'polite' }, etapa),
         h('div', { class:'barra', role:'progressbar', 'aria-valuemin':'0', 'aria-valuemax':'100', 'aria-valuenow':String(pct), 'aria-label':'Andamento' },
           h('i', { style:{ width: Math.max(pct, 4) + '%' } })),
-        h('p', { class:'fraco', style:{ fontSize:'0.9rem' } }, (p.tipo === 'reel' ? 'Leva uns 10 minutos.' : 'Leva poucos minutos.') + ' Pode fechar esta tela: o pedido continua andando.')));
-      // A prévia do reel chega antes do vídeo inteiro: os primeiros 15 segundos.
+        // Quanto falta só aparece quando foi medido (o render conta os quadros); senão, a estimativa geral.
+        h('p', { class:'fraco falta', style:{ fontSize:'0.9rem' } },
+          andamento.restam_segundos != null ? faltam(andamento.restam_segundos) + ' Pode fechar esta tela: o pedido continua andando.'
+            : (formatoDe(p) === 'bruto' ? 'Leva uns 10 minutos.' : 'Leva poucos minutos.') + ' Pode fechar esta tela: o pedido continua andando.')));
+      // A prévia chega antes do vídeo inteiro: 15 s do reel gravado, 3 s do motion.
       const previa = textoDe(andamento, 'previa.mp4');
       const urlPrevia = previa && state.urls[previa.caminho];
       if(urlPrevia){
+        const seg = formatoDe(p) === 'bruto' ? '15 segundos' : '3 segundos';
         blocos.push(h('figure', { class:'pilha figura' },
-          videoDe(urlPrevia, { class:'previa', 'aria-label':'Prévia do reel, os primeiros 15 segundos' }),
-          h('figcaption', { class:'fraco', style:{ textAlign:'center', fontSize:'0.9rem' } }, 'Prévia: os primeiros 15 segundos. O reel inteiro vem logo depois.')));
+          videoDe(urlPrevia, { class:'previa', 'aria-label':'Prévia do reel, os primeiros ' + seg }),
+          h('figcaption', { class:'fraco', style:{ textAlign:'center', fontSize:'0.9rem' } }, 'Prévia: os primeiros ' + seg + '. O vídeo inteiro vem logo depois.')));
       }
     }
     if(p.estado === 'produzindo' && !andamento && falhouDeVez){
@@ -1341,6 +1381,14 @@
           class:'btn sec' + (baixar.length === 1 ? ' cheio' : ''), href:state.urls[s.caminho], download:s.caminho.split('/').pop(), target:'_blank', rel:'noopener',
         }, baixar.length === 1 ? 'Baixar a imagem' : 'Imagem ' + (i + 1))).filter(Boolean);
         if(links.length) blocos.push(baixar.length === 1 ? links[0] : h('div', { class:'pilha' }, h('p', { class:'rot' }, 'Baixar'), h('div', { class:'botoes baixar' }, links)));
+        // O carrossel aprovado também vai pro Reels, que alcança quem não segue a conta.
+        if(p.tipo === 'carrossel'){
+          blocos.push(h('div', { class:'cartao pilha' },
+            h('h2', {}, 'Leve pro Reels'),
+            h('p', { class:'fraco' }, 'As mesmas imagens, em vídeo: uma entra depois da outra, sobre o fundo da sua marca.'),
+            h('button', { class:'btn sec cheio', type:'button', disabled: state.ocupado, onclick: () => virarVideo(p) },
+              state.ocupado ? 'Pedindo…' : 'Transformar em vídeo')));
+        }
       }
     }
 

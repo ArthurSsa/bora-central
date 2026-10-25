@@ -34,8 +34,14 @@ export type Skill = {
   quantidade: Quantidade | null;
   /** Outras skills cujo corpo entra junto (ex.: copy-e-hashtags). */
   usa: string[];
-  /** "video": o pedido traz um vídeo do cliente, que o worker baixa e transcreve antes do agente. */
-  entrada: 'video' | null;
+  /**
+   * O que o worker baixa pra entrada/ antes do agente: "video", o vídeo que o
+   * cliente gravou (e a transcrição dele); "slides", as imagens de um
+   * carrossel já aprovado.
+   */
+  entrada: 'video' | 'slides' | null;
+  /** Dentro de um tipo, qual formato esta skill faz (briefing.formato). Sem ele, é a do formato padrão. */
+  formato: string | null;
   corpo: string;
 };
 
@@ -125,7 +131,8 @@ export function interpretarSkill(nomePasta: string, texto: string): Skill {
     saidas,
     quantidade,
     usa: lista('usa'),
-    entrada: campos.entrada === 'video' ? 'video' : null,
+    entrada: campos.entrada === 'video' || campos.entrada === 'slides' ? campos.entrada : null,
+    formato: campos.formato ? String(campos.formato) : null,
     corpo,
   };
 }
@@ -148,12 +155,23 @@ export function carregarSkills(pasta: string): Map<string, Skill> {
  * A skill forçada no job (só a Bora força) vence; senão, a primeira que atende
  * o tipo do pedido. Skill de teste tem `tipos: []` e só roda forçada.
  */
-export function escolherSkill(skills: Map<string, Skill>, tipoPedido: string, forcada?: string | null): Skill {
+/** O formato de quem pede sem dizer qual: no reel, o vídeo gravado (o pedido do passo 5 não tinha formato). */
+export const FORMATO_PADRAO: Record<string, string> = { reel: 'bruto' };
+
+/**
+ * A skill do pedido: a do tipo e, dentro dele, a do formato — o reel tem três
+ * (o vídeo gravado, a abertura animada, o carrossel em vídeo).
+ */
+export function escolherSkill(skills: Map<string, Skill>, tipoPedido: string, forcada?: string | null, briefing: Record<string, unknown> = {}): Skill {
   if (forcada) {
     const s = skills.get(forcada);
     if (!s) throw new Error(`skill "${forcada}" não existe em skills/`);
     return s;
   }
-  for (const s of skills.values()) if (s.tipos.includes(tipoPedido)) return s;
-  throw new Error(`nenhuma skill atende pedidos do tipo "${tipoPedido}" ainda`);
+  const doTipo = [...skills.values()].filter((s) => s.tipos.includes(tipoPedido));
+  if (!doTipo.length) throw new Error(`nenhuma skill atende pedidos do tipo "${tipoPedido}" ainda`);
+  const formato = typeof briefing.formato === 'string' && briefing.formato ? briefing.formato : FORMATO_PADRAO[tipoPedido] ?? null;
+  const s = doTipo.find((x) => x.formato === formato) ?? (formato ? undefined : doTipo[0]);
+  if (!s) throw new Error(`nenhuma skill faz "${tipoPedido}" no formato "${formato}"`);
+  return s;
 }

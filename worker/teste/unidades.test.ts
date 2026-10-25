@@ -35,13 +35,21 @@ test('skill com nome diferente da pasta, ou app desconhecido, não carrega', () 
 
 test('as skills do repositório carregam e cada tipo do app cai na skill certa', () => {
   const skills = carregarSkills(path.join(RAIZ_REPO, 'skills'));
-  assert.deepEqual([...skills.keys()].sort(), ['capa-thumbnail', 'carrossel', 'copy-e-hashtags', 'post-feed', 'post-feed-teste', 'reel-de-bruto']);
+  assert.deepEqual([...skills.keys()].sort(), ['abertura-com-motion', 'capa-thumbnail', 'carrossel', 'carrossel-em-video', 'copy-e-hashtags', 'post-feed', 'post-feed-teste', 'reel-de-bruto']);
   assert.equal(escolherSkill(skills, 'post-feed', null).nome, 'post-feed');
   assert.equal(escolherSkill(skills, 'carrossel', null).nome, 'carrossel');
   assert.equal(escolherSkill(skills, 'capa', null).nome, 'capa-thumbnail');
+  // O reel tem três formatos; sem formato (o pedido do passo 5), é o vídeo gravado.
   assert.equal(escolherSkill(skills, 'reel', null).nome, 'reel-de-bruto');
+  assert.equal(escolherSkill(skills, 'reel', null, { formato: 'bruto' }).nome, 'reel-de-bruto');
+  assert.equal(escolherSkill(skills, 'reel', null, { formato: 'abertura' }).nome, 'abertura-com-motion');
+  assert.equal(escolherSkill(skills, 'reel', null, { formato: 'carrossel' }).nome, 'carrossel-em-video');
+  assert.throws(() => escolherSkill(skills, 'reel', null, { formato: 'holograma' }), /no formato "holograma"/);
   assert.equal(skills.get('reel-de-bruto')!.entrada, 'video');
+  assert.equal(skills.get('carrossel-em-video')!.entrada, 'slides');
+  assert.equal(skills.get('abertura-com-motion')!.entrada, null);
   assert.deepEqual(skills.get('reel-de-bruto')!.apps, ['filmcraft']);
+  assert.deepEqual(skills.get('abertura-com-motion')!.apps, ['effectcraft']);
   assert.equal(escolherSkill(skills, 'post-feed', 'post-feed-teste').nome, 'post-feed-teste', 'a de teste ainda roda pelo nome');
   assert.throws(() => escolherSkill(skills, 'story', null), /nenhuma skill/);
   assert.throws(() => escolherSkill(skills, 'post-feed', 'nao-existe'), /não existe/);
