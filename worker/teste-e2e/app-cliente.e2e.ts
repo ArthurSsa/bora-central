@@ -149,7 +149,13 @@ before(async () => {
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
     res.end((req.url ?? '').startsWith('/estudio') ? estudio : html);
   });
-  await new Promise<void>((ok) => servidor.listen(0, '127.0.0.1', ok));
+  // Porta fixa 3000: é um endereço que o Supabase aceita como destino do link
+  // de acesso, e o teste do link do e-mail precisa voltar pra cá. Ocupada,
+  // usa qualquer uma e esse teste pula.
+  await new Promise<void>((ok) => {
+    servidor.once('error', () => servidor.listen(0, '127.0.0.1', ok));
+    servidor.listen(3000, '127.0.0.1', ok);
+  });
   origem = `http://localhost:${(servidor.address() as { port: number }).port}`;
 
   worker = spawn(process.execPath, ['--env-file=.env', 'src/worker.ts', '--roteiro'], {
@@ -842,7 +848,7 @@ test('Visão Bora: a fábrica refaz duas vezes, a equipe assume, entrega, a conf
   const est = await abrirEstudio();
   await est.getByRole('heading', { name: 'Fábrica', exact: true, level: 1 }).waitFor();
   // O worker deste teste dá sinal de vida: a Fábrica aparece ligada.
-  assert.match((await est.locator('.fab-sinal').textContent())!, /Fábrica ligada em .*sem o Claude/);
+  await est.locator('.fab-sinal.ligada', { hasText: /Fábrica ligada em .*sem o Claude/ }).waitFor({ timeout: 15_000 });
   const cartao = est.locator(`.card.fab[data-pedido="${pedidoId}"]`);
   await cartao.waitFor();
   assert.match((await cartao.locator('.chip').textContent())!, /Precisa da equipe/);
@@ -905,3 +911,34 @@ test('Visão Bora: a fábrica refaz duas vezes, a equipe assume, entrega, a conf
   await est.context().close();
   await cli.context().close();
 });
+
+// ---------- entrar pelo link do e-mail ----------
+//
+// Os outros testes põem a sessão direto no navegador; este faz o caminho de
+// quem recebe o e-mail: um navegador sem nada guardado abre o link de acesso
+// (gerado pelo Supabase como o do e-mail, sem mandar e-mail) e precisa cair
+// dentro. Foi assim que se descobriu que a página limpava o endereço antes
+// do supabase-js ler a sessão — o login dava certo e a tela voltava pro "Entrar".
+for (const [onde, email, caminho, dentro] of [
+  ['app do cliente', EMAIL, '/', 'O que você quer criar hoje?'],
+  ['Estúdio', EMAIL_EQUIPE, '/estudio/', null],
+] as const) {
+  test(`entrar pelo link do e-mail: ${onde}`, async (t) => {
+    if (!origem.endsWith(':3000')) { t.skip('a porta 3000 estava ocupada; o Supabase só aceita voltar pra ela'); return; }
+    const destino = origem.replace('127.0.0.1', 'localhost') + caminho;
+    const { data, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email, options: { redirectTo: destino } });
+    assert.ifError(error);
+    const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 } });
+    const page = await ctx.newPage();
+    page.on('pageerror', (e) => { throw e; });
+    await page.goto(data.properties.action_link);
+    // No Estúdio, dentro é ver o menu das áreas, que só aparece pra quem entrou.
+    await (dentro ? page.getByRole('heading', { name: dentro }) : page.locator('.navtopo')).first().waitFor({ timeout: 20_000 });
+    assert.doesNotMatch(page.url(), /access_token/, 'a sessão ficou exposta na barra de endereço');
+    // E continua dentro ao recarregar: a sessão foi guardada, não só lida.
+    await page.reload();
+    // No Estúdio, dentro é ver o menu das áreas, que só aparece pra quem entrou.
+    await (dentro ? page.getByRole('heading', { name: dentro }) : page.locator('.navtopo')).first().waitFor({ timeout: 20_000 });
+    await ctx.close();
+  });
+}
