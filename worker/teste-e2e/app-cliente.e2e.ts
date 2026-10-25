@@ -17,6 +17,7 @@ import path from 'node:path';
 import { chromium, type Browser, type Page } from 'playwright-core';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { RAIZ_REPO, RAIZ_WORKER } from '../src/config.ts';
+import { montarBrutoDeTeste, temTudoProReel } from '../teste/bruto.ts';
 
 const URL_SB = 'https://yxewmauwnxnrrhevlbtc.supabase.co';
 const CHAVE_PUBLICA = 'sb_publishable_G_FuzadzmX2BwkRO81H3mw_xoYnthod';
@@ -200,12 +201,12 @@ const varrerContraste = (page: Page) => page.evaluate(() => {
   return falhas;
 });
 
-test('Hoje: a pergunta, seis cartões, três ativos, e nenhum cliente da Bora à vista', async () => {
+test('Hoje: a pergunta, seis cartões, quatro ativos, e nenhum cliente da Bora à vista', async () => {
   const page = await abrir();
   await page.getByRole('heading', { name: 'O que você quer criar hoje?' }).waitFor();
   await semErroNaTela(page);
   assert.equal(await page.locator('.tipo').count(), 6);
-  assert.equal(await page.locator('.tipo[aria-disabled="true"]').count(), 3, 'post, carrossel e capa ativos; o resto em breve');
+  assert.equal(await page.locator('.tipo[aria-disabled="true"]').count(), 2, 'post, carrossel, reel e capa ativos; o resto em breve');
   assert.equal(await page.locator('.quem .nome').textContent(), 'Cliente de Teste');
   assert.equal(await page.locator('select').count(), 0, 'cliente de uma conta só não devia ver seletor');
   assert.ok(await semRolagemLateral(page));
@@ -444,6 +445,108 @@ test('capa: três opções, aprovar só depois de escolher, e a escolhida é a q
   assert.match((await page.getByRole('link', { name: 'Baixar a imagem' }).getAttribute('download'))!, /capa-2\.png/);
   const { data: pedido } = await admin.from('pedidos').select('estado, escolha').eq('id', pedidoId).single();
   assert.deepEqual(pedido, { estado: 'aprovado', escolha: 2 });
+  await semErroNaTela(page);
+  await page.context().close();
+});
+
+test('envio de vídeo: só na pasta do próprio cliente, e o pedido só aceita vídeo que chegou', async () => {
+  const { data: pasta, error } = await comoCliente.rpc('pasta_de_envio', { p_cliente: CLIENTE });
+  assert.ifError(error);
+  assert.match(pasta as string, new RegExp(`^${CONTA}/${CLIENTE}/uploads/[0-9a-f-]{36}$`));
+  const video = new Blob([new Uint8Array(1024)], { type: 'video/mp4' });
+
+  // Na pasta de outra pessoa, ou fora de "uploads", ou sem ser vídeo: recusado.
+  const { data: moacyr } = await admin.from('clientes').select('id, conta_id').ilike('nome', 'moacyr%').single();
+  for (const caminho of [
+    `${moacyr!.conta_id}/${moacyr!.id}/uploads/${crypto.randomUUID()}/bruto.mp4`,
+    `${CONTA}/${CLIENTE}/${crypto.randomUUID()}/saida/bruto.mp4`,
+    `${pasta}/script.html`,
+  ]) {
+    const r = await comoCliente.storage.from('pedidos').upload(caminho, video);
+    assert.ok(r.error, `subiu em ${caminho}`);
+  }
+  assert.ok((await comoCliente.rpc('pasta_de_envio', { p_cliente: moacyr!.id })).error, 'deu a pasta do Moacyr');
+
+  // O pedido de reel: sem vídeo, com vídeo que não subiu, ou com o vídeo de outro cliente — recusado.
+  const pedir = (anexo?: string) => comoCliente.rpc('criar_pedido', { p_cliente: CLIENTE, p_tipo: 'reel', p_briefing: { texto: 'Um reel', anexo } });
+  assert.match((await pedir()).error?.message ?? '', /falta o vídeo/);
+  assert.match((await pedir(`${pasta}/bruto.mp4`)).error?.message ?? '', /não chegou/);
+  assert.match((await pedir(`${moacyr!.conta_id}/${moacyr!.id}/uploads/x/bruto.mp4`)).error?.message ?? '', /não chegou/);
+  const { count } = await admin.from('pedidos').select('id', { count: 'exact', head: true }).eq('cliente_id', CLIENTE).eq('tipo', 'reel');
+  assert.equal(count, 0);
+});
+
+test('reel: sobe o vídeo pelo celular, vê a prévia antes, depois o reel inteiro, e aprova', {
+  skip: !temTudoProReel && 'falta FilmCraft, PhotoCraft, whisper.cpp ou a voz do Windows', timeout: 600_000,
+}, async () => {
+  const bruto = montarBrutoDeTeste();
+  const page = await abrir();
+  await page.getByRole('heading', { name: 'O que você quer criar hoje?' }).waitFor();
+  await page.getByRole('link', { name: /Reel ou vídeo curto/ }).click();
+
+  // Passo 1: o vídeo sobe enquanto a pessoa escreve.
+  await page.getByRole('heading', { name: 'Mande o vídeo que você gravou' }).waitFor();
+  const continuar = page.getByRole('button', { name: 'Continuar' });
+  await page.locator('#texto').fill('Turma nova do laboratório de redes, inscrições até sexta');
+  assert.ok(await continuar.isDisabled(), 'continuar sem vídeo');
+  await page.locator('#video').setInputFiles(bruto);
+  await page.getByText('Vídeo recebido.').waitFor({ timeout: 60_000 });
+  assert.ok(await semRolagemLateral(page));
+  assert.deepEqual(await varrerContraste(page), []);
+  await foto(page, 'reel-passo-1');
+  await continuar.click();
+  await page.getByRole('heading', { name: 'Algumas escolhas' }).waitFor();
+  assert.ok(await page.getByText('Pra que serve esse vídeo?').count());
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByRole('heading', { name: 'Confere antes de pedir' }).waitFor();
+  const resumo = (await page.locator('.resumo').textContent())!;
+  assert.match(resumo, /1 reel em pé/);
+  assert.match(resumo, /bruto\.mp4/);
+  assert.match(resumo, /15 segundos/);
+  await page.getByRole('button', { name: 'Pedir reel' }).click();
+  await page.waitForURL(/#\/pedido\//);
+  const pedidoId = page.url().split('/').pop()!;
+  const { data: criado } = await admin.from('pedidos').select('briefing').eq('id', pedidoId).single();
+  assert.match((criado!.briefing as { anexo: string }).anexo, new RegExp(`^${CONTA}/${CLIENTE}/uploads/.+/bruto\\.mp4$`));
+
+  // A prévia aparece enquanto o reel ainda está sendo feito, e toca.
+  await page.getByText('Prévia: os primeiros 15 segundos').waitFor({ timeout: 300_000 });
+  assert.ok(await page.locator('.selo.produzindo').count(), 'a prévia só apareceu depois de pronto');
+  await page.waitForFunction(() => (document.querySelector('video.previa') as HTMLVideoElement)?.readyState >= 1);
+  const previa = await page.locator('video.previa').evaluate((v: HTMLVideoElement) => v.duration);
+  assert.ok(previa > 13 && previa < 15.6, `prévia de ${previa}s`);
+  await foto(page, 'reel-previa');
+
+  // O reel inteiro: em pé, mais curto que o bruto, com a legenda pra copiar.
+  await page.locator('.selo.para_aprovar').first().waitFor({ timeout: 300_000 });
+  await page.waitForFunction(() => {
+    const v = document.querySelector('video.previa') as HTMLVideoElement;
+    return v && /reel\.mp4/.test(v.src) && v.readyState >= 1;
+  });
+  const reel = await page.locator('video.previa').evaluate((v: HTMLVideoElement) => ({ w: v.videoWidth, h: v.videoHeight, s: v.duration }));
+  assert.deepEqual([reel.w, reel.h], [1080, 1920]);
+  assert.ok(reel.s > 20 && reel.s < 65, `reel de ${reel.s}s`);
+  await page.getByRole('heading', { name: 'Legenda' }).waitFor();
+  assert.match((await page.locator('.texto-entrega').textContent())!, /laboratório/);
+  assert.ok(await semRolagemLateral(page));
+  assert.deepEqual(await varrerContraste(page), []);
+  await foto(page, 'reel-para-aprovar');
+
+  // No reel, o ajuste só oferece o que a fábrica sabe mudar no vídeo.
+  await page.getByRole('button', { name: 'Pedir ajuste' }).click();
+  assert.deepEqual(await page.locator('[aria-label="Atalhos de ajuste"] button').allTextContents(), ['Outra cor da marca']);
+  await page.getByRole('button', { name: 'Cancelar' }).click();
+
+  await page.getByRole('button', { name: 'Aprovar' }).click();
+  await page.locator('.aviso.ok').filter({ hasText: 'Aprovado' }).first().waitFor();
+  assert.equal(await page.getByRole('link', { name: 'Baixar o reel' }).count(), 1);
+  assert.equal(await page.getByRole('link', { name: 'Baixar as legendas (.srt)' }).count(), 1);
+  const { data: pedido } = await admin.from('pedidos').select('estado').eq('id', pedidoId).single();
+  assert.equal(pedido!.estado, 'aprovado');
+
+  // Na lista, a miniatura do reel é o primeiro quadro do vídeo.
+  await page.getByRole('navigation', { name: 'Seções' }).getByRole('link', { name: 'Pedidos' }).click();
+  await page.locator('.linha-ped video.miniatura').first().waitFor();
   await semErroNaTela(page);
   await page.context().close();
 });

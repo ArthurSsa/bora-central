@@ -8,7 +8,8 @@ import { query, createSdkMcpServer, tool, type HookCallback, type McpServerConfi
 import { z } from 'zod';
 import { servidorMcp, prefixoFerramentas, ferramentasBloqueadas } from './apps.ts';
 import type { Config } from './config.ts';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { desenharLegendas, exportarReel, lerSrt } from './reel.ts';
 import path from 'node:path';
 import type { Ajuste, Custos, Elemento } from './fila.ts';
 import type { Conjunto } from './marca.ts';
@@ -68,6 +69,8 @@ export type ParametrosAgente = {
   abortar: AbortController;
   aoMudarEtapa: (e: Etapa) => Promise<void>;
   aoUsarFerramenta: (nome: string, ms: number, falhou: boolean) => void;
+  /** Sobe já uma saída pronta (a prévia do vídeo), antes do resto terminar. */
+  entregarParcial: (caminho: string) => Promise<void>;
 };
 
 export type ResultadoAgente = { custos: Custos; resumo: string; turnos: number };
@@ -117,6 +120,41 @@ export const rodarAgente: Agente = async (p) => {
           try {
             salvarTexto(p.pastaJob, p.dados.saidas, caminho, texto);
             return { content: [{ type: 'text', text: 'salvo' }] };
+          } catch (e) {
+            return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
+          }
+        },
+      ),
+      // As duas abaixo existem porque são trabalho mecânico que o agente faria
+      // mal e caro: desenhar trinta legendas iguais, e exportar — que pelo MCP
+      // do FilmCraft não anda.
+      tool(
+        'legendas_da_marca',
+        'Desenha as legendas de saida/legendas.srt como PNGs transparentes 1080×1920 na fonte, peso e cores da marca (o FilmCraft desenha errado as fontes de marca). Devolve cada arquivo com o tempo, pra você importar e pôr numa trilha de vídeo por cima.',
+        { conjunto: z.string().optional().describe('Nome do conjunto de cor; sem ele, o da peça.') },
+        async ({ conjunto }) => {
+          try {
+            const c = p.dados.conjuntos.find((x) => x.nome === conjunto) ?? p.dados.conjunto;
+            const legendas = lerSrt(readFileSync(path.join(p.pastaJob, 'saida', 'legendas.srt'), 'utf8'));
+            const pngs = await desenharLegendas(p.pastaJob, legendas, { fonte: p.dados.fonte, peso: p.dados.pesos.titulo, conjunto: c, impacto: p.dados.impacto });
+            return { content: [{ type: 'text', text: JSON.stringify(legendas.map((l, i) => ({ arquivo: pngs[i], inicio: l.inicio, fim: l.fim }))) }] };
+          } catch (e) {
+            return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
+          }
+        },
+      ),
+      tool(
+        'exportar_video',
+        'Exporta editavel/reel.fcproj (salve antes com file.save). Com previa: true, sai saida/previa.mp4 com os 15 primeiros segundos e o cliente já vê; sem, saida/reel.mp4 completo. Volume em -16 LUFS e 1080×1920 sempre.',
+        { previa: z.boolean() },
+        async ({ previa }) => {
+          try {
+            const projeto = path.join(p.pastaJob, 'editavel', 'reel.fcproj');
+            const t = performance.now();
+            exportarReel(projeto, path.join(p.pastaJob, 'saida', previa ? 'previa.mp4' : 'reel.mp4'), previa ? { previaSegundos: 15 } : {});
+            renderMs += performance.now() - t;
+            if (previa) await p.entregarParcial('saida/previa.mp4');
+            return { content: [{ type: 'text', text: previa ? 'prévia pronta e entregue' : 'reel exportado' }] };
           } catch (e) {
             return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
           }

@@ -8,6 +8,7 @@
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import type { SaidaEsperada } from './skills.ts';
+import { sondar } from './video.ts';
 
 export type Dimensoes = { largura: number; altura: number };
 
@@ -30,6 +31,8 @@ export const MIME: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.psd': 'image/vnd.adobe.photoshop',
   '.mp4': 'video/mp4',
+  '.mov': 'video/quicktime',
+  '.fcproj': 'application/octet-stream',
   '.srt': 'application/x-subrip',
   '.txt': 'text/plain; charset=utf-8',
   '.json': 'application/json',
@@ -58,6 +61,12 @@ export function conferirSaida(pastaJob: string, esperada: SaidaEsperada): SaidaC
     const buf = readFileSync(arq);
     dim = ext === '.png' ? dimensoesPng(buf) : dimensoesPsd(buf);
     if (!dim) throw new Error(`${esperada.caminho} não é um ${ext.slice(1).toUpperCase()} válido`);
+    Object.assign(conferida, dim);
+  } else if (ext === '.mp4') {
+    // Vídeo é medido pelo próprio FilmCraft (probe), sem ffprobe no servidor.
+    const v = sondar(arq);
+    if (!v.largura) throw new Error(`${esperada.caminho} não é um vídeo que o FilmCraft abra`);
+    dim = { largura: v.largura, altura: v.altura };
     Object.assign(conferida, dim);
   }
   if (esperada.largura && esperada.altura) {

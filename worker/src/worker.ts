@@ -11,12 +11,14 @@ import path from 'node:path';
 import { setTimeout as esperar } from 'node:timers/promises';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { fontesInstaladas, pesoMaisPerto } from './apps.ts';
-import { conferirMarca, conferirTextos } from './conferencia.ts';
+import { conferirMarca, conferirTextos, conferirVideo } from './conferencia.ts';
+import { exportarAudioFinal } from './reel.ts';
+import { listar, sondar, transcrever } from './video.ts';
 import { lerConfig, type Config } from './config.ts';
 import { rodarAgente, FalhaDoAgente, CUSTO_ZERO, type Agente, type Etapa, type ResultadoAgente } from './agente.ts';
 import {
   conectar, pegarJob, renovarLease, anotar, evento, carregarContexto, subir, concluir, devolverOuFalhar,
-  historicoDeAjustes, baixarEditaveisBase, baixarElementos,
+  historicoDeAjustes, baixarEditaveisBase, baixarElementos, baixarAnexo, juntarSaida,
   type Ajuste, type ArquivoDeEntrada, type Elemento, type Job, type Pedido,
 } from './fila.ts';
 import { montarSistema, montarPedido } from './instrucoes.ts';
@@ -53,9 +55,11 @@ export async function produzir(a: {
   aoUsarFerramenta: (nome: string, ms: number, falhou: boolean) => void;
   /** Rodada de ajuste: o que foi pedido até aqui. */
   ajustes?: Ajuste[];
-  /** Arquivos que vão pra entrada/: a versão anterior e os elementos da marca. */
+  /** Arquivos que vão pra entrada/: a versão anterior, os elementos da marca e o vídeo bruto. */
   arquivos?: ArquivoDeEntrada[];
   elementos?: Elemento[];
+  /** Sobe na hora uma saída pronta (a prévia). Fora do worker (testes), não faz nada. */
+  entregarParcial?: (caminho: string) => Promise<void>;
 }): Promise<Producao> {
   const pastaJob = path.join(a.cfg.pastaJobs, a.job.id);
   // Tentativa anterior pode ter deixado arquivo pela metade: começa limpo.
@@ -67,6 +71,21 @@ export async function produzir(a: {
     writeFileSync(destino, f.conteudo);
   }
   const temAnterior = (a.arquivos ?? []).some((f) => f.nome.startsWith('anterior/'));
+
+  // Skill de vídeo: a transcrição sai antes do agente, pelo whisper.cpp. O
+  // agente não tem como rodar programa — e transcrever não é decisão dele.
+  let bruto: string | null = null;
+  if (a.skill.entrada === 'video') {
+    bruto = listar(path.join(pastaJob, 'entrada'), /^bruto\./)[0] ?? null;
+    if (!bruto) throw new FalhaDoAgente('o pedido não trouxe o vídeo', CUSTO_ZERO);
+    await a.aoMudarEtapa({ etapa: 'ouvindo o vídeo', progresso: 4 });
+    const trabalho = path.join(pastaJob, '.trabalho');
+    mkdirSync(trabalho, { recursive: true });
+    const palavras = await transcrever(trabalho, bruto);
+    if (palavras.length < 3) throw new FalhaDoAgente('não deu pra ouvir fala no vídeo', CUSTO_ZERO);
+    writeFileSync(path.join(pastaJob, 'entrada', 'transcricao.json'), JSON.stringify(palavras));
+    writeFileSync(path.join(pastaJob, 'entrada', 'transcricao.txt'), palavras.map((p) => p.texto).join(' '));
+  }
 
   const m = a.cliente.marca ?? {};
   const fonte = resolverFonte(m.fonteMarca, m.fonteFalback, a.instaladas);
@@ -107,6 +126,7 @@ export async function produzir(a: {
     abortar: a.abortar,
     aoMudarEtapa: a.aoMudarEtapa,
     aoUsarFerramenta: a.aoUsarFerramenta,
+    entregarParcial: a.entregarParcial ?? (async () => {}),
   });
 
   // Reprovou em qualquer conferência: o que o agente gastou continua contando,
@@ -119,11 +139,18 @@ export async function produzir(a: {
   }
   const daMarca = conferirMarca(pastaJob, conferidas, { cores: coresDaMarca(a.cliente), fontes: [fonte.usada] });
   const dosTextos = conferirTextos(pastaJob, conferidas, { semEmoji: /emoji/i.test(m.evitar ?? '') });
-  const erros = [...daMarca.erros, ...dosTextos.erros];
+  const doVideo = bruto
+    ? conferirVideo(pastaJob, conferidas, {
+        cores: coresDaMarca(a.cliente),
+        segundosBruto: sondar(bruto).segundos,
+        medirSom: (wav) => exportarAudioFinal(path.join(pastaJob, 'editavel', 'reel.fcproj'), wav),
+      })
+    : { erros: [], avisos: [] };
+  const erros = [...daMarca.erros, ...dosTextos.erros, ...doVideo.erros];
   if (erros.length) {
     throw new FalhaDoAgente(`reprovado na conferência de marca: ${erros.slice(0, 6).join('; ')}`, resultado.custos);
   }
-  return { pastaJob, conferidas, resultado, fonte, avisos: [...daMarca.avisos, ...dosTextos.avisos] };
+  return { pastaJob, conferidas, resultado, fonte, avisos: [...daMarca.avisos, ...dosTextos.avisos, ...doVideo.avisos] };
 }
 
 export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<string, Skill>, instaladas: string[], job: Job, agente: Agente) {
@@ -169,10 +196,20 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     const ajustes = await historicoDeAjustes(sb, job);
     const anteriores = job.rodada === 'ajuste' ? await baixarEditaveisBase(sb, job) : [];
     const { elementos, arquivos } = await baixarElementos(sb, job);
+    const anexo = skill.entrada === 'video' ? await baixarAnexo(sb, pedido) : [];
 
     const p = await produzir({
+      entregarParcial: async (caminho) => {
+        const esperada = expandirSaidas(skill, pedido.briefing).find((s) => s.caminho === caminho);
+        if (!esperada) return;
+        const pastaDoJob = path.join(cfg.pastaJobs, job.id);
+        const c = conferirSaida(pastaDoJob, esperada);
+        await juntarSaida(sb, cfg, job, { ...c, caminho: await subir(sb, job, path.join(pastaDoJob, caminho), c) });
+        await evento(sb, job, 'A prévia está pronta.', { visivel: true });
+        log(`entregue antes: ${caminho}`);
+      },
       cfg, job, skill, skills, pedido, cliente, instaladas, agente, abortar, ajustes, elementos,
-      arquivos: [...anteriores, ...arquivos],
+      arquivos: [...anteriores, ...arquivos, ...anexo],
       aoMudarEtapa: async ({ etapa, progresso }) => {
         log(`etapa: ${etapa} (${progresso}%)`);
         await anotar(sb, cfg, job, { etapa, progresso });

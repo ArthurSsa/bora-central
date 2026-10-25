@@ -6,8 +6,9 @@
 //   PhotoCraft   --automation-read-root / --automation-write-root   (testado)
 //   EffectCraft  as mesmas raízes + --autosave                       (docs)
 //   LightCraft   não tem raiz: recebe as pastas como argumento       (docs)
-//   FilmCraft    RECUSA as raízes (sai com erro 2); trabalha num .fcproj
-//                passado em --project, que fica dentro da pasta do job (docs)
+//   FilmCraft    RECUSA as raízes (sai com erro 2); o job abre sem projeto e
+//                salva o dele em editavel/ (testado). A exportação pelo MCP
+//                não anda — exporta-se pelo CLI (src/reel.ts)
 //
 // Onde o app não tem raiz, quem segura o isolamento é a pasta do job ser a
 // única coisa que o processo recebe, mais o usuário de sistema do worker.
@@ -33,7 +34,9 @@ export function servidorMcp(app: App, pastaJob: string): McpStdioServerConfig {
     case 'lightcraft':
       return { ...base, args: ['mcp', '--library', path.join(pastaJob, 'biblioteca'), path.join(pastaJob, 'frames')] };
     case 'filmcraft':
-      return { ...base, args: ['mcp', '--project', path.join(pastaJob, 'editavel', 'projeto.fcproj'), '--data-dir', path.join(pastaJob, '.filmcraft')] };
+      // Sem --project: o job cria a sequência e salva em editavel/reel.fcproj.
+      // O --data-dir na pasta do job guarda prévias e presets dele lá dentro.
+      return { ...base, args: ['mcp', '--data-dir', path.join(pastaJob, '.filmcraft')] };
   }
 }
 

@@ -142,7 +142,24 @@ export async function baixarEditaveisBase(sb: SupabaseClient, job: Job): Promise
   return arquivos;
 }
 
-export type Elemento = { tipo: string; nome: string; arquivo: string; largura: number | null; altura: number | null };
+/** O vídeo que o cliente mandou pelo app (briefing.anexo), como entrada/bruto.<ext>. */
+export async function baixarAnexo(sb: SupabaseClient, pedido: Pedido): Promise<ArquivoDeEntrada[]> {
+  const caminho = pedido.briefing?.anexo;
+  if (typeof caminho !== 'string' || !caminho) return [];
+  const { data, error } = await sb.storage.from(BALDE).download(caminho);
+  if (error) throw new Error(`baixar o vídeo do cliente: ${error.message}`);
+  const ext = (caminho.match(/\.[a-z0-9]+$/i)?.[0] ?? '.mp4').toLowerCase();
+  return [{ nome: `bruto${ext}`, conteudo: Buffer.from(await data.arrayBuffer()) }];
+}
+
+/** Junta uma saída às que o job já tem, sem esperar o fim — é assim que a prévia chega antes. */
+export async function juntarSaida(sb: SupabaseClient, cfg: Config, job: Job, saida: object) {
+  const { data } = await sb.from('jobs').select('saidas').eq('id', job.id).single();
+  const atuais = ((data?.saidas ?? []) as Array<{ caminho: string }>).filter((s) => s.caminho !== (saida as { caminho: string }).caminho);
+  ok(await sb.from('jobs').update({ saidas: [...atuais, saida] }).eq('id', job.id).eq('worker_id', cfg.workerId), 'entregar parcial');
+}
+
+export type Elemento ={ tipo: string; nome: string; arquivo: string; largura: number | null; altura: number | null };
 
 /**
  * A biblioteca de elementos do cliente (logo, selo, foto…), do balde que o

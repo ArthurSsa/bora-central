@@ -35,12 +35,15 @@ test('skill com nome diferente da pasta, ou app desconhecido, não carrega', () 
 
 test('as skills do repositório carregam e cada tipo do app cai na skill certa', () => {
   const skills = carregarSkills(path.join(RAIZ_REPO, 'skills'));
-  assert.deepEqual([...skills.keys()].sort(), ['capa-thumbnail', 'carrossel', 'copy-e-hashtags', 'post-feed', 'post-feed-teste']);
+  assert.deepEqual([...skills.keys()].sort(), ['capa-thumbnail', 'carrossel', 'copy-e-hashtags', 'post-feed', 'post-feed-teste', 'reel-de-bruto']);
   assert.equal(escolherSkill(skills, 'post-feed', null).nome, 'post-feed');
   assert.equal(escolherSkill(skills, 'carrossel', null).nome, 'carrossel');
   assert.equal(escolherSkill(skills, 'capa', null).nome, 'capa-thumbnail');
+  assert.equal(escolherSkill(skills, 'reel', null).nome, 'reel-de-bruto');
+  assert.equal(skills.get('reel-de-bruto')!.entrada, 'video');
+  assert.deepEqual(skills.get('reel-de-bruto')!.apps, ['filmcraft']);
   assert.equal(escolherSkill(skills, 'post-feed', 'post-feed-teste').nome, 'post-feed-teste', 'a de teste ainda roda pelo nome');
-  assert.throws(() => escolherSkill(skills, 'reel', null), /nenhuma skill/);
+  assert.throws(() => escolherSkill(skills, 'story', null), /nenhuma skill/);
   assert.throws(() => escolherSkill(skills, 'post-feed', 'nao-existe'), /não existe/);
   for (const s of ['post-feed', 'carrossel', 'capa-thumbnail']) {
     assert.deepEqual(skills.get(s)!.usa, ['copy-e-hashtags'], `${s} entrega legenda`);
@@ -223,4 +226,34 @@ test('cada app sobe com as flags que ele aceita', () => {
   // O FilmCraft sai com erro 2 se receber raiz de automação.
   assert.ok(!servidorMcp('filmcraft', pasta).args!.some((a) => a.startsWith('--automation')));
   assert.ok(!servidorMcp('lightcraft', pasta).args!.some((a) => a.startsWith('--automation')));
+});
+
+test('reel: corta muleta que abre frase e a frase começada duas vezes, e só isso', async () => {
+  const { trechosACortar } = await import('../src/reel.ts');
+  const texto = 'Oi, pessoal! É, tipo assim, muita gente acha difícil. Mas não precisa. Mas não precisa mesmo. O que funciona é começar. É, então, as inscrições abrem sexta. Então a gente começa.';
+  const palavras = texto.split(' ').map((t) => ({ texto: t }));
+  const cortes = trechosACortar(palavras);
+  const cortado = cortes.map(([a, b]) => palavras.slice(a, b + 1).map((p) => p.texto).join(' '));
+  assert.deepEqual(cortado, ['É, então,', 'Mas não precisa.', 'É, tipo assim,'], 'do fim pro começo');
+  assert.ok(cortes.every((c, i) => i === 0 || c[1] < cortes[i - 1][0]), 'trechos sobrepostos');
+  assert.ok(!cortado.some((c) => /funciona é/.test(c)), '"é" verbo no meio da frase não é muleta');
+  assert.ok(!cortado.includes('Então'), '"Então" sem vírgula fica');
+});
+
+test('reel: SRT, palavras do whisper com acento inteiro, e volume pelo padrão da EBU', async () => {
+  const { lerSrt } = await import('../src/reel.ts');
+  const { palavrasDoWhisper, loudnessIntegrado, ajustarAoSom } = await import('../src/video.ts');
+  assert.deepEqual(lerSrt('﻿1\r\n00:00:00,100 --> 00:00:02,267\r\nOi, pessoal!\r\n\r\n2\r\n00:01:02,000 --> 00:01:03,500\r\nHoje eu quero\r\n'),
+    [{ inicio: 0.1, fim: 2.267, texto: 'Oi, pessoal!' }, { inicio: 62, fim: 63.5, texto: 'Hoje eu quero' }]);
+  const tk = (text: string, from: number, to: number) => ({ text, offsets: { from, to } });
+  const p = palavrasDoWhisper({ transcription: [{ tokens: [tk('[_BEG_]', 0, 0), tk(' labora', 100, 400), tk('tório', 400, 900), tk('.', 900, 950), tk(' É', 1200, 1300), tk(',', 1300, 1310)] }] });
+  assert.deepEqual(p, [{ texto: 'laboratório.', inicio: 0.1, fim: 0.95 }, { texto: 'É,', inicio: 1.2, fim: 1.31 }]);
+  // Senoide estéreo de 1 kHz a -23 dBFS mede -23 LUFS (EBU Tech 3341, caso 1).
+  const taxa = 48000;
+  const a = 10 ** (-23 / 20);
+  const s = Array.from({ length: taxa * 5 }, (_, i) => a * Math.sin((2 * Math.PI * 1000 * i) / taxa));
+  assert.ok(Math.abs(loudnessIntegrado({ taxa, canais: [s, s.slice()] }) + 23) < 0.1);
+  // Palavra esticada por cima do silêncio volta pro fim do som.
+  const som = Array.from({ length: taxa * 2 }, (_, i) => (i < taxa * 0.5 ? 0.3 * Math.sin(i / 5) : 0));
+  assert.deepEqual(ajustarAoSom([{ texto: 'oi', inicio: 0, fim: 1.6 }], { taxa, canais: [som] }).map((x) => x.fim), [0.5]);
 });

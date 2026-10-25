@@ -18,6 +18,7 @@ import path from 'node:path';
 import { acharCli } from './config.ts';
 import { contraste } from './marca.ts';
 import { lerPng, type Imagem } from './png.ts';
+import { lerWav, listar, loudnessIntegrado, silencioMaisLongo, sondar } from './video.ts';
 import type { SaidaConferida } from './verificar.ts';
 
 export type RegraDeMarca = { cores: string[]; fontes: string[] };
@@ -165,6 +166,83 @@ function distanciaAoSegmento(c: number[], a: number[], b: number[]): number {
   if (!comp) return distancia(c, a);
   const t = Math.max(0, Math.min(1, ((c[0] - a[0]) * ab[0] + (c[1] - a[1]) * ab[1] + (c[2] - a[2]) * ab[2]) / comp));
   return distancia(c, [a[0] + t * ab[0], a[1] + t * ab[1], a[2] + t * ab[2]]);
+}
+
+// ---------- vídeo ----------
+
+/**
+ * A conferência do reel. O que se mede:
+ *   - formato: 1080×1920 com áudio; a prévia até 15 s; o reel mais curto que
+ *     o bruto (é o mesmo vídeo, sem as pausas) e com pelo menos 3 s;
+ *   - tamanho: até 50 MB — o limite por arquivo do Supabase gratuito; passou,
+ *     não sobe;
+ *   - som: -16 LUFS ±1 (o padrão dos Reels), medido num WAV exportado com a
+ *     mesma normalização, e nenhum silêncio acima de 1,2 s sobrando;
+ *   - legendas: cada PNG só com cores da marca, texto legível sobre a caixa,
+ *     e dentro da área que o Instagram não cobre (10% a 80% da altura).
+ */
+export function conferirVideo(
+  pastaJob: string,
+  saidas: SaidaConferida[],
+  regra: { cores: string[]; segundosBruto: number; medirSom: (wav: string) => void },
+): Resultado {
+  const erros: string[] = [];
+  const avisos: string[] = [];
+  for (const s of saidas.filter((x) => x.caminho.endsWith('.mp4'))) {
+    const v = sondar(path.join(pastaJob, s.caminho));
+    if (!v.temAudio) erros.push(`${s.caminho}: saiu sem som`);
+    if (v.bytes > 50 * 1024 * 1024) erros.push(`${s.caminho}: ${(v.bytes / 1048576).toFixed(0)} MB; o Storage aceita até 50 MB por arquivo`);
+    if (s.caminho.endsWith('previa.mp4') && v.segundos > 15.5) erros.push(`${s.caminho}: a prévia tem ${v.segundos} s; são 15`);
+    if (s.caminho.endsWith('reel.mp4')) {
+      if (v.segundos < 3) erros.push(`${s.caminho}: só ${v.segundos} s — cortou demais`);
+      if (v.segundos > regra.segundosBruto + 0.5) erros.push(`${s.caminho}: ${v.segundos} s, mais longo que o bruto (${regra.segundosBruto} s)`);
+    }
+  }
+
+  const wav = path.join(pastaJob, '.trabalho', 'som-final.wav');
+  regra.medirSom(wav);
+  const som = lerWav(readFileSync(wav));
+  const lufs = loudnessIntegrado(som);
+  if (!(lufs >= -17 && lufs <= -15)) erros.push(`o som saiu em ${lufs.toFixed(1)} LUFS; os Reels pedem -16`);
+  const mudo = silencioMaisLongo(som);
+  if (mudo > 1.2) erros.push(`sobrou um trecho mudo de ${mudo} s`);
+
+  const paleta = regra.cores.map(hexParaRgb);
+  for (const arq of listar(path.join(pastaJob, 'editavel', 'legendas'), /\.png$/)) {
+    const img = lerPng(readFileSync(arq));
+    const nome = 'legenda ' + path.basename(arq);
+    let x0 = img.largura, y0 = img.altura, x1 = 0, y1 = 0;
+    const grupos = new Map<number, { n: number; r: number; g: number; b: number }>();
+    let opacos = 0;
+    for (let y = 0; y < img.altura; y++) for (let x = 0; x < img.largura; x++) {
+      const i = y * img.largura + x;
+      if (img.alfa[i] < 200) continue;
+      opacos++;
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+      const [r, g, b] = [img.rgb[i * 3], img.rgb[i * 3 + 1], img.rgb[i * 3 + 2]];
+      const k = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+      const gr = grupos.get(k) ?? { n: 0, r: 0, g: 0, b: 0 };
+      gr.n++; gr.r += r; gr.g += g; gr.b += b;
+      grupos.set(k, gr);
+    }
+    if (!opacos) { erros.push(`${nome}: está vazia`); continue; }
+    if (x0 < img.largura * 0.05 || x1 > img.largura * 0.95 || y0 < img.altura * 0.1 || y1 > img.altura * 0.8) {
+      erros.push(`${nome}: fora da área segura (${x0}, ${y0}, ${x1}, ${y1})`);
+    }
+    const cores = [...grupos.values()].filter((g) => g.n / opacos >= 0.01).sort((a, b) => b.n - a.n)
+      .map((g) => [g.r / g.n, g.g / g.n, g.b / g.n]);
+    // A borda da letra mistura texto e caixa: tom no caminho entre duas cores da marca vale.
+    const aceita = (c: number[]) => paleta.some((p) => distancia(p, c) <= 18)
+      || paleta.some((a, i) => paleta.slice(i + 1).some((b) => distanciaAoSegmento(c, a, b) <= 14));
+    for (const c of cores) if (!aceita(c)) erros.push(`${nome}: a cor ${rgbParaHex(c)} não é da paleta`);
+    if (cores.length >= 2) {
+      const razao = contraste(rgbParaHex(cores[0]), rgbParaHex(cores[1]));
+      if (razao < 3) erros.push(`${nome}: texto sobre a caixa dá ${razao.toFixed(1)}:1; precisa de 3:1`);
+    } else {
+      avisos.push(`${nome}: só uma cor — sem texto?`);
+    }
+  }
+  return { erros: [...new Set(erros)], avisos };
 }
 
 const EMOJI = /\p{Extended_Pictographic}/u;

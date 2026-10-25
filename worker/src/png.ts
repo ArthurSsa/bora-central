@@ -4,7 +4,7 @@
 // uma peça por vez seria mais coisa pra instalar no servidor do que isto.
 import { inflateSync } from 'node:zlib';
 
-export type Imagem = { largura: number; altura: number; rgb: Uint8Array };
+export type Imagem = { largura: number; altura: number; rgb: Uint8Array; alfa: Uint8Array };
 
 const CANAIS: Record<number, number> = { 0: 1, 2: 3, 4: 2, 6: 4 };
 
@@ -48,15 +48,20 @@ export function lerPng(buf: Buffer): Imagem {
       px[y * linha + x] = v & 0xff;
     }
   }
-  // Sempre RGB no fim; alfa é composto sobre branco (peça de feed não tem transparência).
+  // RGB composto sobre branco (peça de feed não tem transparência) e, à parte,
+  // o alfa — a legenda do reel é transparente fora da caixa, e a conferência
+  // dela olha só o que aparece.
   const rgb = new Uint8Array(largura * altura * 3);
+  const alfaOut = new Uint8Array(largura * altura);
   for (let i = 0; i < largura * altura; i++) {
     const o = i * canais;
     const [r, g, b] = canais >= 3 ? [px[o], px[o + 1], px[o + 2]] : [px[o], px[o], px[o]];
-    const alfa = canais === 4 ? px[o + 3] / 255 : canais === 2 ? px[o + 1] / 255 : 1;
+    const a8 = canais === 4 ? px[o + 3] : canais === 2 ? px[o + 1] : 255;
+    const alfa = a8 / 255;
+    alfaOut[i] = a8;
     rgb[i * 3] = Math.round(r * alfa + 255 * (1 - alfa));
     rgb[i * 3 + 1] = Math.round(g * alfa + 255 * (1 - alfa));
     rgb[i * 3 + 2] = Math.round(b * alfa + 255 * (1 - alfa));
   }
-  return { largura, altura, rgb };
+  return { largura, altura, rgb, alfa: alfaOut };
 }

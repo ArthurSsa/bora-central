@@ -34,6 +34,8 @@ export type Skill = {
   quantidade: Quantidade | null;
   /** Outras skills cujo corpo entra junto (ex.: copy-e-hashtags). */
   usa: string[];
+  /** "video": o pedido traz um vídeo do cliente, que o worker baixa e transcreve antes do agente. */
+  entrada: 'video' | null;
   corpo: string;
 };
 
@@ -123,6 +125,7 @@ export function interpretarSkill(nomePasta: string, texto: string): Skill {
     saidas,
     quantidade,
     usa: lista('usa'),
+    entrada: campos.entrada === 'video' ? 'video' : null,
     corpo,
   };
 }

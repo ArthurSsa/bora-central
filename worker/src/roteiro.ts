@@ -12,8 +12,12 @@
 // Claude.
 //
 //   FABRICA_AGENTE=roteiro npm start
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { servidorMcp } from './apps.ts';
 import { abrirMcp } from './mcp-cru.ts';
+import { desenharLegendas, exportarReel, lerSrt, lerTranscricao, trechosACortar } from './reel.ts';
+import { TICKS_POR_SEGUNDO, listar, sondar, transcricaoParaFilmCraft } from './video.ts';
 import { CUSTO_ZERO, FalhaDoAgente, salvarTexto, type Agente, type ParametrosAgente } from './agente.ts';
 import type { Ajuste } from './fila.ts';
 import type { Conjunto } from './marca.ts';
@@ -237,11 +241,86 @@ async function capa(x: Contexto) {
   salvarTexto(p.pastaJob, p.dados.saidas, 'saida/legenda.txt', legenda(p));
 }
 
+/**
+ * O reel a partir do vídeo bruto, com os mesmos comandos que a skill manda o
+ * agente usar. A transcrição já está em entrada/transcricao.json (o worker
+ * faz antes, com o whisper.cpp). Este roteiro não precisa interpretar nada:
+ * cortar muleta, frase repetida e pausa é regra; o que o Claude faria a mais
+ * é escolher melhor onde aproximar e o que dizer na legenda do post.
+ */
+async function reelDeBruto(x: Contexto) {
+  const { p, c } = x;
+  const fc = await abrirMcp(servidorMcp('filmcraft', p.pastaJob));
+  const fcPasso = async (ferramenta: string, args: Record<string, unknown> = {}) => {
+    const t = performance.now();
+    const r = await fc.chamar(ferramenta, args);
+    p.aoUsarFerramenta(`roteiro:filmcraft:${ferramenta}${args.id ? `:${args.id}` : ''}`, Math.round(performance.now() - t), r.erro);
+    if (r.erro) throw new FalhaDoAgente(`${ferramenta} ${args.id ?? ''} falhou: ${r.texto}`, CUSTO_ZERO);
+    return r.texto ? JSON.parse(r.texto) : null;
+  };
+  const cmd = (id: string, params: Record<string, unknown> = {}) => fcPasso('command_run', { id, params });
+  const projeto = path.join(p.pastaJob, 'editavel', 'reel.fcproj');
+  const bruto = listar(path.join(p.pastaJob, 'entrada'), /^bruto\./)[0];
+  if (!bruto) throw new FalhaDoAgente('não achei o vídeo bruto em entrada/', CUSTO_ZERO);
+
+  try {
+    await p.aoMudarEtapa({ etapa: 'preparando o vídeo', progresso: 8 });
+    const { items: [item] } = await fcPasso('media_import', { paths: [bruto] });
+    const sonda = sondar(bruto);
+    await cmd('file.newSequence', { name: 'reel', width: 1080, height: 1920, fps: 30, video: 2, audio: 1 });
+    await cmd('timeline.place', { item, track: 'V1', seconds: 0 });
+    // Vídeo deitado ou de outra proporção: amplia até cobrir o quadro em pé.
+    const base = Math.max(1080 / (sonda.largura || 1080), 1920 / (sonda.altura || 1920)) * 100;
+    const clipes = async () => (await fcPasso('sequence_inspect')).video[0].items.map((i: { clip: number }) => i.clip) as number[];
+    if (Math.abs(base - 100) > 0.5) for (const clip of await clipes()) await cmd('effects.setParam', { clip, effect: 'motion', param: 'scale', value: base });
+    await cmd('transcript.set', { item, transcript: transcricaoParaFilmCraft(lerTranscricao(p.pastaJob)) });
+
+    await p.aoMudarEtapa({ etapa: 'cortando as pausas', progresso: 20 });
+    const { words } = await cmd('transcript.inspect', {});
+    for (const [de, ate] of trechosACortar((words as Array<{ text: string }>).map((w) => ({ texto: w.text })))) {
+      await cmd('transcript.extract', { from: de, to: ate });
+    }
+    await cmd('transcript.removePauses', { minSeconds: 0.5, keepSeconds: 0.12 });
+
+    // O "punch-in" de reel: um corte sim, um não, a câmera chega 12% mais perto.
+    await p.aoMudarEtapa({ etapa: 'aproximando a câmera', progresso: 32 });
+    const todos = await clipes();
+    for (let k = 1; k < todos.length; k += 2) await cmd('effects.setParam', { clip: todos[k], effect: 'motion', param: 'scale', value: Math.round(base * 1.12 * 100) / 100 });
+
+    await p.aoMudarEtapa({ etapa: 'legendando', progresso: 42 });
+    await cmd('transcript.createCaptions', { maxChars: 18, lines: 1, minSeconds: 0.5, maxSeconds: 2.2 });
+    await cmd('captions.export', { path: path.join(p.pastaJob, 'saida', 'legendas.srt') });
+    await cmd('captions.setTrack', { track: 'C1', enabled: false });
+    const legendas = lerSrt(readFileSync(path.join(p.pastaJob, 'saida', 'legendas.srt'), 'utf8'));
+    const pngs = await desenharLegendas(p.pastaJob, legendas, { fonte: p.dados.fonte, peso: p.dados.pesos.titulo, conjunto: c, impacto: p.dados.impacto });
+    const { items: imagens } = await fcPasso('media_import', { paths: pngs });
+    for (const [k, l] of legendas.entries()) {
+      await cmd('timeline.place', { item: imagens[k], track: k === 0 ? 'new' : 'V2', seconds: l.inicio, duration: Math.round((l.fim - l.inicio) * TICKS_POR_SEGUNDO) });
+    }
+    await cmd('file.saveAs', { path: projeto });
+  } finally {
+    fc.fechar();
+  }
+
+  await p.aoMudarEtapa({ etapa: 'preparando a prévia', progresso: 58 });
+  exportarReel(projeto, path.join(p.pastaJob, 'saida', 'previa.mp4'), { previaSegundos: 15 });
+  await p.entregarParcial('saida/previa.mp4');
+
+  await p.aoMudarEtapa({ etapa: 'finalizando o som', progresso: 72 });
+  exportarReel(projeto, path.join(p.pastaJob, 'saida', 'reel.mp4'));
+
+  await p.aoMudarEtapa({ etapa: 'escrevendo a legenda', progresso: 88 });
+  const fala = lerTranscricao(p.pastaJob).map((w) => w.texto).join(' ');
+  const pDeLegenda = { ...p, dados: { ...p.dados, textoDoCliente: [p.dados.textoDoCliente, frasesDoTexto(fala).slice(0, 2).join('. ')].filter(Boolean).join('\n\n') } };
+  salvarTexto(p.pastaJob, p.dados.saidas, 'saida/legenda.txt', legenda(pDeLegenda));
+}
+
 const ROTEIROS: Record<string, (x: Contexto) => Promise<void>> = {
   'post-feed-teste': postDeTeste,
   'post-feed': postFeed,
   carrossel,
   'capa-thumbnail': capa,
+  'reel-de-bruto': reelDeBruto,
 };
 
 export const rodarRoteiro: Agente = async (p) => {
