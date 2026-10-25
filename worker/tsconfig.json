@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2024",
+    "lib": ["es2024", "dom"],
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "allowImportingTsExtensions": true,
@@ -11,5 +12,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src", "scripts", "teste"]
+  "include": ["src", "scripts", "teste", "teste-e2e"]
 }

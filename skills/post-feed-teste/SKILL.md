@@ -1,8 +1,9 @@
 ---
 name: post-feed-teste
 description: Post de teste da fábrica — fundo da marca, título na fonte da marca, faixa de destaque. Serve pra provar o caminho de ponta a ponta, não pra ir ao ar.
-# Sem tipo: só roda quando o job pede esta skill pelo nome.
-tipos: []
+# Atende "post-feed" só até o passo 3 trazer a skill post-feed de verdade.
+# Quando ela chegar, esta volta a ter tipos: [] e só roda pelo nome.
+tipos: [post-feed]
 apps: [photocraft]
 saidas:
   - saida/post.png 1080x1350
@@ -45,3 +46,27 @@ mais é uma coisa a mais pra dar errado no teste.
 6. Salve, nesta ordem:
    - `doc_save` com `{"path": "editavel/post.psd"}` — o editável, com as camadas separadas.
    - `doc_save` com `{"path": "saida/post.png"}` — o que o cliente vê.
+
+## Quando o pedido é um ajuste
+
+Se o pedido tem a seção "Ajuste pedido", não comece do zero: a peça já foi
+feita e o cliente quer mudar uma coisa.
+
+1. `avisar_etapa` com "fazendo o ajuste", progresso 20.
+2. `doc_open` com `{"path": "entrada/anterior.psd"}` e `doc_inspect` pra achar
+   as camadas (o fundo, a faixa e o texto).
+3. Mude só o que foi pedido:
+   - "mais curto": reescreva o título com no máximo quatro palavras, sem
+     perder o assunto, com `type.edit` na camada de texto.
+   - "outra cor da marca": troque pro próximo conjunto da lista "Outros
+     conjuntos da marca" — fundo com `layer.select` (`{"layer": <id do fundo>}`)
+     e depois `edit.fill` (`{"contents": "color", "color": "<fundo>"}`); faixa
+     com `layer.fill.solidColor.set` (`{"layer": <id da faixa>, "color": "<faixa>"}`);
+     texto com `type.setStyle` (`{"layer": <id do texto>, "color": "<texto>"}`).
+   - "mais sério": o conjunto mais sóbrio da marca (o que o "quando" associa a
+     posicionamento ou autoridade) e um título sem exclamação.
+   - "troca a foto": esta peça não tem foto; diga isso no resumo e não mude nada.
+   - Texto livre: faça o que ele pede, dentro das regras da marca. Se pedir
+     algo que a marca proíbe, não faça e diga no resumo.
+4. Os ajustes anteriores continuam valendo: não desfaça nenhum.
+5. Confira e salve igual aos passos 5 e 6 acima.

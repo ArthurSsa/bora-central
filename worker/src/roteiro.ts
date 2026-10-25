@@ -11,20 +11,44 @@
 import { servidorMcp } from './apps.ts';
 import { abrirMcp } from './mcp-cru.ts';
 import { CUSTO_ZERO, FalhaDoAgente, type Agente } from './agente.ts';
+import type { Ajuste } from './fila.ts';
 
 /** O título que o roteiro consegue tirar sem interpretar: as primeiras oito palavras, sem o que vem depois de ":". */
-export function tituloDoTexto(texto: string): string {
+export function tituloDoTexto(texto: string, maxPalavras = 8): string {
   const antes = texto.split(':')[0].trim() || texto.trim();
   const palavras = antes.split(/\s+/).filter(Boolean);
-  const curto = palavras.slice(0, 8).join(' ');
+  const curto = palavras.slice(0, maxPalavras).join(' ');
   return curto.replace(/[.,;!?]+$/, '') || 'Teste da fábrica';
+}
+
+/**
+ * O que o roteiro sabe fazer dos atalhos de ajuste, somando todos os pedidos
+ * até aqui (ele refaz do zero, então precisa da história inteira):
+ * "outra cor da marca" anda um conjunto por vez; "mais curto" corta o título
+ * pra quatro palavras. O resto — texto livre, "mais sério", "troca a foto" —
+ * pede interpretação, e isso é do Claude.
+ */
+export function aplicarAtalhos(ajustes: Ajuste[], totalConjuntos: number) {
+  const todos = ajustes.flatMap((a) => a.atalhos);
+  const ignorados = [
+    ...todos.filter((t) => t !== 'mais curto' && t !== 'outra cor da marca'),
+    ...ajustes.filter((a) => a.texto).map((a) => `"${a.texto}"`),
+  ];
+  return {
+    conjunto: todos.filter((t) => t === 'outra cor da marca').length % Math.max(totalConjuntos, 1),
+    maxPalavras: todos.includes('mais curto') ? 4 : 8,
+    ignorados,
+  };
 }
 
 export const rodarRoteiro: Agente = async (p) => {
   if (p.skill.nome !== 'post-feed-teste') {
     throw new FalhaDoAgente(`o roteiro só sabe fazer a skill post-feed-teste, não ${p.skill.nome}`, CUSTO_ZERO);
   }
-  const { conjunto: c, fonte, margem: m, alinhamento } = p.dados;
+  const { fonte, margem: m, alinhamento } = p.dados;
+  const atalhos = aplicarAtalhos(p.dados.ajustes, p.dados.conjuntos.length);
+  const c = p.dados.conjuntos[atalhos.conjunto] ?? p.dados.conjunto;
+  const titulo = tituloDoTexto(p.dados.textoDoCliente, atalhos.maxPalavras);
   let renderMs = 0;
   const mcp = await abrirMcp(servidorMcp('photocraft', p.pastaJob));
 
@@ -47,7 +71,6 @@ export const rodarRoteiro: Agente = async (p) => {
     await passo('command_run', { id: 'select.deselect', params: {} });
 
     await p.aoMudarEtapa({ etapa: 'escrevendo o título', progresso: 45 });
-    const titulo = tituloDoTexto(p.dados.textoDoCliente);
     const caixa = [m, 420, 1080 - 2 * m, 600];
     await passo('command_run', {
       id: 'type.create',
@@ -72,7 +95,9 @@ export const rodarRoteiro: Agente = async (p) => {
 
   return {
     custos: { ...CUSTO_ZERO, render_segundos: Math.round(renderMs / 10) / 100 },
-    resumo: `Roteiro (sem Claude): conjunto "${c.nome}", fonte ${fonte}, título "${tituloDoTexto(p.dados.textoDoCliente)}".`,
+    resumo:
+      `Roteiro (sem Claude): conjunto "${c.nome}", fonte ${fonte}, título "${titulo}".` +
+      (atalhos.ignorados.length ? ` Não sabe aplicar sem o Claude: ${atalhos.ignorados.join(', ')}.` : ''),
     turnos: 0,
   };
 };

@@ -65,29 +65,35 @@ export function tintaPara(fundo: string): string {
   return contraste(fundo, '#FFFFFF') >= contraste(fundo, '#0A0A0A') ? '#FFFFFF' : '#0A0A0A';
 }
 
-export function conjuntoPadrao(marca: MarcaBruta, corCliente: string | null): Conjunto {
-  const lista = marca.conjuntos ?? [];
-  const c = lista.find((x) => x.k === marca.conjuntoPadrao) ?? lista[0];
-  if (c?.fundo) {
-    return {
-      nome: c.nome ?? 'padrão',
-      fundo: c.fundo,
-      tinta: c.tinta || tintaPara(c.fundo),
-      destaque: c.destaque || marca.cor2 || c.fundo,
-      faixa: c.faixa || marca.cor2 || c.fundo,
-      quando: c.quando,
-    };
-  }
+/** Todos os conjuntos da marca, completos e com o padrão primeiro. */
+export function todosOsConjuntos(marca: MarcaBruta, corCliente: string | null): Conjunto[] {
+  const lista = (marca.conjuntos ?? []).filter((c) => c?.fundo);
+  const padrao = lista.findIndex((x) => x.k === marca.conjuntoPadrao);
+  if (padrao > 0) lista.unshift(...lista.splice(padrao, 1));
+  const completos = lista.map((c) => ({
+    nome: c.nome ?? 'padrão',
+    fundo: c.fundo!,
+    tinta: c.tinta || tintaPara(c.fundo!),
+    destaque: c.destaque || marca.cor2 || c.fundo!,
+    faixa: c.faixa || marca.cor2 || c.fundo!,
+    quando: c.quando,
+  }));
+  if (completos.length) return completos;
   // Cliente sem conjuntos: deriva da cor, como o Estúdio já fazia antes deles.
   const fundo = corCliente || '#0A0A0A';
-  return { nome: 'derivado da cor do cliente', fundo, tinta: tintaPara(fundo), destaque: marca.cor2 || fundo, faixa: marca.cor2 || fundo };
+  return [{ nome: 'derivado da cor do cliente', fundo, tinta: tintaPara(fundo), destaque: marca.cor2 || fundo, faixa: marca.cor2 || fundo }];
+}
+
+export function conjuntoPadrao(marca: MarcaBruta, corCliente: string | null): Conjunto {
+  return todosOsConjuntos(marca, corCliente)[0];
 }
 
 export type ClienteParaMarca = { nome: string; nome_preferido: string | null; cor: string | null; marca: MarcaBruta | null; registro_profissional: string | null };
 
-export function marcaParaAgente(cliente: ClienteParaMarca, fonte: FonteResolvida): { texto: string; conjunto: Conjunto } {
+export function marcaParaAgente(cliente: ClienteParaMarca, fonte: FonteResolvida): { texto: string; conjunto: Conjunto; conjuntos: Conjunto[] } {
   const m = cliente.marca ?? {};
-  const conj = conjuntoPadrao(m, cliente.cor);
+  const conjuntos = todosOsConjuntos(m, cliente.cor);
+  const conj = conjuntos[0];
   const ratio = contraste(conj.fundo, conj.tinta).toFixed(1);
   const linhas = [
     `Cliente: ${cliente.nome_preferido || cliente.nome}`,
@@ -101,6 +107,12 @@ export function marcaParaAgente(cliente: ClienteParaMarca, fonte: FonteResolvida
     `Fonte: use exatamente a família "${fonte.usada}".` +
       (fonte.substituida ? ` (A da marca é "${fonte.pedida}", que não está instalada nesta máquina; "${fonte.usada}" é a substituta definida.)` : ''),
   ];
+  if (conjuntos.length > 1) {
+    linhas.push('', 'Outros conjuntos da marca (para quando o pedido pedir outra cor):');
+    for (const o of conjuntos.slice(1)) {
+      linhas.push(`- "${o.nome}": fundo ${o.fundo}, texto ${o.tinta}, destaque ${o.destaque}, faixa ${o.faixa}${o.quando ? ` — ${o.quando}` : ''}`);
+    }
+  }
   if (m.paleta?.length) {
     linhas.push('', 'Paleta completa (só estas cores existem pra esta marca):');
     for (const p of m.paleta) linhas.push(`- ${p.cor}${p.nome ? ` ${p.nome}` : ''}${p.uso ? ` — ${p.uso}` : ''}`);
@@ -112,5 +124,5 @@ export function marcaParaAgente(cliente: ClienteParaMarca, fonte: FonteResolvida
   if (m.evitar) linhas.push('', `NUNCA: ${m.evitar}`);
   if (m.obrigatorios) linhas.push('', `Obrigatórios da marca (leitura do manual): ${m.obrigatorios}`);
   if (cliente.registro_profissional) linhas.push('', `Registro profissional que precisa aparecer: ${cliente.registro_profissional}`);
-  return { texto: linhas.join('\n'), conjunto: conj };
+  return { texto: linhas.join('\n'), conjunto: conj, conjuntos };
 }

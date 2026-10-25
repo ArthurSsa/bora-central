@@ -33,15 +33,41 @@ test('skill com nome diferente da pasta, ou app desconhecido, não carrega', () 
   assert.throws(() => interpretarSkill('a', '---\nname: a\napps: [photoshop]\nsaidas:\n  - saida/x.png\n---\n'), /app desconhecido/);
 });
 
-test('as skills do repositório carregam, e a de teste só roda forçada', () => {
+test('as skills do repositório carregam; post-feed cai na de teste até o passo 3', () => {
   const skills = carregarSkills(path.join(RAIZ_REPO, 'skills'));
   const t = skills.get('post-feed-teste');
   assert.ok(t);
   assert.deepEqual(t.apps, ['photocraft']);
-  assert.deepEqual(t.tipos, []);
+  assert.equal(escolherSkill(skills, 'post-feed', null).nome, 'post-feed-teste');
   assert.equal(escolherSkill(skills, 'post-feed', 'post-feed-teste').nome, 'post-feed-teste');
-  assert.throws(() => escolherSkill(skills, 'post-feed', null), /nenhuma skill/);
+  assert.throws(() => escolherSkill(skills, 'reel', null), /nenhuma skill/);
   assert.throws(() => escolherSkill(skills, 'post-feed', 'nao-existe'), /não existe/);
+});
+
+test('atalhos de ajuste no roteiro: somam, giram as cores e listam o que só o Claude faz', async () => {
+  const { aplicarAtalhos } = await import('../src/roteiro.ts');
+  assert.deepEqual(aplicarAtalhos([], 3), { conjunto: 0, maxPalavras: 8, ignorados: [] });
+  const r = aplicarAtalhos([
+    { texto: null, atalhos: ['outra cor da marca'] },
+    { texto: 'tira a palavra turma', atalhos: ['mais curto', 'outra cor da marca', 'mais sério'] },
+  ], 3);
+  assert.equal(r.conjunto, 2);
+  assert.equal(r.maxPalavras, 4);
+  assert.deepEqual(r.ignorados, ['mais sério', '"tira a palavra turma"']);
+  assert.equal(aplicarAtalhos([{ texto: null, atalhos: ['outra cor da marca', 'outra cor da marca'] }], 2).conjunto, 0, 'volta pro começo');
+});
+
+test('o pedido de ajuste diz o que mudar, o que já foi mudado e de onde partir', () => {
+  const skill = carregarSkills(path.join(RAIZ_REPO, 'skills')).get('post-feed-teste')!;
+  const pedido = { id: 'p', tipo: 'post-feed', titulo: null, briefing: { texto: 'oi' }, publicar_em: null };
+  const t = montarPedido(skill, pedido, 'marca', [
+    { texto: null, atalhos: ['outra cor da marca'] },
+    { texto: 'tira a exclamação', atalhos: ['mais curto'] },
+  ], true);
+  assert.ok(t.includes('pediu: "mais curto" e "tira a exclamação"'));
+  assert.ok(t.includes('- "outra cor da marca"'));
+  assert.ok(t.includes('entrada/anterior.psd'));
+  assert.ok(!montarPedido(skill, pedido, 'marca').includes('Ajuste'), 'produção não fala de ajuste');
 });
 
 test('fonte: a da marca se instalada, senão a cadeia do Estúdio, e avisa a troca', () => {

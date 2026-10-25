@@ -8,7 +8,7 @@ import { query, createSdkMcpServer, tool, type HookCallback, type McpServerConfi
 import { z } from 'zod';
 import { servidorMcp, prefixoFerramentas, ferramentasBloqueadas } from './apps.ts';
 import type { Config } from './config.ts';
-import type { Custos } from './fila.ts';
+import type { Ajuste, Custos } from './fila.ts';
 import type { Conjunto } from './marca.ts';
 import type { Skill } from './skills.ts';
 
@@ -16,6 +16,10 @@ export type Etapa = { etapa: string; progresso: number };
 
 export type DadosDaPeca = {
   conjunto: Conjunto;
+  /** Todos os conjuntos da marca, o padrão primeiro. */
+  conjuntos: Conjunto[];
+  /** Ajustes que valem pra esta rodada, do mais antigo ao atual (vazio na produção). */
+  ajustes: Ajuste[];
   fonte: string;
   margem: number;
   alinhamento: 'left' | 'center';

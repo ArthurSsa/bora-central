@@ -36,6 +36,13 @@ PhotoCraft, a conferência, o Storage e o Realtime são os de verdade; só quem
 decide é que não é o modelo. Custo zero. Serve também, depois, para separar
 "a máquina quebrou" de "o agente errou".
 
+`npm run e2e` é o teste do app do cliente (`sites/app/`) de ponta a ponta: um
+cliente de teste, numa conta só dele, pede um post num celular de 390 px,
+acompanha, pede ajuste, vê a versão nova e aprova — contra o banco de verdade,
+a fábrica no modo roteiro e o PhotoCraft. Confere também isolamento, contraste
+nos dois temas e rolagem lateral. Usa o Edge ou o Chrome da máquina
+(`playwright-core`, sem baixar navegador). `E2E_FOTOS=<pasta>` guarda as telas.
+
 No Windows o PhotoCraft portátil fica em `worker/.ferramentas/photocraft/` (fora
 do git) e o worker acha o `.exe` sozinho. No Linux, os `.deb` instalam em `/usr/bin`.
 

@@ -101,6 +101,35 @@ export async function carregarContexto(sb: SupabaseClient, job: Job): Promise<{ 
   return { pedido, cliente };
 }
 
+export type Ajuste = { texto: string | null; atalhos: string[] };
+
+/**
+ * Os ajustes que valem para esta rodada, do mais antigo ao atual. Cada ajuste
+ * parte da versão anterior, então a versão nova carrega todos os de antes: o
+ * roteiro (que refaz do zero) precisa da lista inteira; o Claude, que abre o
+ * PSD anterior, precisa saber o que já foi feito pra não desfazer.
+ */
+export async function historicoDeAjustes(sb: SupabaseClient, job: Job): Promise<Ajuste[]> {
+  if (job.rodada !== 'ajuste') return [];
+  const linhas = ok(
+    await sb.from('jobs').select('id, entrada, estado').eq('pedido_id', job.pedido_id).eq('rodada', 'ajuste').order('criado_em'),
+    'ler ajustes',
+  ) as Array<{ id: string; entrada: { texto?: string | null; atalhos?: string[] }; estado: string }>;
+  return linhas
+    .filter((l) => l.estado === 'pronto' || l.id === job.id)
+    .map((l) => ({ texto: l.entrada.texto ?? null, atalhos: l.entrada.atalhos ?? [] }));
+}
+
+/** O editável da versão de que o ajuste parte. */
+export async function baixarEditavelBase(sb: SupabaseClient, job: Job, relativo: string): Promise<Buffer | null> {
+  const base = job.entrada.base_job as string | undefined;
+  if (!base) return null;
+  const caminho = [job.conta_id, job.cliente_id, job.pedido_id, base, relativo].join('/');
+  const { data, error } = await sb.storage.from(BALDE).download(caminho);
+  if (error) throw new Error(`baixar a versão anterior (${relativo}): ${error.message}`);
+  return Buffer.from(await data.arrayBuffer());
+}
+
 /** pedidos/<conta>/<cliente>/<pedido>/<job>/<saida|editavel>/<arquivo> — o RLS do balde lê essa ordem. */
 export function caminhoNoBalde(job: Job, relativo: string): string {
   return [job.conta_id, job.cliente_id, job.pedido_id, job.id, relativo].join('/');
@@ -159,6 +188,10 @@ export async function devolverOuFalhar(sb: SupabaseClient, cfg: Config, job: Job
     }).eq('id', job.id).eq('worker_id', cfg.workerId),
     'devolver job',
   );
-  if (acabou) ok(await sb.from('pedidos').update({ estado: 'produzindo' }).eq('id', job.pedido_id), 'pedido');
+  // Ajuste que falhou de vez não tira do cliente a versão que ele já tinha:
+  // o pedido volta a esperar aprovação, com a rodada anterior valendo.
+  if (acabou && job.rodada === 'ajuste') {
+    ok(await sb.from('pedidos').update({ estado: 'para_aprovar' }).eq('id', job.pedido_id), 'pedido');
+  }
   return acabou;
 }

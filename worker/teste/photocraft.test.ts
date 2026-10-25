@@ -153,3 +153,27 @@ test('o roteiro (sem Claude) faz o post da skill de teste com a marca de cada cl
     assert.ok(r.resultado.custos.render_segundos > 0, 'tempo nos apps não foi medido');
   }
 });
+
+test('ajuste no roteiro: "outra cor" troca o conjunto e "mais curto" corta o título', { skip: semApp }, async () => {
+  const { rodarRoteiro } = await import('../src/roteiro.ts');
+  const raiz = process.env.PASTA_PREVIAS ?? mkdtempSync(path.join(tmpdir(), 'jobs-'));
+  const beatriz = { nome: 'Ana Beatriz Leite', nome_preferido: null, cor: '#1E2A3A', registro_profissional: null, marca: {
+    margem: 'folgada', alinha: 'esq', fonteMarca: 'Manrope', fonteFalback: 'display', conjuntoPadrao: 'j-noite',
+    conjuntos: [
+      { k: 'j-noite', nome: 'Azul-noite', fundo: '#1E2A3A', tinta: '#FFFFFF', destaque: '#A4E830', faixa: '#A4E830' },
+      { k: 'j-limao', nome: 'Verde-limão', fundo: '#A4E830', tinta: '#1E2A3A', destaque: '#1E2A3A', faixa: '#1E2A3A' },
+    ] } };
+  const r = await produzir({
+    cfg: cfgTeste(raiz), job: { id: 'roteiro-ajuste' }, skill,
+    pedido: { ...pedido, briefing: { texto: 'Não existe atalho pra liderar um time de produto' } },
+    cliente: beatriz, instaladas, agente: rodarRoteiro,
+    ajustes: [{ texto: null, atalhos: ['outra cor da marca', 'mais curto'] }],
+    abortar: new AbortController(), aoMudarEtapa: async () => {}, aoUsarFerramenta: () => {},
+  });
+  assert.match(r.resultado.resumo, /Verde-limão/);
+  assert.match(r.resultado.resumo, /título "Não existe atalho pra"/);
+  const { execFileSync } = await import('node:child_process');
+  const { acharCli } = await import('../src/config.ts');
+  const info = JSON.parse(execFileSync(acharCli('photocraft'), ['info', path.join(r.pastaJob, 'editavel', 'post.psd'), '--compact'], { encoding: 'utf8' }));
+  assert.equal(info.layers.find((l: { kind: string }) => l.kind === 'Type').text.text, 'Não existe atalho pra');
+});
