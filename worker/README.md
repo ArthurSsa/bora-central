@@ -47,6 +47,38 @@ nos dois temas e rolagem lateral. Usa o Edge ou o Chrome da máquina
 No Windows o PhotoCraft portátil fica em `worker/.ferramentas/photocraft/` (fora
 do git) e o worker acha o `.exe` sozinho. No Linux, os `.deb` instalam em `/usr/bin`.
 
+## A fábrica neste PC
+
+Enquanto não há VPS, a fábrica roda no PC da Bora. Ela só **busca** pedidos no
+Supabase: nenhuma porta aberta, nada de fora entra no computador.
+
+```bash
+npm run fabrica:instalar   # atalho na inicialização do Windows, e já liga
+npm run fabrica:estado     # ligada? desde quando? fazendo o quê?
+npm run fabrica:desligar   # termina o pedido atual e desliga
+npm run fabrica:ligar      # liga de novo, sem janela
+npm run fabrica:remover    # desliga e tira da inicialização
+```
+
+- **Liga sozinha** quando alguém entra no Windows (atalho em `shell:startup`
+  que abre o vigia escondido) — não antes: sem login, ela espera.
+- **Volta sozinha:** o vigia religa o worker se ele cair (5 s, dobrando até
+  1 min se cair logo de novo), e o que ficou pela metade volta pra fila na
+  hora, com a tentativa contada.
+- **Não trava o PC:** vigia, worker e os apps que ele abre rodam com
+  prioridade "abaixo do normal".
+- **Tudo em `%LOCALAPPDATA%\BoraFabrica`:** `logs\fabrica.log` (gira em 5 MB,
+  guarda 3), `jobs\` (pasta de cada pedido; a que deu certo sai na hora, a que
+  falhou fica 7 dias) e o pid do vigia.
+- **Sem a chave da Anthropic**, roda no roteiro. Com ela no `.env`, usa o Claude.
+- **A Fábrica do Estúdio** mostra se ela está ligada (sinal a cada 30 s,
+  contado pelo relógio do banco).
+- **O PC não pode dormir:** Configurações → Sistema → Energia → Suspender:
+  Nunca (na tomada). A tela pode apagar.
+
+Antes do `npm run e2e`, desligue a fábrica do PC: os dois workers disputariam
+os pedidos do teste (o teste recusa começar com ela ligada).
+
 ## Skills
 
 | Skill | Tipo no app | Entrega |

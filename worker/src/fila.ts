@@ -7,6 +7,7 @@
 // (pegar_job, gatilho jobs_tocar, renovar_lease). O primeiro teste de ponta a
 // ponta saiu com duração negativa por causa de um worker 6 s atrasado.
 import { readFileSync } from 'node:fs';
+import { hostname } from 'node:os';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Config } from './config.ts';
 import type { ClienteParaMarca } from './marca.ts';
@@ -67,6 +68,18 @@ export async function renovarLease(sb: SupabaseClient, cfg: Config, job: Job): P
     await sb.rpc('renovar_lease', { p_job: job.id, p_worker: cfg.workerId, p_segundos: cfg.leaseSegundos }),
     'renovar lease',
   ) === true;
+}
+
+/** "Estou vivo" a cada 30 s: é o que a Fábrica do Estúdio mostra como ligada ou desligada. */
+export async function sinalDeVida(sb: SupabaseClient, cfg: Config, extra: { ocupado: string | null; ligou: boolean }) {
+  ok(await sb.rpc('sinal_da_fabrica', {
+    p_worker: cfg.workerId, p_maquina: hostname(), p_agente: cfg.agente, p_ocupado: extra.ocupado, p_ligou: extra.ligou,
+  }), 'sinal de vida');
+}
+
+/** Voltou depois de cair: o que ficou rodando com este nome volta pra fila agora, não daqui a um lease. */
+export async function soltarOsMeus(sb: SupabaseClient, cfg: Config): Promise<number> {
+  return ok(await sb.rpc('soltar_jobs_do_worker', { p_worker: cfg.workerId }), 'soltar jobs') as number;
 }
 
 export async function anotar(sb: SupabaseClient, cfg: Config, job: Job, campos: { etapa?: string; progresso?: number; previsto_para?: string | null; restam_segundos?: number | null }) {

@@ -37,7 +37,13 @@ export function lerConfig() {
     supabaseUrl: process.env.SUPABASE_URL ?? 'https://yxewmauwnxnrrhevlbtc.supabase.co',
     supabaseServiceKey: obrigatoria('SUPABASE_SERVICE_ROLE_KEY'),
     workerId: process.env.WORKER_ID ?? `${hostname()}-${process.pid}`,
-    pastaJobs: path.resolve(process.env.PASTA_JOBS ?? path.join(RAIZ_WORKER, '.jobs')),
+    // No Windows, fora do projeto: a pasta do usuário é onde programa guarda
+    // trabalho, e o projeto não enche de vídeo de cliente.
+    pastaJobs: path.resolve(process.env.PASTA_JOBS ?? (process.platform === 'win32' && process.env.LOCALAPPDATA
+      ? path.join(process.env.LOCALAPPDATA, 'BoraFabrica', 'jobs')
+      : path.join(RAIZ_WORKER, '.jobs'))),
+    // Pasta de job que falhou fica pra alguém olhar — por estes dias, e sai.
+    diasPastaFalha: Number(process.env.DIAS_PASTA_FALHA ?? '7'),
     pastaSkills: path.resolve(process.env.PASTA_SKILLS ?? path.join(RAIZ_REPO, 'skills')),
     // 'roteiro' troca o Claude por um passo a passo fixo (src/roteiro.ts):
     // prova a máquina inteira sem chave da Anthropic e sem custo.
