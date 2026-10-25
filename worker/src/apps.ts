@@ -52,6 +52,34 @@ export function fontesInstaladas(): string[] {
   return JSON.parse(linha).result.families as string[];
 }
 
+/**
+ * Os pesos que a família tem de verdade. Pedir 700 a uma fonte que só tem 400
+ * (a Anton) não dá erro: o PhotoCraft aceita, registra 700 e desenha o 400.
+ * A fonte variável (a Manrope) vai de 200 a 800 em qualquer número.
+ */
+const pesosCache = new Map<string, { variavel: [number, number] | null; fixos: number[] }>();
+export function pesosDaFamilia(familia: string) {
+  const guardado = pesosCache.get(familia);
+  if (guardado) return guardado;
+  const saida = execFileSync(acharCli('photocraft'), ['run', '--new', '{"width":1,"height":1}', '--cmd', 'type.fonts', '--params', JSON.stringify({ family: familia })], {
+    encoding: 'utf8',
+    timeout: 30_000,
+  });
+  const linha = saida.split(/\r?\n/).find((l) => l.includes('"type.fonts"'));
+  const faces = (linha ? JSON.parse(linha).result.faces : []) as Array<{ weight: number; italic: boolean; axes?: Array<[string, number, number, number]> }>;
+  const eixo = faces.flatMap((f) => f.axes ?? []).find((a) => a[0] === 'wght');
+  const r = { variavel: eixo ? [eixo[2], eixo[3]] as [number, number] : null, fixos: faces.filter((f) => !f.italic).map((f) => f.weight) };
+  pesosCache.set(familia, r);
+  return r;
+}
+
+export function pesoMaisPerto(familia: string, desejado: number): number {
+  const { variavel, fixos } = pesosDaFamilia(familia);
+  if (variavel) return Math.min(variavel[1], Math.max(variavel[0], desejado));
+  if (!fixos.length) return desejado;
+  return fixos.reduce((melhor, p) => (Math.abs(p - desejado) < Math.abs(melhor - desejado) ? p : melhor), fixos[0]);
+}
+
 /** O prefixo que o SDK dá às ferramentas de um servidor: mcp__<nome>__<ferramenta>. */
 export const prefixoFerramentas = (servidor: string) => `mcp__${servidor}__`;
 

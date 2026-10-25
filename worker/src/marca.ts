@@ -56,6 +56,8 @@ type MarcaBruta = {
   evitar?: string;
   obrigatorios?: string;
   chamada?: string;
+  hashtags?: string;
+  numerar?: boolean;
   alinha?: string;
   margem?: string;
 };
@@ -88,9 +90,35 @@ export function conjuntoPadrao(marca: MarcaBruta, corCliente: string | null): Co
   return todosOsConjuntos(marca, corCliente)[0];
 }
 
-export type ClienteParaMarca = { nome: string; nome_preferido: string | null; cor: string | null; marca: MarcaBruta | null; registro_profissional: string | null };
+export type ClienteParaMarca = {
+  nome: string;
+  nome_preferido: string | null;
+  cor: string | null;
+  marca: MarcaBruta | null;
+  registro_profissional: string | null;
+  instagram?: string | null;
+};
 
-export function marcaParaAgente(cliente: ClienteParaMarca, fonte: FonteResolvida): { texto: string; conjunto: Conjunto; conjuntos: Conjunto[] } {
+/** Fonte condensada de manchete: a Anton do Estúdio, pedida pela marca ou caída da cadeia "impacto". */
+export const ehImpacto = (m: MarcaBruta, fonte: FonteResolvida) =>
+  /anton|impact|condensed|narrow/i.test(fonte.usada) || (!fonte.pedida && m.fonteFalback === 'impacto');
+
+/** Todas as cores que a marca permite numa peça: paleta, conjuntos e as duas cores da ficha. */
+export function coresDaMarca(cliente: ClienteParaMarca): string[] {
+  const m = cliente.marca ?? {};
+  const todas = [
+    ...(m.paleta ?? []).map((p) => p.cor),
+    ...todosOsConjuntos(m, cliente.cor).flatMap((c) => [c.fundo, c.tinta, c.destaque, c.faixa]),
+    cliente.cor, m.cor2,
+  ];
+  return [...new Set(todas.filter((c): c is string => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)).map((c) => c.toUpperCase()))];
+}
+
+export function marcaParaAgente(
+  cliente: ClienteParaMarca,
+  fonte: FonteResolvida,
+  extra: { pesos?: { titulo: number; texto: number } } = {},
+): { texto: string; conjunto: Conjunto; conjuntos: Conjunto[] } {
   const m = cliente.marca ?? {};
   const conjuntos = todosOsConjuntos(m, cliente.cor);
   const conj = conjuntos[0];
@@ -107,6 +135,14 @@ export function marcaParaAgente(cliente: ClienteParaMarca, fonte: FonteResolvida
     `Fonte: use exatamente a família "${fonte.usada}".` +
       (fonte.substituida ? ` (A da marca é "${fonte.pedida}", que não está instalada nesta máquina; "${fonte.usada}" é a substituta definida.)` : ''),
   ];
+  if (extra.pesos) {
+    linhas.push(`Peso do título: ${extra.pesos.titulo}. Peso do texto: ${extra.pesos.texto}. (São os pesos que esta fonte tem de verdade.)`);
+  }
+  if (ehImpacto(m, fonte)) linhas.push('A fonte é de impacto (condensada): títulos em caixa alta e maiores, como a skill indica.');
+  if (cliente.instagram) linhas.push('', `@instagram: ${cliente.instagram.startsWith('@') ? cliente.instagram : '@' + cliente.instagram}`);
+  if (m.chamada) linhas.push(`Chamada: ${m.chamada}`);
+  if (m.hashtags) linhas.push(`Hashtags da marca: ${m.hashtags}`);
+  if (m.numerar) linhas.push('A marca numera os slides.');
   if (conjuntos.length > 1) {
     linhas.push('', 'Outros conjuntos da marca (para quando o pedido pedir outra cor):');
     for (const o of conjuntos.slice(1)) {

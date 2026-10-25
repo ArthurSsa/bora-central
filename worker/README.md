@@ -23,6 +23,7 @@ Sem build: Node 22.18+ roda os `.ts` direto.
 ```bash
 cd worker
 npm install
+npm run fontes            # as fontes das marcas (fontes.json), onde o PhotoCraft procura
 cp .env.exemplo .env      # preencha SUPABASE_SERVICE_ROLE_KEY e ANTHROPIC_API_KEY
 npm test                  # sem rede e sem modelo; os testes do PhotoCraft pulam se ele não estiver instalado
 npm run ensaio            # monta o agente com chave inválida: confere MCP e ferramentas, custo zero
@@ -45,6 +46,37 @@ nos dois temas e rolagem lateral. Usa o Edge ou o Chrome da máquina
 
 No Windows o PhotoCraft portátil fica em `worker/.ferramentas/photocraft/` (fora
 do git) e o worker acha o `.exe` sozinho. No Linux, os `.deb` instalam em `/usr/bin`.
+
+## Skills
+
+| Skill | Tipo no app | Entrega |
+|---|---|---|
+| `post-feed` | Post para feed | post 1080×1350 + legenda |
+| `carrossel` | Carrossel | 3 a 10 slides 1080×1350 + legenda |
+| `capa-thumbnail` | Capa ou thumbnail | 3 capas 1280×720 + 2 títulos pro vídeo + descrição |
+| `copy-e-hashtags` | — (entra nas outras) | as regras da legenda |
+| `post-feed-teste` | — (só pelo nome) | o post mínimo do passo 1 |
+
+Cada skill tem um roteiro em `src/roteiro.ts` com os mesmos comandos do
+SKILL.md. Se o roteiro passa na conferência de marca, a receita da skill é boa
+— é o que os testes provam sem gastar token.
+
+## A conferência de marca
+
+Depois do agente (ou do roteiro), `src/conferencia.ts` mede cada imagem
+contra a marca do cliente: fonte e peso de cada texto (lidos do PSD), cor de
+tudo que ocupa espaço (lida do PNG, com o degradê entre duas cores da marca
+aceito), texto fora da faixa de 5% da borda e contraste do texto sobre o que
+está atrás dele. E os textos: limite do Instagram, hashtags, emoji quando a
+marca evita, os dois títulos da capa. Reprovou, o job volta pra fila com o
+motivo, e a próxima tentativa recebe esse motivo no pedido.
+
+## Fontes
+
+`fontes.json` lista as fontes das marcas (Manrope, Anton), de um commit fixo
+do google/fonts e com sha256. `npm run fontes` baixa, confere e copia pra pasta
+de fontes do usuário (Windows) ou `~/.local/share/fonts` (Linux) — não mexe nas
+fontes do sistema. Marca nova com fonte nova: uma linha a mais no arquivo.
 
 ## O que garante o isolamento
 

@@ -8,9 +8,27 @@ import { query, createSdkMcpServer, tool, type HookCallback, type McpServerConfi
 import { z } from 'zod';
 import { servidorMcp, prefixoFerramentas, ferramentasBloqueadas } from './apps.ts';
 import type { Config } from './config.ts';
-import type { Ajuste, Custos } from './fila.ts';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import type { Ajuste, Custos, Elemento } from './fila.ts';
 import type { Conjunto } from './marca.ts';
-import type { Skill } from './skills.ts';
+import type { SaidaEsperada, Skill } from './skills.ts';
+
+/**
+ * O único jeito do agente escrever arquivo que não é imagem: só .txt, só em
+ * saida/, só os nomes que o pedido manda entregar. O agente não tem Write —
+ * de propósito —, e esta porta é estreita do mesmo jeito.
+ */
+export function salvarTexto(pastaJob: string, saidas: SaidaEsperada[], caminho: string, texto: string): string {
+  const permitidos = new Set(saidas.filter((s) => s.caminho.endsWith('.txt')).map((s) => s.caminho));
+  if (!permitidos.has(caminho)) {
+    throw new Error(`só dá pra salvar texto em ${[...permitidos].join(', ') || '(nenhum arquivo de texto neste pedido)'}`);
+  }
+  const destino = path.join(pastaJob, caminho);
+  mkdirSync(path.dirname(destino), { recursive: true });
+  writeFileSync(destino, texto.replace(/\r\n/g, '\n').trim() + '\n', 'utf8');
+  return destino;
+}
 
 export type Etapa = { etapa: string; progresso: number };
 
@@ -21,9 +39,22 @@ export type DadosDaPeca = {
   /** Ajustes que valem pra esta rodada, do mais antigo ao atual (vazio na produção). */
   ajustes: Ajuste[];
   fonte: string;
+  pesos: { titulo: number; texto: number };
+  /** Fonte condensada de manchete: títulos em caixa alta e maiores. */
+  impacto: boolean;
   margem: number;
   alinhamento: 'left' | 'center';
   textoDoCliente: string;
+  briefing: Record<string, unknown>;
+  instagram: string | null;
+  chamada: string | null;
+  hashtags: string | null;
+  registro: string | null;
+  numerar: boolean;
+  semEmoji: boolean;
+  /** As saídas deste pedido, já com {n} expandido. */
+  saidas: SaidaEsperada[];
+  elementos: Elemento[];
 };
 
 export type ParametrosAgente = {
@@ -73,6 +104,22 @@ export const rodarAgente: Agente = async (p) => {
         async ({ etapa, progresso }) => {
           await p.aoMudarEtapa({ etapa, progresso });
           return { content: [{ type: 'text', text: 'ok' }] };
+        },
+      ),
+      tool(
+        'salvar_texto',
+        'Salva um arquivo de texto da entrega (legenda, títulos). Só os .txt listados em "Entregue".',
+        {
+          caminho: z.string().describe('Exatamente como está em "Entregue", ex.: saida/legenda.txt'),
+          texto: z.string().min(1).max(5000),
+        },
+        async ({ caminho, texto }) => {
+          try {
+            salvarTexto(p.pastaJob, p.dados.saidas, caminho, texto);
+            return { content: [{ type: 'text', text: 'salvo' }] };
+          } catch (e) {
+            return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
+          }
         },
       ),
     ],

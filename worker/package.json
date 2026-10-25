@@ -11,6 +11,7 @@
     "roteiro": "node --env-file-if-exists=.env src/worker.ts --uma-vez --roteiro",
     "enfileirar-teste": "node --env-file-if-exists=.env scripts/enfileirar-teste.ts",
     "ensaio": "node scripts/ensaio-sdk.ts",
+    "fontes": "node scripts/instalar-fontes.ts",
     "test": "node --test teste/*.test.ts",
     "e2e": "node --env-file-if-exists=.env --test --test-concurrency=1 teste-e2e/*.e2e.ts",
     "tipos": "tsc --noEmit"

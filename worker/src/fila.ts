@@ -23,6 +23,8 @@ export type Job = {
   estado: string;
   tentativas: number;
   max_tentativas: number;
+  /** O motivo da tentativa anterior ter falhado, quando houve. */
+  erro?: string | null;
 };
 
 export type Pedido = { id: string; tipo: string; titulo: string | null; briefing: Record<string, unknown>; publicar_em: string | null };
@@ -95,7 +97,7 @@ export async function carregarContexto(sb: SupabaseClient, job: Job): Promise<{ 
     'ler pedido',
   ) as Pedido;
   const cliente = ok(
-    await sb.from('clientes').select('nome, nome_preferido, cor, marca, registro_profissional').eq('id', job.cliente_id).single(),
+    await sb.from('clientes').select('nome, nome_preferido, cor, marca, registro_profissional, instagram').eq('id', job.cliente_id).single(),
     'ler cliente',
   ) as ClienteParaMarca;
   return { pedido, cliente };
@@ -120,14 +122,49 @@ export async function historicoDeAjustes(sb: SupabaseClient, job: Job): Promise<
     .map((l) => ({ texto: l.entrada.texto ?? null, atalhos: l.entrada.atalhos ?? [] }));
 }
 
-/** O editável da versão de que o ajuste parte. */
-export async function baixarEditavelBase(sb: SupabaseClient, job: Job, relativo: string): Promise<Buffer | null> {
+export type ArquivoDeEntrada = { nome: string; conteudo: Buffer };
+
+/**
+ * Todos os editáveis da versão de que o ajuste parte — num carrossel são dez
+ * PSDs, e um ajuste de cor mexe em todos. Vão pra entrada/anterior/.
+ */
+export async function baixarEditaveisBase(sb: SupabaseClient, job: Job): Promise<ArquivoDeEntrada[]> {
   const base = job.entrada.base_job as string | undefined;
-  if (!base) return null;
-  const caminho = [job.conta_id, job.cliente_id, job.pedido_id, base, relativo].join('/');
-  const { data, error } = await sb.storage.from(BALDE).download(caminho);
-  if (error) throw new Error(`baixar a versão anterior (${relativo}): ${error.message}`);
-  return Buffer.from(await data.arrayBuffer());
+  if (!base) return [];
+  const { data: rodada } = await sb.from('jobs').select('saidas').eq('id', base).single();
+  const editaveis = ((rodada?.saidas ?? []) as Array<{ caminho: string; papel: string }>).filter((s) => s.papel === 'editavel');
+  const arquivos: ArquivoDeEntrada[] = [];
+  for (const s of editaveis) {
+    const { data, error } = await sb.storage.from(BALDE).download(s.caminho);
+    if (error) throw new Error(`baixar a versão anterior (${s.caminho}): ${error.message}`);
+    arquivos.push({ nome: `anterior/${s.caminho.split('/').pop()}`, conteudo: Buffer.from(await data.arrayBuffer()) });
+  }
+  return arquivos;
+}
+
+export type Elemento = { tipo: string; nome: string; arquivo: string; largura: number | null; altura: number | null };
+
+/**
+ * A biblioteca de elementos do cliente (logo, selo, foto…), do balde que o
+ * Estúdio enche. Vão pra entrada/elementos/ com o tipo no nome, e o agente
+ * recebe a lista com o tamanho de cada um — pra pôr o logo com 140 px sem
+ * precisar adivinhar a escala.
+ */
+export async function baixarElementos(sb: SupabaseClient, job: Job): Promise<{ elementos: Elemento[]; arquivos: ArquivoDeEntrada[] }> {
+  const { data: linhas, error } = await sb.from('marca_elementos')
+    .select('tipo, nome, caminho, largura, altura').eq('cliente_id', job.cliente_id).order('criado_em').limit(12);
+  if (error) throw new Error(`ler elementos: ${error.message}`);
+  const elementos: Elemento[] = [];
+  const arquivos: ArquivoDeEntrada[] = [];
+  for (const [i, l] of (linhas ?? []).entries()) {
+    const { data, error: e } = await sb.storage.from('elementos').download(l.caminho);
+    if (e) continue; // elemento sumido do balde não derruba a peça
+    const ext = (l.caminho.match(/\.[a-z0-9]+$/i)?.[0] ?? '.png').toLowerCase();
+    const arquivo = `elementos/${l.tipo}-${i + 1}${ext}`;
+    arquivos.push({ nome: arquivo, conteudo: Buffer.from(await data.arrayBuffer()) });
+    elementos.push({ tipo: l.tipo, nome: l.nome, arquivo: `entrada/${arquivo}`, largura: l.largura, altura: l.altura });
+  }
+  return { elementos, arquivos };
 }
 
 /** pedidos/<conta>/<cliente>/<pedido>/<job>/<saida|editavel>/<arquivo> — o RLS do balde lê essa ordem. */

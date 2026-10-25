@@ -127,6 +127,7 @@
   .btn:disabled{ opacity:.45; cursor:not-allowed; }
   .botoes{ display:flex; gap:10px; flex-wrap:wrap; }
   .botoes .btn{ flex:1 1 140px; }
+  .acoes .btn{ white-space:nowrap; padding:0 14px; }
 
   .chips{ display:flex; flex-wrap:wrap; gap:8px; }
   .chip{
@@ -196,6 +197,23 @@
   .barra{ height:10px; border-radius:10px; background:var(--linha); overflow:hidden; }
   .barra i{ display:block; height:100%; background:var(--laranja); border-radius:10px; transition:width .5s ease; }
   .etapa{ font-family:var(--display); font-weight:700; font-size:1.2rem; }
+  /* Carrossel: desliza de lado, uma imagem por vez, com a próxima aparecendo na borda. */
+  .galeria{ display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:6px; overscroll-behavior-x:contain; }
+  /* min-width:0 — sem ele a imagem não encolhe abaixo da largura própria e
+     passa da tela, em vez de deixar a próxima aparecer na borda. */
+  .galeria img, .galeria .img-vazia{ flex:0 0 86%; min-width:0; max-width:420px; aspect-ratio:4/5; border-radius:12px; scroll-snap-align:center; object-fit:cover; background:var(--sup2); box-shadow:var(--s1); display:block; }
+  .galeria.antiga, .opcoes.antiga{ opacity:.55; }
+  /* Capa: as três opções empilhadas, a escolhida com moldura. */
+  .opcao{ display:block; width:100%; text-align:left; padding:0; border:2.5px solid transparent; border-radius:14px; background:none; }
+  .opcao img, .opcao .img-vazia{ display:block; width:100%; aspect-ratio:16/9; border-radius:11px; object-fit:cover; background:var(--sup2); }
+  .opcao .rotulo-opcao{ display:block; padding:6px 4px 2px; font-weight:600; font-size:0.92rem; }
+  .opcao[aria-pressed="true"], .opcao.escolhida{ border-color:var(--laranja-forte); }
+  .texto-entrega{ white-space:pre-wrap; line-height:1.55; }
+  .titulos{ list-style:none; margin:0; padding:0; }
+  .titulos li{ display:flex; gap:12px; align-items:baseline; justify-content:space-between; padding:8px 0; border-top:1px solid var(--linha); }
+  .titulos li:first-child{ border-top:none; }
+  .baixar .btn{ flex:0 1 auto; min-height:42px; padding:0 16px; font-size:0.92rem; }
+
   /* Só as laterais e o pé: o topo é do espaçamento entre blocos (.pilha-g). */
   .figura{ margin-left:0; margin-right:0; margin-bottom:0; }
   .previa{ display:block; width:100%; max-width:440px; aspect-ratio:4/5; margin:0 auto; border-radius:12px; background:var(--sup2); object-fit:contain; box-shadow:var(--s1); }
@@ -275,10 +293,10 @@
   // aparece, porque saber que vai existir também é informação, mas não clica.
   const TIPOS = [
     { k:'post-feed',    nome:'Post para feed',          sub:'Uma imagem para o feed do Instagram', icone:'post',        ativo:true },
-    { k:'carrossel',    nome:'Carrossel',               sub:'Várias imagens em sequência',         icone:'carrossel',   ativo:false },
+    { k:'carrossel',    nome:'Carrossel',               sub:'Várias imagens em sequência',         icone:'carrossel',   ativo:true },
     { k:'story',        nome:'Story',                   sub:'Em pé, some em 24 horas',             icone:'story',       ativo:false },
     { k:'reel',         nome:'Reel ou vídeo curto',     sub:'A partir do vídeo que você gravou',   icone:'reel',        ativo:false },
-    { k:'capa',         nome:'Capa ou thumbnail',       sub:'A imagem que chama pro vídeo',        icone:'capa',        ativo:false },
+    { k:'capa',         nome:'Capa ou thumbnail',       sub:'Três opções de capa pro seu vídeo',   icone:'capa',        ativo:true },
     { k:'apresentacao', nome:'Vídeo de apresentação',   sub:'Contando o que o seu negócio faz',    icone:'apresentacao', ativo:false },
   ];
   const NOME_TIPO = Object.fromEntries(TIPOS.map(t => [t.k, t.nome]));
@@ -296,6 +314,20 @@
     ['todos', 'Todos'], ['produzindo', 'Fazendo'], ['para_aprovar', 'Para aprovar'], ['aprovado', 'Aprovados'],
   ];
   const OBJETIVOS = ['Atrair gente nova', 'Vender', 'Ensinar algo', 'Contar uma novidade'];
+  const QTD_SLIDES = [3, 5, 7, 10];
+  const PERGUNTA = {
+    'post-feed': { titulo:'O que o post precisa dizer?', ajuda:'Uma ou duas frases, do seu jeito. A Bora transforma em post com a sua marca.', exemplo:'Ex.: Abrimos turma nova no laboratório, inscrições até sexta.' },
+    carrossel:   { titulo:'Sobre o que é o carrossel?', ajuda:'Conte as ideias que ele precisa passar, uma por frase. Cada ideia vira uma imagem.', exemplo:'Ex.: Não existe atalho pra liderar. Liderança se aprende fazendo. Organização vem antes de talento.' },
+    capa:        { titulo:'Sobre o que é o vídeo?', ajuda:'Uma ou duas frases sobre o vídeo. A Bora faz três opções de capa pra você escolher.', exemplo:'Ex.: Como montei um time de produto sem saber programar.' },
+  };
+
+  // O que vai sair, em palavras de quem pede. Uma frase por tipo, e a mesma
+  // frase serve no resumo do pedido e no nome do botão.
+  const SAI = {
+    'post-feed': () => ({ peca:'1 post para o feed do Instagram, em pé', botao:'Pedir post' }),
+    carrossel:   (n) => ({ peca:`1 carrossel de ${n.slides} imagens para o feed, em pé`, botao:'Pedir carrossel' }),
+    capa:        () => ({ peca:'3 opções de capa para vídeo do YouTube, deitada, e 2 sugestões de título pro vídeo', botao:'Pedir capas' }),
+  };
   const TONS = ['Como sempre', 'Mais sério', 'Mais leve'];
   const ATALHOS = ['mais curto', 'outra cor da marca', 'mais sério', 'troca a foto'];
   const ROTULO_ATALHO = { 'mais curto':'Mais curto', 'outra cor da marca':'Outra cor da marca', 'mais sério':'Mais sério', 'troca a foto':'Troca a foto' };
@@ -310,6 +342,8 @@
     pedidos: [],
     eventos: {},          // pedido_id -> eventos visíveis
     urls: {},             // caminho no balde -> link assinado
+    textos: {},           // caminho no balde -> conteúdo da legenda/títulos
+    escolha: {},          // pedido_id -> opção de capa marcada (antes de aprovar)
     rota: { nome:'hoje', arg:null },
     filtro: 'todos',
     novo: null,           // rascunho do pedido em 3 passos
@@ -391,7 +425,7 @@
     if(nome === 'novo'){
       const tipo = TIPOS.find(t => t.k === arg && t.ativo);
       if(!tipo){ ir('#/hoje'); return; }
-      if(!state.novo || state.novo.tipo !== tipo.k) state.novo = { tipo:tipo.k, passo:1, texto:'', objetivo:null, tom:'Como sempre', data:'' };
+      if(!state.novo || state.novo.tipo !== tipo.k) state.novo = { tipo:tipo.k, passo:1, texto:'', objetivo:null, tom:'Como sempre', data:'', slides:5 };
     }
     if(nome === 'pedido' && arg){
       if(!state.pedidos.find(p => p.id === arg)) await carregarPedido(arg);
@@ -407,7 +441,7 @@
   // O "!jobs_pedido_id_fkey" diz por qual ligação trazer as rodadas: desde que
   // o pedido guarda a rodada aprovada (job_aprovado), há dois caminhos entre
   // as tabelas, e sem a indicação o banco recusa a consulta inteira.
-  const COLUNAS_PEDIDO = 'id, cliente_id, tipo, titulo, briefing, estado, publicar_em, ajustes, job_aprovado, aprovado_em, criado_em, atualizado_em, '
+  const COLUNAS_PEDIDO = 'id, cliente_id, tipo, titulo, briefing, estado, publicar_em, ajustes, job_aprovado, escolha, aprovado_em, criado_em, atualizado_em, '
     + 'jobs!jobs_pedido_id_fkey(id, rodada, estado, etapa, progresso, saidas, erro, criado_em, atualizado_em)';
 
   async function carregarClientes(){
@@ -468,19 +502,30 @@
   const prontos = (p) => jobsDe(p).filter(j => j.estado === 'pronto');
   const jobEmAndamento = (p) => jobsDe(p).filter(j => j.estado === 'na_fila' || j.estado === 'rodando').pop() || null;
   const ultimoJob = (p) => jobsDe(p).pop() || null;
-  const pngDe = (job) => job && (job.saidas || []).find(s => s.papel === 'saida' && /png|jpeg/.test(s.mime || ''));
+  const saidasDe = (job) => (job && job.saidas || []).filter(s => s.papel === 'saida').sort((a, b) => a.caminho.localeCompare(b.caminho));
+  const imagensDe = (job) => saidasDe(job).filter(s => /png|jpeg/.test(s.mime || ''));
+  const textoDe = (job, nome) => saidasDe(job).find(s => s.caminho.endsWith('/' + nome));
+  const pngDe = (job) => imagensDe(job)[0];
 
-  // O balde é fechado: a imagem chega por link assinado, que vale uma hora.
+  // O balde é fechado: imagem e texto chegam por link assinado, que vale uma
+  // hora. O texto (legenda, títulos) é baixado uma vez e guardado na memória.
   async function garantirUrls(){
     const faltam = [];
     for(const p of state.pedidos) for(const j of prontos(p)){
-      const s = pngDe(j);
-      if(s && !state.urls[s.caminho]) faltam.push(s.caminho);
+      for(const s of saidasDe(j)) if(!state.urls[s.caminho]) faltam.push(s.caminho);
     }
     if(!faltam.length) return;
     const { data } = await sb.storage.from(BALDE).createSignedUrls(faltam, 3600);
     for(const d of data || []) if(d.signedUrl) state.urls[d.path] = d.signedUrl;
+    await Promise.all((data || []).filter(d => d.signedUrl && d.path.endsWith('.txt') && state.textos[d.path] == null).map(async d => {
+      try { state.textos[d.path] = await (await fetch(d.signedUrl)).text(); } catch { /* tenta de novo no próximo render */ }
+    }));
     agendarRender();
+  }
+
+  async function copiar(texto, aviso){
+    try { await navigator.clipboard.writeText(texto); avisar('ok', aviso); }
+    catch { avisar('erro', 'Não deu pra copiar daqui. Segure o dedo no texto e copie.'); }
   }
 
   // ---------- tempo real ----------
@@ -541,6 +586,7 @@
     const briefing = { texto: n.texto.trim() };
     if(n.objetivo) briefing.objetivo = n.objetivo;
     if(n.tom && n.tom !== 'Como sempre') briefing.tom = n.tom;
+    if(n.tipo === 'carrossel') briefing.slides = n.slides;
     const publicarEm = n.data ? new Date(n.data + 'T12:00:00').toISOString() : null;
     const { data, error } = await sb.rpc('criar_pedido', {
       p_cliente: state.clienteId, p_tipo: n.tipo, p_briefing: briefing, p_publicar_em: publicarEm,
@@ -555,7 +601,7 @@
 
   async function aprovar(p){
     state.ocupado = true; render();
-    const { error } = await sb.rpc('aprovar_pedido', { p_pedido: p.id });
+    const { error } = await sb.rpc('aprovar_pedido', { p_pedido: p.id, p_escolha: p.tipo === 'capa' ? state.escolha[p.id] : null });
     state.ocupado = false;
     if(error){ avisar('erro', mensagemDeErro(error)); return; }
     await carregarPedido(p.id);
@@ -578,7 +624,7 @@
   async function trocarCliente(id){
     state.clienteId = id;
     gravarLocal('bora-app:cliente', id);
-    state.pedidos = []; state.marca = null; state.eventos = {}; state.novo = null; state.ajuste = null;
+    state.pedidos = []; state.marca = null; state.eventos = {}; state.novo = null; state.ajuste = null; state.escolha = {};
     state.carregando = true; render();
     try { await carregarDoCliente(); } catch(e){ avisar('erro', mensagemDeErro(e)); }
     state.carregando = false;
@@ -730,11 +776,13 @@
           continuar.disabled = n.texto.trim().length < 3;
         } });
       area.value = n.texto;
+      const pergunta = PERGUNTA[n.tipo];
+      area.placeholder = pergunta.exemplo;
       return h('div', { class:'pilha-g' }, cabeca,
         h('div', { class:'pilha' },
-          h('h1', {}, 'O que o post precisa dizer?'),
-          h('p', { class:'fraco' }, 'Uma ou duas frases, do seu jeito. A Bora transforma em post com a sua marca.')),
-        h('div', { class:'campo' }, h('label', { for:'texto', class:'sr' }, 'O que o post precisa dizer'), area, contador),
+          h('h1', {}, pergunta.titulo),
+          h('p', { class:'fraco' }, pergunta.ajuda)),
+        h('div', { class:'campo' }, h('label', { for:'texto', class:'sr' }, pergunta.titulo), area, contador),
         continuar);
     }
 
@@ -747,7 +795,12 @@
       data.value = n.data;
       return h('div', { class:'pilha-g' }, cabeca,
         h('h1', {}, 'Algumas escolhas'),
-        grupo('Pra que serve esse post?', OBJETIVOS, n.objetivo, (v) => { n.objetivo = v; }, 'g-obj'),
+        n.tipo === 'carrossel' && h('fieldset', { class:'pilha', style:{ border:'none', padding:0, margin:0 } },
+          h('legend', { style:{ fontWeight:600, padding:0, marginBottom:'8px' } }, 'Quantas imagens?'),
+          h('div', { class:'chips', role:'group', 'aria-label':'Quantas imagens' }, QTD_SLIDES.map(q =>
+            h('button', { class:'chip', type:'button', 'aria-pressed': String(n.slides === q), onclick: () => { n.slides = q; render(); } }, String(q)))),
+          h('p', { class:'fraco', style:{ fontSize:'0.88rem' } }, 'A primeira é a capa e a última é o convite. Se o assunto rende pouco, menos imagens ficam melhores.')),
+        grupo(n.tipo === 'capa' ? 'Pra que serve esse vídeo?' : 'Pra que serve esse post?', OBJETIVOS, n.objetivo, (v) => { n.objetivo = v; }, 'g-obj'),
         grupo('Que jeito ele tem?', TONS, n.tom, (v) => { n.tom = v || 'Como sempre'; }, 'g-tom'),
         h('div', { class:'campo' }, h('label', { for:'data' }, 'Quando vai ao ar? ', h('span', { class:'fraco', style:{ fontWeight:400 } }, '(se já souber)')), data),
         h('div', { class:'botoes' },
@@ -759,11 +812,14 @@
     const m = state.marca || {};
     const conj = (m.conjuntos || []).find(c => c.k === m.conjuntoPadrao) || (m.conjuntos || [])[0];
     const cores = conj ? [conj.fundo, conj.tinta || '#FFFFFF', conj.faixa || conj.destaque].filter(Boolean) : (m.paleta || []).slice(0, 3).map(p => p.cor);
+    const sai = SAI[n.tipo](n);
     return h('div', { class:'pilha-g' }, cabeca,
       h('h1', {}, 'Confere antes de pedir'),
       h('dl', { class:'cartao resumo' },
         h('dt', {}, 'O que vai sair'),
-        h('dd', {}, '1 post para o feed do Instagram, em pé'),
+        h('dd', {}, sai.peca),
+        h('dt', {}, 'Junto'),
+        h('dd', {}, n.tipo === 'capa' ? 'A descrição do vídeo, com hashtags' : 'A legenda e as hashtags, prontas pra colar'),
         h('dt', {}, 'Com o seu texto'),
         h('dd', {}, '“' + n.texto.trim() + '”'),
         (n.objetivo || n.tom !== 'Como sempre') && h('dt', {}, 'Do jeito que você escolheu'),
@@ -776,7 +832,7 @@
         h('dd', {}, 'Em poucos minutos. Você vê e aprova antes de qualquer coisa ir ao ar.')),
       h('div', { class:'botoes' },
         h('button', { class:'btn sec', onclick: () => { n.passo = 2; render(); } }, 'Voltar'),
-        h('button', { class:'btn pri', disabled: state.ocupado, onclick: pedir }, state.ocupado ? 'Enviando…' : 'Pedir post')));
+        h('button', { class:'btn pri', disabled: state.ocupado, onclick: pedir }, state.ocupado ? 'Enviando…' : sai.botao)));
   }
 
   // ---------- acompanhamento ----------
@@ -800,7 +856,8 @@
       const pct = Math.round(Number(andamento.progresso) || 0);
       const etapa = andamento.estado === 'na_fila' ? 'Esperando a vez' : (andamento.etapa === 'preparando' || !andamento.etapa ? 'Preparando' : andamento.etapa.charAt(0).toUpperCase() + andamento.etapa.slice(1));
       blocos.push(h('div', { class:'cartao pilha' },
-        h('p', { class:'rot' }, andamento.rodada === 'ajuste' ? 'Fazendo o ajuste' : 'Fazendo o seu post'),
+        h('p', { class:'rot' }, andamento.rodada === 'ajuste' ? 'Fazendo o ajuste'
+          : { carrossel:'Fazendo o seu carrossel', capa:'Fazendo as suas capas' }[p.tipo] || 'Fazendo o seu post'),
         h('p', { class:'etapa', 'aria-live':'polite' }, etapa),
         h('div', { class:'barra', role:'progressbar', 'aria-valuemin':'0', 'aria-valuemax':'100', 'aria-valuenow':String(pct), 'aria-label':'Andamento' },
           h('i', { style:{ width: Math.max(pct, 4) + '%' } })),
@@ -815,11 +872,66 @@
     }
 
     if(vista){
-      const legenda = andamento && andamento.rodada === 'ajuste' ? 'Versão anterior. O ajuste está sendo feito.' : null;
-      blocos.push(h('figure', { class:'pilha figura' },
-        url ? h('img', { class:'previa' + (legenda ? ' antiga' : ''), src:url, alt:'Prévia do post: ' + (p.titulo || '') })
-            : h('div', { class:'previa', role:'img', 'aria-label':'Carregando a prévia' }),
-        legenda && h('figcaption', { class:'fraco', style:{ textAlign:'center', fontSize:'0.9rem' } }, legenda)));
+      const antiga = andamento && andamento.rodada === 'ajuste';
+      const imagens = imagensDe(vista);
+      const legendaFoto = antiga ? 'Versão anterior. O ajuste está sendo feito.' : null;
+
+      if(p.tipo === 'capa'){
+        // Três opções: o cliente escolhe uma, e é ela que vai pro pedido.
+        const marcada = p.estado === 'aprovado' ? p.escolha : state.escolha[p.id];
+        const podeEscolher = p.estado === 'para_aprovar';
+        blocos.push(h('fieldset', { class:'pilha opcoes' + (antiga ? ' antiga' : ''), style:{ border:'none', padding:0, margin:0 } },
+          h('legend', { class:'rot', style:{ padding:0, marginBottom:'8px' } }, podeEscolher ? 'Escolha uma das três' : 'As três opções'),
+          imagens.map((s, i) => {
+            const n = i + 1;
+            const u = state.urls[s.caminho];
+            const conteudo = [
+              u ? h('img', { src:u, alt:'Capa, opção ' + n }) : h('span', { class:'img-vazia', role:'img', 'aria-label':'Carregando a opção ' + n }),
+              h('span', { class:'rotulo-opcao' }, 'Opção ' + n + (p.estado === 'aprovado' && marcada === n ? ' · a escolhida' : '')),
+            ];
+            return podeEscolher
+              ? h('button', { type:'button', class:'opcao', 'aria-pressed': String(marcada === n),
+                  onclick: () => { state.escolha[p.id] = n; render(); } }, conteudo)
+              : h('div', { class:'opcao' + (marcada === n ? ' escolhida' : '') }, conteudo);
+          }),
+          legendaFoto && h('p', { class:'fraco', style:{ fontSize:'0.9rem' } }, legendaFoto)));
+      } else if(imagens.length > 1){
+        // Carrossel: desliza como no Instagram, uma imagem por vez.
+        blocos.push(h('figure', { class:'pilha figura' },
+          h('div', { class:'galeria' + (antiga ? ' antiga' : ''), role:'group', 'aria-label':'Imagens do carrossel', tabindex:'0' },
+            imagens.map((s, i) => {
+              const u = state.urls[s.caminho];
+              return u ? h('img', { src:u, alt:'Imagem ' + (i + 1) + ' de ' + imagens.length })
+                       : h('span', { class:'img-vazia', role:'img', 'aria-label':'Carregando a imagem ' + (i + 1) });
+            })),
+          h('figcaption', { class:'fraco', style:{ textAlign:'center', fontSize:'0.9rem' } },
+            legendaFoto || imagens.length + ' imagens · deslize pro lado')));
+      } else {
+        blocos.push(h('figure', { class:'pilha figura' },
+          url ? h('img', { class:'previa' + (antiga ? ' antiga' : ''), src:url, alt:'Prévia do post: ' + (p.titulo || '') })
+              : h('div', { class:'previa', role:'img', 'aria-label':'Carregando a prévia' }),
+          legendaFoto && h('figcaption', { class:'fraco', style:{ textAlign:'center', fontSize:'0.9rem' } }, legendaFoto)));
+      }
+
+      // O que acompanha a imagem: a legenda (ou a descrição do vídeo) e, na
+      // capa, as duas sugestões de título. Cada um com o seu botão de copiar.
+      const leg = textoDe(vista, 'legenda.txt');
+      const legTexto = leg && state.textos[leg.caminho];
+      if(legTexto){
+        blocos.push(h('section', { class:'cartao pilha', 'aria-labelledby':'legenda' },
+          h('h2', { id:'legenda' }, p.tipo === 'capa' ? 'Descrição do vídeo' : 'Legenda'),
+          h('p', { class:'texto-entrega' }, legTexto.trim()),
+          h('button', { class:'btn sec', type:'button', onclick: () => copiar(legTexto.trim(), p.tipo === 'capa' ? 'Descrição copiada.' : 'Legenda copiada.') },
+            p.tipo === 'capa' ? 'Copiar a descrição' : 'Copiar a legenda')));
+      }
+      const tit = textoDe(vista, 'titulos.txt');
+      const titTexto = tit && state.textos[tit.caminho];
+      if(titTexto){
+        blocos.push(h('section', { class:'cartao pilha', 'aria-labelledby':'titulos' },
+          h('h2', { id:'titulos' }, 'Títulos pro vídeo'),
+          h('ul', { class:'titulos' }, titTexto.split('\n').map(t => t.trim()).filter(Boolean).map(t =>
+            h('li', {}, h('span', {}, t), h('button', { class:'linkbtn', type:'button', 'aria-label':'Copiar o título ' + t, onclick: () => copiar(t, 'Título copiado.') }, 'Copiar'))))));
+      }
       if(versoes.length > 1){
         blocos.push(h('div', { class:'pilha' },
           h('p', { class:'rot' }, 'Versões'),
@@ -830,8 +942,13 @@
               uv ? h('img', { src:uv, alt:'' }) : h('span', { class:'miniatura' }));
           }))));
       }
-      if(p.estado === 'aprovado' && url){
-        blocos.push(h('a', { class:'btn sec cheio', href:url, download:'post.png', target:'_blank', rel:'noopener' }, 'Baixar a imagem'));
+      if(p.estado === 'aprovado'){
+        // O que baixar: a imagem do post, todas as do carrossel, ou a capa escolhida.
+        const baixar = p.tipo === 'capa' ? imagens.filter((_, i) => i + 1 === p.escolha) : imagens;
+        const links = baixar.map((s, i) => state.urls[s.caminho] && h('a', {
+          class:'btn sec' + (baixar.length === 1 ? ' cheio' : ''), href:state.urls[s.caminho], download:s.caminho.split('/').pop(), target:'_blank', rel:'noopener',
+        }, baixar.length === 1 ? 'Baixar a imagem' : 'Imagem ' + (i + 1))).filter(Boolean);
+        if(links.length) blocos.push(baixar.length === 1 ? links[0] : h('div', { class:'pilha' }, h('p', { class:'rot' }, 'Baixar'), h('div', { class:'botoes baixar' }, links)));
       }
     }
 
@@ -858,7 +975,10 @@
         blocos.push(h('div', { class:'acoes' }, h('div', { class:'botoes' },
           h('button', { class:'btn sec', disabled: restam <= 0 || state.ocupado,
             onclick: () => { state.ajuste = { pedidoId:p.id, texto:'', atalhos:new Set() }; render(); } }, 'Pedir ajuste'),
-          h('button', { class:'btn pri', disabled: state.ocupado, onclick: () => aprovar(p) }, state.ocupado ? 'Aprovando…' : 'Aprovar'))));
+          p.tipo === 'capa'
+            ? h('button', { class:'btn pri', disabled: state.ocupado || !state.escolha[p.id], onclick: () => aprovar(p) },
+                state.ocupado ? 'Aprovando…' : state.escolha[p.id] ? 'Aprovar opção ' + state.escolha[p.id] : 'Escolha uma opção')
+            : h('button', { class:'btn pri', disabled: state.ocupado, onclick: () => aprovar(p) }, state.ocupado ? 'Aprovando…' : 'Aprovar'))));
       }
     }
 

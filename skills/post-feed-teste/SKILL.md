@@ -1,9 +1,9 @@
 ---
 name: post-feed-teste
 description: Post de teste da fábrica — fundo da marca, título na fonte da marca, faixa de destaque. Serve pra provar o caminho de ponta a ponta, não pra ir ao ar.
-# Atende "post-feed" só até o passo 3 trazer a skill post-feed de verdade.
-# Quando ela chegar, esta volta a ter tipos: [] e só roda pelo nome.
-tipos: [post-feed]
+# Sem tipo: só roda quando o job pede esta skill pelo nome. Os pedidos de
+# "post-feed" vão pra skill post-feed desde o passo 3.
+tipos: []
 apps: [photocraft]
 saidas:
   - saida/post.png 1080x1350
@@ -53,7 +53,7 @@ Se o pedido tem a seção "Ajuste pedido", não comece do zero: a peça já foi
 feita e o cliente quer mudar uma coisa.
 
 1. `avisar_etapa` com "fazendo o ajuste", progresso 20.
-2. `doc_open` com `{"path": "entrada/anterior.psd"}` e `doc_inspect` pra achar
+2. `doc_open` com `{"path": "entrada/anterior/post.psd"}` e `doc_inspect` pra achar
    as camadas (o fundo, a faixa e o texto).
 3. Mude só o que foi pedido:
    - "mais curto": reescreva o título com no máximo quatro palavras, sem

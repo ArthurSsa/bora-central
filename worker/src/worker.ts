@@ -10,30 +10,40 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as esperar } from 'node:timers/promises';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { fontesInstaladas } from './apps.ts';
+import { fontesInstaladas, pesoMaisPerto } from './apps.ts';
+import { conferirMarca, conferirTextos } from './conferencia.ts';
 import { lerConfig, type Config } from './config.ts';
 import { rodarAgente, FalhaDoAgente, CUSTO_ZERO, type Agente, type Etapa, type ResultadoAgente } from './agente.ts';
 import {
   conectar, pegarJob, renovarLease, anotar, evento, carregarContexto, subir, concluir, devolverOuFalhar,
-  historicoDeAjustes, baixarEditavelBase, type Ajuste, type Job, type Pedido,
+  historicoDeAjustes, baixarEditaveisBase, baixarElementos,
+  type Ajuste, type ArquivoDeEntrada, type Elemento, type Job, type Pedido,
 } from './fila.ts';
 import { montarSistema, montarPedido } from './instrucoes.ts';
 import { rodarRoteiro } from './roteiro.ts';
-import { marcaParaAgente, resolverFonte, type ClienteParaMarca, type FonteResolvida } from './marca.ts';
-import { carregarSkills, escolherSkill, type Skill } from './skills.ts';
+import { coresDaMarca, ehImpacto, marcaParaAgente, resolverFonte, type ClienteParaMarca, type FonteResolvida } from './marca.ts';
+import { carregarSkills, escolherSkill, expandirSaidas, type Skill } from './skills.ts';
 import { conferirSaida, type SaidaConferida } from './verificar.ts';
 
-export type Producao = { pastaJob: string; conferidas: SaidaConferida[]; resultado: ResultadoAgente; fonte: FonteResolvida };
+export type Producao = {
+  pastaJob: string;
+  conferidas: SaidaConferida[];
+  resultado: ResultadoAgente;
+  fonte: FonteResolvida;
+  avisos: string[];
+};
 
 /**
  * A parte que não fala com o banco: prepara a pasta, roda o agente e confere
- * o que ele salvou. Separada pra poder ser testada com um agente de mentira e
- * o PhotoCraft de verdade.
+ * o que ele salvou — arquivo por arquivo e depois a marca. Separada pra poder
+ * ser testada com o roteiro e o PhotoCraft de verdade.
  */
 export async function produzir(a: {
   cfg: Config;
-  job: Pick<Job, 'id'>;
+  job: Pick<Job, 'id'> & { erro?: string | null; tentativas?: number };
   skill: Skill;
+  /** Todas as skills, pras que esta usa (copy-e-hashtags). */
+  skills?: Map<string, Skill>;
   pedido: Pedido;
   cliente: ClienteParaMarca;
   instaladas: string[];
@@ -41,48 +51,79 @@ export async function produzir(a: {
   abortar: AbortController;
   aoMudarEtapa: (e: Etapa) => Promise<void>;
   aoUsarFerramenta: (nome: string, ms: number, falhou: boolean) => void;
-  /** Rodada de ajuste: o que foi pedido até aqui e o PSD da versão anterior. */
+  /** Rodada de ajuste: o que foi pedido até aqui. */
   ajustes?: Ajuste[];
-  anterior?: Buffer | null;
+  /** Arquivos que vão pra entrada/: a versão anterior e os elementos da marca. */
+  arquivos?: ArquivoDeEntrada[];
+  elementos?: Elemento[];
 }): Promise<Producao> {
   const pastaJob = path.join(a.cfg.pastaJobs, a.job.id);
   // Tentativa anterior pode ter deixado arquivo pela metade: começa limpo.
   rmSync(pastaJob, { recursive: true, force: true });
   for (const sub of ['entrada', 'saida', 'editavel']) mkdirSync(path.join(pastaJob, sub), { recursive: true });
-  if (a.anterior) writeFileSync(path.join(pastaJob, 'entrada', 'anterior.psd'), a.anterior);
+  for (const f of a.arquivos ?? []) {
+    const destino = path.join(pastaJob, 'entrada', f.nome);
+    mkdirSync(path.dirname(destino), { recursive: true });
+    writeFileSync(destino, f.conteudo);
+  }
+  const temAnterior = (a.arquivos ?? []).some((f) => f.nome.startsWith('anterior/'));
 
   const m = a.cliente.marca ?? {};
   const fonte = resolverFonte(m.fonteMarca, m.fonteFalback, a.instaladas);
-  const { texto: marca, conjunto, conjuntos } = marcaParaAgente(a.cliente, fonte);
+  const pesos = { titulo: pesoMaisPerto(fonte.usada, 700), texto: pesoMaisPerto(fonte.usada, 500) };
+  const { texto: marca, conjunto, conjuntos } = marcaParaAgente(a.cliente, fonte, { pesos });
   const ajustes = a.ajustes ?? [];
+  const saidas = expandirSaidas(a.skill, a.pedido.briefing);
+  const elementos = a.elementos ?? [];
+  // Só repete o motivo quando é de fato uma nova tentativa do mesmo job.
+  const erroAnterior = (a.job.tentativas ?? 1) > 1 ? a.job.erro ?? null : null;
 
   const resultado = await a.agente({
     cfg: a.cfg,
     skill: a.skill,
     pastaJob,
-    sistema: montarSistema(a.skill),
-    pedido: montarPedido(a.skill, a.pedido, marca, ajustes, Boolean(a.anterior)),
+    sistema: montarSistema(a.skill, a.skills),
+    pedido: montarPedido(a.skill, a.pedido, marca, { saidas, ajustes, temAnterior, elementos, erroAnterior }),
     dados: {
       conjunto,
       conjuntos,
       ajustes,
       fonte: fonte.usada,
+      pesos,
+      impacto: ehImpacto(m, fonte),
       margem: m.margem === 'folgada' ? 96 : 72,
       alinhamento: m.alinha === 'centro' ? 'center' : 'left',
       textoDoCliente: String(a.pedido.briefing?.texto ?? a.pedido.titulo ?? ''),
+      briefing: a.pedido.briefing ?? {},
+      instagram: a.cliente.instagram ? (a.cliente.instagram.startsWith('@') ? a.cliente.instagram : '@' + a.cliente.instagram) : null,
+      chamada: m.chamada || null,
+      hashtags: m.hashtags || null,
+      registro: a.cliente.registro_profissional,
+      numerar: Boolean(m.numerar),
+      semEmoji: /emoji/i.test(m.evitar ?? ''),
+      saidas,
+      elementos,
     },
     abortar: a.abortar,
     aoMudarEtapa: a.aoMudarEtapa,
     aoUsarFerramenta: a.aoUsarFerramenta,
   });
 
+  // Reprovou em qualquer conferência: o que o agente gastou continua contando,
+  // e o motivo vai pro job — a próxima tentativa recebe ele no pedido.
+  let conferidas: SaidaConferida[];
   try {
-    const conferidas = a.skill.saidas.map((s) => conferirSaida(pastaJob, s));
-    return { pastaJob, conferidas, resultado, fonte };
+    conferidas = saidas.map((s) => conferirSaida(pastaJob, s));
   } catch (e) {
-    // Reprovou na conferência: o que o agente gastou continua contando.
     throw new FalhaDoAgente(`reprovado na conferência: ${(e as Error).message}`, resultado.custos);
   }
+  const daMarca = conferirMarca(pastaJob, conferidas, { cores: coresDaMarca(a.cliente), fontes: [fonte.usada] });
+  const dosTextos = conferirTextos(pastaJob, conferidas, { semEmoji: /emoji/i.test(m.evitar ?? '') });
+  const erros = [...daMarca.erros, ...dosTextos.erros];
+  if (erros.length) {
+    throw new FalhaDoAgente(`reprovado na conferência de marca: ${erros.slice(0, 6).join('; ')}`, resultado.custos);
+  }
+  return { pastaJob, conferidas, resultado, fonte, avisos: [...daMarca.avisos, ...dosTextos.avisos] };
 }
 
 export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<string, Skill>, instaladas: string[], job: Job, agente: Agente) {
@@ -126,11 +167,12 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     log(`skill ${skill.nome}, apps ${skill.apps.join(', ')}${job.rodada === 'ajuste' ? ' (ajuste)' : ''}`);
 
     const ajustes = await historicoDeAjustes(sb, job);
-    const editavel = skill.saidas.find((s) => s.caminho.startsWith('editavel/'));
-    const anterior = job.rodada === 'ajuste' && editavel ? await baixarEditavelBase(sb, job, editavel.caminho) : null;
+    const anteriores = job.rodada === 'ajuste' ? await baixarEditaveisBase(sb, job) : [];
+    const { elementos, arquivos } = await baixarElementos(sb, job);
 
     const p = await produzir({
-      cfg, job, skill, pedido, cliente, instaladas, agente, abortar, ajustes, anterior,
+      cfg, job, skill, skills, pedido, cliente, instaladas, agente, abortar, ajustes, elementos,
+      arquivos: [...anteriores, ...arquivos],
       aoMudarEtapa: async ({ etapa, progresso }) => {
         log(`etapa: ${etapa} (${progresso}%)`);
         await anotar(sb, cfg, job, { etapa, progresso });
@@ -144,6 +186,7 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     if (p.fonte.substituida) {
       await evento(sb, job, `fonte "${p.fonte.pedida}" não instalada; usada "${p.fonte.usada}"`, { nivel: 'aviso' });
     }
+    for (const a of p.avisos) await evento(sb, job, a, { nivel: 'aviso' });
 
     await anotar(sb, cfg, job, { etapa: 'finalizando', progresso: 95 });
     const saidas = [];

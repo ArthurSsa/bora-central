@@ -1,20 +1,27 @@
-// Contra o PhotoCraft de verdade, sem modelo: as raízes de pasta seguram, os
-// comandos que a skill manda o agente usar existem e funcionam, e produzir()
-// aprova o que está certo e reprova o que não está.
+// Contra o PhotoCraft de verdade, sem modelo:
+//   - as raízes de pasta seguram;
+//   - cada skill, pelo roteiro (os mesmos comandos do SKILL.md), sai aprovada
+//     na conferência de marca com as marcas da Beatriz e do Moacyr;
+//   - a conferência reprova o que um designer reprovaria.
 //
-// Pula sozinho se o photocraft-cli não estiver na máquina.
+// Pula sozinho se o photocraft-cli não estiver na máquina. PASTA_PREVIAS=<pasta>
+// guarda as peças pra olhar.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fontesInstaladas, servidorMcp } from '../src/apps.ts';
-import { RAIZ_REPO, type Config } from '../src/config.ts';
+import { RAIZ_REPO, acharCli, type Config } from '../src/config.ts';
 import { produzir } from '../src/worker.ts';
 import { FalhaDoAgente, type Agente } from '../src/agente.ts';
+import { conferirMarca } from '../src/conferencia.ts';
+import { rodarRoteiro } from '../src/roteiro.ts';
 import { carregarSkills } from '../src/skills.ts';
-import { conferirSaida } from '../src/verificar.ts';
+import { coresDaMarca, type ClienteParaMarca } from '../src/marca.ts';
 import { abrirMcp } from '../src/mcp-cru.ts';
+import { BEATRIZ, MOACYR } from './marcas.ts';
 
 let instaladas: string[] = [];
 try {
@@ -23,51 +30,23 @@ try {
   /* sem PhotoCraft: os testes abaixo pulam */
 }
 const semApp = instaladas.length === 0 ? 'photocraft-cli não encontrado' : false;
-const skill = carregarSkills(path.join(RAIZ_REPO, 'skills')).get('post-feed-teste')!;
-
-/** Faz, pelo MCP, exatamente o que a SKILL.md manda o agente fazer. */
-async function seguirASkill(pasta: string, o: { fundo: string; faixa: string; tinta: string; fonte: string; titulo: string; largura?: number }) {
-  const mcp = await abrirMcp(servidorMcp('photocraft', pasta));
-  const passo = async (nome: string, args: Record<string, unknown>) => {
-    const r = await mcp.chamar(nome, args);
-    assert.ok(!r.erro, `${nome} falhou: ${r.texto}`);
-    return r.texto;
-  };
-  try {
-    const m = 96;
-    await passo('doc_new', { width: o.largura ?? 1080, height: 1350, background: o.fundo, name: 'post' });
-    await passo('command_run', { id: 'select.rect', params: { x: m, y: 1180, width: 180, height: 16 } });
-    await passo('command_run', { id: 'layer.newFillLayer.solidColor', params: { color: o.faixa } });
-    await passo('command_run', { id: 'select.deselect', params: {} });
-    await passo('command_run', {
-      id: 'type.create',
-      params: { text: o.titulo, box: [m, 420, 1080 - 2 * m, 600], font: o.fonte, size: 88, weight: 700, color: o.tinta, align: 'left' },
-    });
-    const doc = JSON.parse(await passo('doc_inspect', {}));
-    await passo('doc_save', { path: 'editavel/post.psd' });
-    await passo('doc_save', { path: 'saida/post.png' });
-    return doc;
-  } finally {
-    mcp.fechar();
-  }
-}
-
-function pastaDeJob() {
-  const p = mkdtempSync(path.join(tmpdir(), 'job-'));
-  for (const s of ['saida', 'editavel', 'entrada']) mkdirSync(path.join(p, s));
-  return p;
-}
+const semFontes = semApp || (!instaladas.includes('Manrope') || !instaladas.includes('Anton') ? 'Manrope/Anton não instaladas (npm run fontes)' : false);
+const skills = carregarSkills(path.join(RAIZ_REPO, 'skills'));
+const previas = process.env.PASTA_PREVIAS;
+const cfgTeste = (pastaJobs: string) => ({ pastaJobs, tetoUsd: 1 }) as Config;
+const pedidoDe = (tipo: string, briefing: Record<string, unknown>) => ({ id: 'p', tipo, titulo: null, briefing, publicar_em: null });
+const nada = { abortar: new AbortController(), aoMudarEtapa: async () => {}, aoUsarFerramenta: () => {} };
 
 test('a raiz de pasta segura: dentro grava, fora é recusado', { skip: semApp }, async () => {
-  const pasta = pastaDeJob();
+  const pasta = mkdtempSync(path.join(tmpdir(), 'job-'));
+  mkdirSync(path.join(pasta, 'saida'));
   const fora = mkdtempSync(path.join(tmpdir(), 'fora-'));
   const mcp = await abrirMcp(servidorMcp('photocraft', pasta));
   try {
     assert.ok(!(await mcp.chamar('doc_new', { width: 64, height: 64 })).erro);
     assert.ok(!(await mcp.chamar('doc_save', { path: 'saida/dentro.png' })).erro);
     assert.ok(existsSync(path.join(pasta, 'saida', 'dentro.png')));
-    const r = await mcp.chamar('doc_save', { path: path.join(fora, 'vazou.png') });
-    assert.ok(r.erro, 'gravou fora da pasta do job');
+    assert.ok((await mcp.chamar('doc_save', { path: path.join(fora, 'vazou.png') })).erro, 'gravou fora da pasta do job');
     assert.ok(!existsSync(path.join(fora, 'vazou.png')));
     assert.ok((await mcp.chamar('doc_save', { path: '../escapou.png' })).erro, 'aceitou ../');
   } finally {
@@ -75,105 +54,117 @@ test('a raiz de pasta segura: dentro grava, fora é recusado', { skip: semApp },
   }
 });
 
-test('os comandos da skill de teste funcionam e o PSD sai em camadas', { skip: semApp }, async () => {
-  const pasta = pastaDeJob();
-  const doc = await seguirASkill(pasta, { fundo: '#6128C2', faixa: '#E53B93', tinta: '#FFFFFF', fonte: instaladas[0], titulo: 'Um título de teste que quebra em mais de uma linha' });
-  const tipos = doc.layers.map((l: { kind: string }) => l.kind).sort();
-  assert.ok(tipos.includes('Type'), `sem camada de texto: ${tipos}`);
-  assert.equal(doc.layers.length, 3, 'fundo, faixa e texto');
-  const texto = doc.layers.find((l: { kind: string }) => l.kind === 'Type');
-  assert.equal(texto.text.font, instaladas[0]);
-  const [x, y, w, h] = texto.bounds;
-  assert.ok(x >= 96 && y >= 96 && x + w <= 1080 - 96 && y + h <= 1350 - 96, `título fora da margem: ${texto.bounds}`);
-  for (const s of skill.saidas) conferirSaida(pasta, s);
-});
+const PEDIDOS: Array<[string, string, Record<string, unknown>]> = [
+  ['post-feed', 'post-feed', { texto: 'Turma nova no laboratório de redes: inscrições abertas até sexta' }],
+  ['carrossel', 'carrossel', { texto: 'Não existe atalho pra liderar um time. Liderança se aprende fazendo. Organização vem antes de talento. Feedback toda semana', slides: 4 }],
+  ['capa-thumbnail', 'capa', { texto: 'Como montei um time de produto sem saber programar' }],
+];
 
-const cfgTeste = (pastaJobs: string) => ({ pastaJobs, tetoUsd: 1 }) as Config;
-const cliente = { nome: 'Glau Aguiar', nome_preferido: null, cor: '#6128C2', registro_profissional: null, marca: { fonteMarca: 'Fonte Que Não Existe', fonteFalback: 'display' } };
-const pedido = { id: 'p', tipo: 'post-feed', titulo: null, briefing: { texto: 'teste' }, publicar_em: null };
-const custos = { tokens_entrada: 10, tokens_saida: 5, tokens_cache_leitura: 0, tokens_cache_escrita: 0, custo_usd: 0.01, render_segundos: 0.2 };
+for (const [quem, cliente] of [['beatriz', BEATRIZ], ['moacyr', MOACYR]] as Array<[string, ClienteParaMarca]>) {
+  for (const [nomeSkill, tipo, briefing] of PEDIDOS) {
+    test(`${quem}: ${nomeSkill} pelo roteiro passa na conferência de marca`, { skip: semFontes }, async () => {
+      const raiz = previas ?? mkdtempSync(path.join(tmpdir(), 'jobs-'));
+      const etapas: number[] = [];
+      const r = await produzir({
+        cfg: cfgTeste(raiz), job: { id: `${quem}-${nomeSkill}` }, skill: skills.get(nomeSkill)!, skills,
+        pedido: pedidoDe(tipo, briefing), cliente, instaladas, agente: rodarRoteiro,
+        ...nada, aoMudarEtapa: async (e) => { etapas.push(e.progresso); },
+      });
+      assert.equal(r.fonte.substituida, false, `fonte substituída: ${r.fonte.usada}`);
+      const esperadas = { 'post-feed': 3, carrossel: 4 * 2 + 1, 'capa-thumbnail': 8 }[nomeSkill];
+      assert.equal(r.conferidas.length, esperadas);
+      for (let i = 1; i < etapas.length; i++) assert.ok(etapas[i] >= etapas[i - 1], `progresso voltou: ${etapas.join(' → ')}`);
+    });
+  }
+}
 
-test('produzir aprova o que a skill prometeu e entrega a fonte já resolvida ao agente', { skip: semApp }, async () => {
-  const raiz = mkdtempSync(path.join(tmpdir(), 'jobs-'));
-  let recebido = '';
-  const agente: Agente = async (p) => {
-    recebido = p.pedido;
-    await seguirASkill(p.pastaJob, { fundo: '#6128C2', faixa: '#E53B93', tinta: '#FFFFFF', fonte: instaladas[0], titulo: 'ok' });
-    return { custos, resumo: 'fiz', turnos: 3 };
-  };
+test('ajuste no roteiro: "outra cor" troca o conjunto e "mais curto" corta o título', { skip: semFontes }, async () => {
+  const raiz = previas ?? mkdtempSync(path.join(tmpdir(), 'jobs-'));
   const r = await produzir({
-    cfg: cfgTeste(raiz), job: { id: 'job-ok' }, skill, pedido, cliente, instaladas, agente,
-    abortar: new AbortController(), aoMudarEtapa: async () => {}, aoUsarFerramenta: () => {},
+    cfg: cfgTeste(raiz), job: { id: 'beatriz-ajuste' }, skill: skills.get('post-feed')!, skills,
+    pedido: pedidoDe('post-feed', { texto: 'Não existe atalho pra liderar um time de produto' }),
+    cliente: BEATRIZ, instaladas, agente: rodarRoteiro, ...nada,
+    ajustes: [{ texto: null, atalhos: ['outra cor da marca', 'mais curto'] }],
   });
-  assert.equal(r.conferidas.length, 2);
-  assert.ok(r.fonte.substituida);
-  assert.ok(recebido.includes(`"${r.fonte.usada}"`), 'o agente não recebeu a fonte resolvida');
+  assert.match(r.resultado.resumo, /Verde-limão/);
+  const info = JSON.parse(execFileSync(acharCli('photocraft'), ['info', path.join(r.pastaJob, 'editavel', 'post.psd'), '--compact'], { encoding: 'utf8' }));
+  const textos = info.layers.filter((l: { kind: string }) => l.kind === 'Type').map((l: { text: { text: string } }) => l.text.text);
+  assert.ok(textos.includes('Não existe atalho pra'), textos.join(' | '));
 });
 
 test('produzir reprova tamanho errado e guarda o custo da tentativa', { skip: semApp }, async () => {
   const raiz = mkdtempSync(path.join(tmpdir(), 'jobs-'));
+  const custos = { tokens_entrada: 10, tokens_saida: 5, tokens_cache_leitura: 0, tokens_cache_escrita: 0, custo_usd: 0.01, render_segundos: 0.2 };
   const agente: Agente = async (p) => {
-    await seguirASkill(p.pastaJob, { fundo: '#6128C2', faixa: '#E53B93', tinta: '#FFFFFF', fonte: instaladas[0], titulo: 'x', largura: 1000 });
+    const mcp = await abrirMcp(servidorMcp('photocraft', p.pastaJob));
+    await mcp.chamar('doc_new', { width: 1000, height: 1350, background: p.dados.conjunto.fundo });
+    await mcp.chamar('doc_save', { path: 'editavel/post.psd' });
+    await mcp.chamar('doc_save', { path: 'saida/post.png' });
+    mcp.fechar();
     return { custos, resumo: 'fiz', turnos: 3 };
   };
   await assert.rejects(
-    produzir({
-      cfg: cfgTeste(raiz), job: { id: 'job-torto' }, skill, pedido, cliente, instaladas, agente,
-      abortar: new AbortController(), aoMudarEtapa: async () => {}, aoUsarFerramenta: () => {},
-    }),
+    produzir({ cfg: cfgTeste(raiz), job: { id: 'torto' }, skill: skills.get('post-feed-teste')!, pedido: pedidoDe('post-feed', { texto: 'x' }), cliente: BEATRIZ, instaladas, agente, ...nada }),
     (e: unknown) => e instanceof FalhaDoAgente && /1000×1350/.test(e.message) && e.custos.custo_usd === 0.01,
   );
 });
 
-test('o roteiro (sem Claude) faz o post da skill de teste com a marca de cada cliente', { skip: semApp }, async () => {
-  const { rodarRoteiro, tituloDoTexto } = await import('../src/roteiro.ts');
-  assert.equal(tituloDoTexto('Teste da fábrica: o laboratório tem turma nova'), 'Teste da fábrica');
-  assert.equal(tituloDoTexto('um dois três quatro cinco seis sete oito nove dez.'), 'um dois três quatro cinco seis sete oito');
+// ---------- a conferência reprova o que um designer reprovaria ----------
 
-  const raiz = process.env.PASTA_PREVIAS ?? mkdtempSync(path.join(tmpdir(), 'jobs-'));
-  const clientes = {
-    moacyr: { nome: 'Moacyr', nome_preferido: null, cor: '#E8A33D', registro_profissional: null, marca: {
-      margem: 'folgada', alinha: 'esq', fonteMarca: '', fonteFalback: 'impacto', conjuntoPadrao: 'j-autoridade',
-      conjuntos: [{ k: 'j-autoridade', nome: 'Autoridade', fundo: '#15181C', tinta: '#FFFFFF', destaque: '#E8A33D', faixa: '#E8A33D' }] } },
-    beatriz: { nome: 'Ana Beatriz Leite', nome_preferido: null, cor: '#1E2A3A', registro_profissional: null, marca: {
-      margem: 'folgada', alinha: 'esq', fonteMarca: 'Manrope', fonteFalback: 'display', conjuntoPadrao: 'j-noite',
-      conjuntos: [{ k: 'j-noite', nome: 'Azul-noite', fundo: '#1E2A3A', tinta: '#FFFFFF', destaque: '#A4E830', faixa: '#A4E830' }] } },
-  };
-  for (const [id, cli] of Object.entries(clientes)) {
-    const etapas: string[] = [];
-    const r = await produzir({
-      cfg: cfgTeste(raiz), job: { id: `roteiro-${id}` }, skill,
-      pedido: { ...pedido, briefing: { texto: 'Turma nova no laboratório de redes: inscrições abertas até sexta' } },
-      cliente: cli, instaladas, agente: rodarRoteiro,
-      abortar: new AbortController(), aoMudarEtapa: async (e) => { etapas.push(e.etapa); }, aoUsarFerramenta: () => {},
-    });
-    assert.equal(r.conferidas.length, 2, id);
-    assert.deepEqual(etapas, ['desenhando o post', 'escrevendo o título', 'conferindo o post'], id);
-    assert.equal(r.resultado.custos.custo_usd, 0);
-    assert.ok(r.resultado.custos.render_segundos > 0, 'tempo nos apps não foi medido');
-  }
+/** Monta uma peça direto no CLI, sem MCP: fundo, um texto, PSD e PNG. */
+function peca(pasta: string, nome: string, fundo: string, texto: Record<string, unknown>) {
+  mkdirSync(path.join(pasta, 'editavel'), { recursive: true });
+  mkdirSync(path.join(pasta, 'saida'), { recursive: true });
+  const cli = acharCli('photocraft');
+  execFileSync(cli, ['run', '--new', JSON.stringify({ width: 1080, height: 1350, background: fundo }),
+    '--cmd', 'type.create', '--params', JSON.stringify({ text: 'Não existe atalho', box: [96, 400, 888, 400], size: 88, ...texto }),
+    '--out', path.join(pasta, 'editavel', `${nome}.psd`)]);
+  execFileSync(cli, ['convert', path.join(pasta, 'editavel', `${nome}.psd`), path.join(pasta, 'saida', `${nome}.png`)]);
+  return { caminho: `saida/${nome}.png`, papel: 'saida' as const, mime: 'image/png', bytes: 1 };
+}
+
+const regraBeatriz = () => ({ cores: coresDaMarca(BEATRIZ), fontes: ['Manrope'] });
+
+test('conferência: a peça certa passa', { skip: semFontes }, () => {
+  const pasta = mkdtempSync(path.join(tmpdir(), 'conf-'));
+  const s = peca(pasta, 'certa', '#1E2A3A', { font: 'Manrope', weight: 700, color: '#FFFFFF' });
+  assert.deepEqual(conferirMarca(pasta, [s], regraBeatriz()).erros, []);
 });
 
-test('ajuste no roteiro: "outra cor" troca o conjunto e "mais curto" corta o título', { skip: semApp }, async () => {
-  const { rodarRoteiro } = await import('../src/roteiro.ts');
-  const raiz = process.env.PASTA_PREVIAS ?? mkdtempSync(path.join(tmpdir(), 'jobs-'));
-  const beatriz = { nome: 'Ana Beatriz Leite', nome_preferido: null, cor: '#1E2A3A', registro_profissional: null, marca: {
-    margem: 'folgada', alinha: 'esq', fonteMarca: 'Manrope', fonteFalback: 'display', conjuntoPadrao: 'j-noite',
-    conjuntos: [
-      { k: 'j-noite', nome: 'Azul-noite', fundo: '#1E2A3A', tinta: '#FFFFFF', destaque: '#A4E830', faixa: '#A4E830' },
-      { k: 'j-limao', nome: 'Verde-limão', fundo: '#A4E830', tinta: '#1E2A3A', destaque: '#1E2A3A', faixa: '#1E2A3A' },
-    ] } };
-  const r = await produzir({
-    cfg: cfgTeste(raiz), job: { id: 'roteiro-ajuste' }, skill,
-    pedido: { ...pedido, briefing: { texto: 'Não existe atalho pra liderar um time de produto' } },
-    cliente: beatriz, instaladas, agente: rodarRoteiro,
-    ajustes: [{ texto: null, atalhos: ['outra cor da marca', 'mais curto'] }],
-    abortar: new AbortController(), aoMudarEtapa: async () => {}, aoUsarFerramenta: () => {},
+for (const [caso, fundo, texto, esperado] of [
+  ['fonte que não é da marca', '#1E2A3A', { font: 'Arial', weight: 700, color: '#FFFFFF' }, /"Arial"; a fonte da marca é "Manrope"/],
+  ['fundo fora da paleta', '#D62828', { font: 'Manrope', weight: 700, color: '#FFFFFF' }, /#D62828 ocupa .* não é da paleta/],
+  ['texto fora da paleta', '#1E2A3A', { font: 'Manrope', weight: 700, color: '#FF00FF' }, /texto na cor #FF00FF/],
+  ['peso fino demais', '#1E2A3A', { font: 'Manrope', weight: 200, color: '#FFFFFF' }, /peso 200/],
+  ['verde-limão sobre branco', '#FFFFFF', { font: 'Manrope', weight: 700, color: '#A4E830' }, /1\.5:1; precisa de 3:1/],
+  ['texto na borda', '#1E2A3A', { font: 'Manrope', weight: 700, color: '#FFFFFF', box: [10, 400, 1060, 400] }, /encostado na borda/],
+] as Array<[string, string, Record<string, unknown>, RegExp]>) {
+  test(`conferência reprova: ${caso}`, { skip: semFontes }, () => {
+    const pasta = mkdtempSync(path.join(tmpdir(), 'conf-'));
+    const s = peca(pasta, 'p', fundo, texto);
+    const { erros } = conferirMarca(pasta, [s], regraBeatriz());
+    assert.ok(erros.some((e) => esperado.test(e)), `esperava ${esperado}, veio: ${erros.join(' | ') || '(nada)'}`);
   });
-  assert.match(r.resultado.resumo, /Verde-limão/);
-  assert.match(r.resultado.resumo, /título "Não existe atalho pra"/);
-  const { execFileSync } = await import('node:child_process');
-  const { acharCli } = await import('../src/config.ts');
-  const info = JSON.parse(execFileSync(acharCli('photocraft'), ['info', path.join(r.pastaJob, 'editavel', 'post.psd'), '--compact'], { encoding: 'utf8' }));
-  assert.equal(info.layers.find((l: { kind: string }) => l.kind === 'Type').text.text, 'Não existe atalho pra');
+}
+
+test('conferência aceita o degradê entre duas cores da marca, e só ele', { skip: semFontes }, () => {
+  const pasta = mkdtempSync(path.join(tmpdir(), 'conf-'));
+  mkdirSync(path.join(pasta, 'editavel')); mkdirSync(path.join(pasta, 'saida'));
+  const cli = acharCli('photocraft');
+  const fazer = (nome: string, to: string) => {
+    execFileSync(cli, ['run', '--new', JSON.stringify({ width: 1280, height: 720, background: '#1E2A3A' }),
+      '--cmd', 'select.rect', '--params', JSON.stringify({ x: 640, y: 0, width: 640, height: 720 }),
+      '--cmd', 'layer.newFillLayer.gradient', '--params', JSON.stringify({ from: '#1E2A3A', to, angle: 0 }),
+      '--cmd', 'select.deselect', '--out', path.join(pasta, 'editavel', `${nome}.psd`)]);
+    execFileSync(cli, ['convert', path.join(pasta, 'editavel', `${nome}.psd`), path.join(pasta, 'saida', `${nome}.png`)]);
+    return { caminho: `saida/${nome}.png`, papel: 'saida' as const, mime: 'image/png', bytes: 1 };
+  };
+  assert.deepEqual(conferirMarca(pasta, [fazer('da-marca', '#A4E830')], regraBeatriz()).erros, []);
+  assert.ok(conferirMarca(pasta, [fazer('fora', '#D62828')], regraBeatriz()).erros.length > 0, 'degradê pra cor de fora passou');
 });
+
+if (previas) {
+  test('prévias guardadas', () => {
+    console.log(`prévias em ${previas}: ${readdirSync(previas).join(', ')}`);
+  });
+}

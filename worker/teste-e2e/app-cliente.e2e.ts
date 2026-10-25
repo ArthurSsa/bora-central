@@ -118,6 +118,7 @@ after(async () => {
 
 async function abrir(tema: 'light' | 'dark' = 'light'): Promise<Page> {
   const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, colorScheme: tema });
+  await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: origem });
   // A sessão entra no localStorage antes do app carregar — o mesmo lugar onde
   // o link do e-mail a deixaria.
   await ctx.addInitScript(([chave, valor]) => localStorage.setItem(chave, valor), ['sb-yxewmauwnxnrrhevlbtc-auth-token', JSON.stringify(sessao)]);
@@ -173,12 +174,12 @@ const varrerContraste = (page: Page) => page.evaluate(() => {
   return falhas;
 });
 
-test('Hoje: a pergunta, seis cartões, só o post ativo, e nenhum cliente da Bora à vista', async () => {
+test('Hoje: a pergunta, seis cartões, três ativos, e nenhum cliente da Bora à vista', async () => {
   const page = await abrir();
   await page.getByRole('heading', { name: 'O que você quer criar hoje?' }).waitFor();
   await semErroNaTela(page);
   assert.equal(await page.locator('.tipo').count(), 6);
-  assert.equal(await page.locator('.tipo[aria-disabled="true"]').count(), 5);
+  assert.equal(await page.locator('.tipo[aria-disabled="true"]').count(), 3, 'post, carrossel e capa ativos; o resto em breve');
   assert.equal(await page.locator('.quem .nome').textContent(), 'Cliente de Teste');
   assert.equal(await page.locator('select').count(), 0, 'cliente de uma conta só não devia ver seletor');
   assert.ok(await semRolagemLateral(page));
@@ -263,6 +264,12 @@ test('pede um post pelo celular, acompanha, pede ajuste, vê a versão nova e ap
   await page.waitForFunction(() => (document.querySelector('img.previa') as HTMLImageElement)?.naturalWidth > 0);
   assert.equal(await previa.evaluate((i: HTMLImageElement) => `${i.naturalWidth}×${i.naturalHeight}`), '1080×1350');
   const primeiraVersao = await previa.getAttribute('src');
+  // A legenda vem junto, e o botão copia de verdade.
+  await page.getByRole('heading', { name: 'Legenda' }).waitFor();
+  assert.match((await page.locator('.texto-entrega').textContent())!, /Abrimos turma nova no laboratório/);
+  await page.getByRole('button', { name: 'Copiar a legenda' }).click();
+  await page.locator('.aviso.ok').filter({ hasText: 'Legenda copiada' }).waitFor();
+  assert.match(await page.evaluate(() => navigator.clipboard.readText()), /Abrimos turma nova/);
   const historico = await page.locator('.linha-tempo').textContent();
   assert.match(historico!, /Desenhando o post/);
   assert.match(historico!, /Pronto para você aprovar/);
@@ -329,5 +336,88 @@ test('pede um post pelo celular, acompanha, pede ajuste, vê a versão nova e ap
     await page.waitForTimeout(800);
     await page.screenshot({ path: path.join(process.env.E2E_FOTOS, 'acompanhamento.png'), fullPage: true });
   }
+  await page.context().close();
+});
+
+/** Abre o pedido em 3 passos pra um tipo, escreve o texto e chega no resumo. */
+async function pedirAte3(page: Page, cartao: RegExp, texto: string, passo2?: (page: Page) => Promise<void>) {
+  await page.getByRole('heading', { name: 'O que você quer criar hoje?' }).waitFor();
+  await page.getByRole('link', { name: cartao }).click();
+  await page.locator('#texto').fill(texto);
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByRole('heading', { name: 'Algumas escolhas' }).waitFor();
+  if (passo2) await passo2(page);
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByRole('heading', { name: 'Confere antes de pedir' }).waitFor();
+}
+
+test('carrossel: escolhe 3 imagens, desliza pelas três, copia a legenda e aprova', { timeout: 240_000 }, async () => {
+  const page = await abrir();
+  await pedirAte3(page, /Carrossel/, 'Não existe atalho pra liderar. Liderança se aprende fazendo. Organização vem antes de talento', async (p) => {
+    assert.equal(await p.getByRole('button', { name: '5', exact: true }).getAttribute('aria-pressed'), 'true', 'padrão não é 5');
+    await p.getByRole('button', { name: '3', exact: true }).click();
+  });
+  assert.match((await page.locator('.resumo').textContent())!, /1 carrossel de 3 imagens/);
+  assert.deepEqual(await varrerContraste(page), []);
+  await page.getByRole('button', { name: 'Pedir carrossel' }).click();
+  await page.waitForURL(/#\/pedido\//);
+  const pedidoId = page.url().split('/').pop()!;
+  await page.locator('.selo.para_aprovar').first().waitFor({ timeout: 90_000 });
+  assert.match((await page.locator('h1').textContent())!, /vem…$/, 'o título do pedido cortou no meio da palavra');
+
+  const imagens = page.locator('.galeria img');
+  await page.waitForFunction(() => [...document.querySelectorAll('.galeria img')].filter((i) => (i as HTMLImageElement).naturalWidth > 0).length === 3);
+  // A próxima imagem aparece na borda: a primeira não ocupa a largura toda.
+  const larguras = await page.evaluate(() => ({
+    g: document.querySelector('.galeria')!.getBoundingClientRect().width,
+    i: document.querySelector('.galeria img')!.getBoundingClientRect().width,
+  }));
+  assert.ok(larguras.i < larguras.g * 0.9, `a imagem ocupa ${larguras.i} de ${larguras.g}`);
+  assert.equal(await imagens.count(), 3);
+  assert.equal(await imagens.nth(2).getAttribute('alt'), 'Imagem 3 de 3');
+  await page.getByRole('heading', { name: 'Legenda' }).waitFor();
+  assert.ok(await semRolagemLateral(page), 'a galeria vazou pro lado da página');
+  assert.deepEqual(await varrerContraste(page), []);
+  await foto(page, 'carrossel');
+
+  await page.getByRole('button', { name: 'Aprovar' }).click();
+  await page.locator('.aviso.ok').filter({ hasText: 'Aprovado' }).first().waitFor();
+  assert.equal(await page.locator('.baixar a').count(), 3, 'devia oferecer as três imagens pra baixar');
+  const { data: pedido } = await admin.from('pedidos').select('estado, briefing').eq('id', pedidoId).single();
+  assert.equal(pedido!.estado, 'aprovado');
+  assert.equal((pedido!.briefing as { slides: number }).slides, 3);
+  await semErroNaTela(page);
+  await page.context().close();
+});
+
+test('capa: três opções, aprovar só depois de escolher, e a escolhida é a que fica', { timeout: 240_000 }, async () => {
+  const page = await abrir();
+  await pedirAte3(page, /Capa ou thumbnail/, 'Como montei um time de produto sem saber programar');
+  assert.match((await page.locator('.resumo').textContent())!, /3 opções de capa para vídeo do YouTube/);
+  await page.getByRole('button', { name: 'Pedir capas' }).click();
+  await page.waitForURL(/#\/pedido\//);
+  const pedidoId = page.url().split('/').pop()!;
+  await page.locator('.selo.para_aprovar').first().waitFor({ timeout: 90_000 });
+
+  await page.waitForFunction(() => [...document.querySelectorAll('.opcao img')].filter((i) => (i as HTMLImageElement).naturalWidth === 1280).length === 3);
+  const aprovar = page.getByRole('button', { name: 'Escolha uma opção' });
+  assert.ok(await aprovar.isDisabled(), 'aprovou sem escolher');
+  await page.getByRole('button', { name: /Opção 2/ }).click();
+  assert.equal(await page.getByRole('button', { name: /Opção 2/ }).getAttribute('aria-pressed'), 'true');
+  await page.getByRole('heading', { name: 'Títulos pro vídeo' }).waitFor();
+  assert.equal(await page.locator('.titulos li').count(), 2);
+  await page.getByRole('heading', { name: 'Descrição do vídeo' }).waitFor();
+  assert.ok(await semRolagemLateral(page));
+  assert.deepEqual(await varrerContraste(page), []);
+  await foto(page, 'capa');
+
+  await page.getByRole('button', { name: 'Aprovar opção 2' }).click();
+  await page.locator('.aviso.ok').filter({ hasText: 'Aprovado' }).first().waitFor();
+  assert.match((await page.locator('.opcao.escolhida').textContent())!, /Opção 2 · a escolhida/);
+  assert.equal(await page.getByRole('link', { name: 'Baixar a imagem' }).count(), 1, 'só a capa escolhida pra baixar');
+  assert.match((await page.getByRole('link', { name: 'Baixar a imagem' }).getAttribute('download'))!, /capa-2\.png/);
+  const { data: pedido } = await admin.from('pedidos').select('estado, escolha').eq('id', pedidoId).single();
+  assert.deepEqual(pedido, { estado: 'aprovado', escolha: 2 });
+  await semErroNaTela(page);
   await page.context().close();
 });
