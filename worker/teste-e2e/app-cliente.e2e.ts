@@ -131,6 +131,14 @@ async function listarTudo(prefixo: string): Promise<string[]> {
 
 before(async () => {
   assert.ok(process.env.SUPABASE_SERVICE_ROLE_KEY, 'falta SUPABASE_SERVICE_ROLE_KEY no worker/.env');
+  // A fábrica do PC disputaria os pedidos com o worker deste teste.
+  const pidVigia = path.join(process.env.LOCALAPPDATA ?? '', 'BoraFabrica', 'vigia.pid');
+  if (existsSync(pidVigia)) {
+    const pid = Number(readFileSync(pidVigia, 'utf8'));
+    let viva = false;
+    try { process.kill(pid, 0); viva = true; } catch { /* não está rodando */ }
+    assert.ok(!viva, 'a fábrica deste PC está ligada; desligue antes (npm run fabrica:desligar) e ligue depois (npm run fabrica:ligar)');
+  }
   await prepararCliente();
 
   await prepararEquipe();
@@ -833,6 +841,8 @@ test('Visão Bora: a fábrica refaz duas vezes, a equipe assume, entrega, a conf
   // A Fábrica, no Estúdio: o número aceso, o pedido em "Precisa da equipe" com os três motivos.
   const est = await abrirEstudio();
   await est.getByRole('heading', { name: 'Fábrica', exact: true, level: 1 }).waitFor();
+  // O worker deste teste dá sinal de vida: a Fábrica aparece ligada.
+  assert.match((await est.locator('.fab-sinal').textContent())!, /Fábrica ligada em .*sem o Claude/);
   const cartao = est.locator(`.card.fab[data-pedido="${pedidoId}"]`);
   await cartao.waitFor();
   assert.match((await cartao.locator('.chip').textContent())!, /Precisa da equipe/);

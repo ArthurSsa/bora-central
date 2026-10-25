@@ -9,6 +9,11 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env src/worker.ts",
     "roteiro": "node --env-file-if-exists=.env src/worker.ts --uma-vez --roteiro",
+    "fabrica:instalar": "node --env-file-if-exists=.env scripts/fabrica.ts instalar",
+    "fabrica:ligar": "node --env-file-if-exists=.env scripts/fabrica.ts ligar",
+    "fabrica:estado": "node --env-file-if-exists=.env scripts/fabrica.ts estado",
+    "fabrica:desligar": "node --env-file-if-exists=.env scripts/fabrica.ts desligar",
+    "fabrica:remover": "node --env-file-if-exists=.env scripts/fabrica.ts remover",
     "enfileirar-teste": "node --env-file-if-exists=.env scripts/enfileirar-teste.ts",
     "ensaio": "node scripts/ensaio-sdk.ts",
     "fontes": "node scripts/instalar-fontes.ts",

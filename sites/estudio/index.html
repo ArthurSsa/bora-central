@@ -272,6 +272,10 @@
   .fab-entrega{ margin-top:16px; padding-top:14px; border-top:1px solid var(--linha2); display:grid; gap:8px; justify-items:start; }
   .fab-entrega p{ margin:0; }
   .fab-custos td, .fab-custos th{ text-align:left; }
+  .fab-sinal{ margin:14px 0 0; padding:9px 13px; border-radius:10px; font-size:0.86rem; display:inline-flex; gap:8px; align-items:center; }
+  .fab-sinal::before{ content:''; width:8px; height:8px; border-radius:50%; background:currentColor; flex-shrink:0; }
+  .fab-sinal.ligada{ background:var(--ok-f); color:var(--ok); }
+  .fab-sinal.desligada{ background:var(--al-f); color:var(--al); }
 
   /* ---------- respostas do formulário ---------- */
   .qa{ margin-bottom:18px; padding-left:15px; border-left:2px solid var(--laranja); }
@@ -2605,14 +2609,31 @@
     const f = state.fabrica || (state.fabrica = { fila:[], custos:[], mes:mesAtualFabrica(), editaveis:{}, enviando:null });
     const [y, m] = f.mes.split('-').map(Number);
     const fim = new Date(y, m, 0).getDate();
-    const [fila, custos] = await Promise.all([
+    const [fila, custos, sinais] = await Promise.all([
       sb.rpc('fila_da_fabrica'),
       sb.rpc('custos_da_fabrica', { p_de: f.mes + '-01', p_ate: f.mes + '-' + String(fim).padStart(2,'0') }),
+      sb.rpc('sinais_da_fabrica'),
     ]);
     if(fila.error) toast('Não deu pra ler a fila: ' + fila.error.message);
     f.fila = fila.data || [];
     f.custos = custos.data || [];
+    f.sinais = sinais.data || [];
+    f.lidoEm = Date.now();
     escutarFabrica();
+  }
+
+  // A fábrica roda num PC da Bora: só anda com ele ligado. Ligada é ter dado
+  // sinal no último minuto e meio (o worker manda a cada 30 s). Os segundos
+  // sem sinal vêm contados pelo banco; daqui só se soma o tempo desde a leitura.
+  function situacaoDaFabrica(){
+    const f = state.fabrica || {};
+    const s = (f.sinais || [])[0];
+    if(!s) return { ligada:false, texto:'A fábrica nunca deu sinal. Ligue no PC da Bora: npm run fabrica:ligar' };
+    const ha = Number(s.segundos_sem_sinal || 0) + Math.round((Date.now() - (f.lidoEm || Date.now())) / 1000);
+    const hora = new Date(s.visto_em).toLocaleString('pt-BR', { weekday:'short', hour:'2-digit', minute:'2-digit' });
+    if(ha <= 90) return { ligada:true, texto:'Fábrica ligada em ' + (s.maquina || 'um PC') + (s.agente === 'roteiro' ? ', sem o Claude' : ', com o Claude')
+      + ' · ' + (s.ocupado_com ? 'fazendo um pedido agora' : 'esperando pedido') };
+    return { ligada:false, texto:'Fábrica desligada desde ' + hora + '. Os pedidos esperam na fila até o PC da Bora ser ligado.' };
   }
 
   // A fila muda sozinha (o worker anda, o cliente aprova). Um canal só, e
@@ -2767,6 +2788,15 @@
       'Tudo o que a fábrica está fazendo pelos clientes. Ela refaz sozinha duas vezes quando a conferência reprova; '
       + 'na terceira, o pedido cai em "Precisa da equipe". Assumir tira o pedido da fábrica e avisa o cliente.'));
     if(!f){ cabeca.appendChild(el('p',{class:'muted'},'Carregando…')); m.appendChild(cabeca); carregarFabrica().then(render); return m; }
+
+    const sit = situacaoDaFabrica();
+    const aviso = el('p',{class:'fab-sinal ' + (sit.ligada ? 'ligada' : 'desligada'), role:'status'});
+    aviso.textContent = sit.texto;
+    cabeca.appendChild(aviso);
+    // O sinal muda sem nada acontecer na fila (o PC desliga em silêncio):
+    // com a tela aberta, relê a cada 30 s.
+    clearTimeout(telaFabrica.t);
+    telaFabrica.t = setTimeout(async () => { if(state.vista.tipo === 'fabrica'){ await carregarFabrica(); render(); } }, 30_000);
 
     const fila = f.fila;
     const precisa = fila.filter(x => x.job_estado === 'falhou' && !x.assumido_por);

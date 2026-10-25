@@ -10,8 +10,19 @@ import { servidorMcp } from '../src/apps.ts';
 import { montarPedido, montarSistema } from '../src/instrucoes.ts';
 import { RAIZ_REPO } from '../src/config.ts';
 import { legendasSobrepostas, sobraDaCaixa } from '../src/conferencia.ts';
-import { mkdtempSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, mkdirSync, readFileSync, readdirSync, utimesSync } from 'node:fs';
+import { limparPastasVelhas } from '../src/worker.ts';
 import { tmpdir } from 'node:os';
+
+test('faxina: pasta de job com mais dias que o combinado sai; a recente fica', () => {
+  const pasta = mkdtempSync(path.join(tmpdir(), 'faxina-'));
+  for (const n of ['velha', 'nova']) { mkdirSync(path.join(pasta, n)); writeFileSync(path.join(pasta, n, 'x.png'), 'x'); }
+  const oitoDias = (Date.now() - 8 * 86_400_000) / 1000;
+  utimesSync(path.join(pasta, 'velha'), oitoDias, oitoDias);
+  assert.deepEqual(limparPastasVelhas({ pastaJobs: pasta, diasPastaFalha: 7 }), ['velha']);
+  assert.deepEqual(readdirSync(pasta), ['nova']);
+  assert.deepEqual(limparPastasVelhas({ pastaJobs: path.join(pasta, 'nao-existe'), diasPastaFalha: 7 }), []);
+});
 
 test('nada cortado: texto de caixa que acaba antes do fim é pego; texto de ponto e caixa inteira, não', () => {
   const caixa = { Box: { width: 200, height: 80, x: 0, y: 0 } };

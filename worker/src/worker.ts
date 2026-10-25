@@ -6,7 +6,7 @@
 //   node src/worker.ts            fica escutando a fila
 //   node src/worker.ts --uma-vez  espera um job, faz e sai (teste)
 //   node src/worker.ts --roteiro  sem o Claude: o passo a passo fixo de src/roteiro.ts
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as esperar } from 'node:timers/promises';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -19,7 +19,7 @@ import { lerConfig, type Config } from './config.ts';
 import { rodarAgente, FalhaDoAgente, CUSTO_ZERO, type Agente, type Etapa, type ResultadoAgente } from './agente.ts';
 import {
   conectar, pegarJob, renovarLease, anotar, evento, carregarContexto, subir, concluir, devolverOuFalhar,
-  historicoDeAjustes, baixarEditaveisBase, baixarElementos, baixarAnexo, baixarSlides, baixarDaBora, juntarSaida, ehJobPerdido,
+  historicoDeAjustes, baixarEditaveisBase, baixarElementos, baixarAnexo, baixarSlides, baixarDaBora, juntarSaida, ehJobPerdido, sinalDeVida, soltarOsMeus,
   type Ajuste, type ArquivoDeEntrada, type Elemento, type Job, type Pedido,
 } from './fila.ts';
 import { montarSistema, montarPedido } from './instrucoes.ts';
@@ -323,6 +323,27 @@ async function principal() {
   };
   process.on('SIGINT', () => pedirParada('SIGINT'));
   process.on('SIGTERM', () => pedirParada('SIGTERM'));
+  // No Windows não existe SIGTERM de verdade: o vigia pede pra parar por aqui.
+  process.on('message', (m) => { if ((m as { parar?: boolean })?.parar) pedirParada('vigia'); });
+
+  // Voltou depois de cair (o vigia religa com o mesmo nome): o que ficou
+  // rodando volta pra fila agora.
+  try {
+    const soltos = await soltarOsMeus(sb, cfg);
+    if (soltos) console.log(`${soltos} job(s) que ficaram pela metade voltaram pra fila`);
+  } catch (e) {
+    console.error(`não deu pra soltar os jobs antigos: ${(e as Error).message}`);
+  }
+
+  // Sinal de vida e faxina rodam à parte do laço: um reel de dois minutos
+  // não pode fazer a Fábrica parecer desligada.
+  let ocupado: string | null = null;
+  const sinal = (ligou: boolean) => sinalDeVida(sb, cfg, { ocupado, ligou })
+    .catch((e) => console.error(`sinal de vida falhou: ${(e as Error).message}`));
+  await sinal(true);
+  const batimento = setInterval(() => void sinal(false), 30_000);
+  limparPastasVelhas(cfg);
+  const faxina = setInterval(() => limparPastasVelhas(cfg), 6 * 3600_000);
 
   while (!parar) {
     let job: Job | null = null;
@@ -331,14 +352,41 @@ async function principal() {
     } catch (e) {
       console.error(`fila indisponível: ${(e as Error).message}`);
     }
-    if (job) await processar(sb, cfg, skills, instaladas, job, agente);
+    if (job) {
+      ocupado = job.id;
+      void sinal(false);
+      await processar(sb, cfg, skills, instaladas, job, agente);
+      ocupado = null;
+    }
     if (job && umaVez) break;
     if (!job) await esperar(cfg.esperaFilaMs);
   }
+  clearInterval(batimento);
+  clearInterval(faxina);
+}
+
+/**
+ * Pasta de job que falhou fica pra alguém olhar o que a fábrica deixou; passados
+ * os dias combinados, sai. Num PC pessoal, vídeo de cliente não pode acumular.
+ */
+export function limparPastasVelhas(cfg: Pick<Config, 'pastaJobs' | 'diasPastaFalha'>, agora = Date.now()): string[] {
+  if (!existsSync(cfg.pastaJobs)) return [];
+  const limite = agora - cfg.diasPastaFalha * 86_400_000;
+  const apagadas: string[] = [];
+  for (const nome of readdirSync(cfg.pastaJobs)) {
+    const p = path.join(cfg.pastaJobs, nome);
+    try {
+      if (statSync(p).mtimeMs < limite) { rmSync(p, { recursive: true, force: true }); apagadas.push(nome); }
+    } catch { /* sumiu entre a listagem e agora: tanto faz */ }
+  }
+  if (apagadas.length) console.log(`faxina: ${apagadas.length} pasta(s) de job com mais de ${cfg.diasPastaFalha} dias`);
+  return apagadas;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) {
-  principal().catch((e) => {
+  // Sai de propósito ao terminar: o canal com o vigia (e as conexões do
+  // Supabase) manteriam o processo de pé depois do "desligar".
+  principal().then(() => process.exit(0), (e) => {
     console.error(e);
     process.exit(1);
   });
