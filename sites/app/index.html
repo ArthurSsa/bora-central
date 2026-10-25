@@ -1511,14 +1511,20 @@
     render();
   }
 
-  function lerRetornoDoLink(){
+  // O link do e-mail volta com a sessão no fragmento (#access_token=…). Quem
+  // lê é o supabase-js, e ele só lê depois de terminar de iniciar — por isso a
+  // limpeza do endereço vem DEPOIS do getSession(). Limpar antes jogava a
+  // sessão fora: o login dava certo no Supabase e a tela voltava pro "Entrar".
+  const voltouDoLink = () => /access_token|error/.test(location.hash || '');
+  function lerErroDoLink(){
     const hsh = location.hash || '';
-    if(hsh.includes('error')){
-      const q = new URLSearchParams(hsh.replace(/^#/, ''));
-      const d = (q.get('error_description') || '').toLowerCase();
-      state.aviso = { tipo:'erro', texto: d.includes('expired') || d.includes('invalid') ? 'Esse link expirou ou já foi usado. Peça um novo.' : 'O link não funcionou. Peça um novo.' };
-    }
-    if(hsh.includes('access_token') || hsh.includes('error')) history.replaceState(null, '', location.pathname + location.search + '#/hoje');
+    if(!hsh.includes('error')) return;
+    const q = new URLSearchParams(hsh.replace(/^#/, ''));
+    const d = (q.get('error_description') || '').toLowerCase();
+    state.aviso = { tipo:'erro', texto: d.includes('expired') || d.includes('invalid') ? 'Esse link expirou ou já foi usado. Peça um novo.' : 'O link não funcionou. Peça um novo.' };
+  }
+  function limparEnderecoDoLink(){
+    if(voltouDoLink()) history.replaceState(null, '', location.pathname + location.search + '#/hoje');
   }
 
   // Uma vez só: ao abrir com sessão guardada, o supabase-js também avisa
@@ -1530,9 +1536,10 @@
   }
 
   async function carregarInicio(){
-    lerRetornoDoLink();
-    state.rota = lerRota();
+    lerErroDoLink();
     const { data:{ session } } = await sb.auth.getSession();
+    limparEnderecoDoLink();
+    state.rota = lerRota();
     state.user = session ? session.user : null;
     if(state.user){
       try {

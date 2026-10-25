@@ -276,6 +276,7 @@
   .fab-sinal::before{ content:''; width:8px; height:8px; border-radius:50%; background:currentColor; flex-shrink:0; }
   .fab-sinal.ligada{ background:var(--ok-f); color:var(--ok); }
   .fab-sinal.desligada{ background:var(--al-f); color:var(--al); }
+  .fab-sinal.conferindo{ background:var(--sup2); color:var(--fraco); }
 
   /* ---------- respostas do formulário ---------- */
   .qa{ margin-bottom:18px; padding-left:15px; border-left:2px solid var(--laranja); }
@@ -2627,7 +2628,9 @@
   // sem sinal vêm contados pelo banco; daqui só se soma o tempo desde a leitura.
   function situacaoDaFabrica(){
     const f = state.fabrica || {};
-    const s = (f.sinais || [])[0];
+    // Ainda não leu: não dizer "nunca deu sinal" no meio segundo da primeira leitura.
+    if(!f.sinais) return { ligada:null, texto:'Conferindo se a fábrica está ligada…' };
+    const s = f.sinais[0];
     if(!s) return { ligada:false, texto:'A fábrica nunca deu sinal. Ligue no PC da Bora: npm run fabrica:ligar' };
     const ha = Number(s.segundos_sem_sinal || 0) + Math.round((Date.now() - (f.lidoEm || Date.now())) / 1000);
     const hora = new Date(s.visto_em).toLocaleString('pt-BR', { weekday:'short', hour:'2-digit', minute:'2-digit' });
@@ -2790,7 +2793,7 @@
     if(!f){ cabeca.appendChild(el('p',{class:'muted'},'Carregando…')); m.appendChild(cabeca); carregarFabrica().then(render); return m; }
 
     const sit = situacaoDaFabrica();
-    const aviso = el('p',{class:'fab-sinal ' + (sit.ligada ? 'ligada' : 'desligada'), role:'status'});
+    const aviso = el('p',{class:'fab-sinal ' + (sit.ligada === null ? 'conferindo' : sit.ligada ? 'ligada' : 'desligada'), role:'status'});
     aviso.textContent = sit.texto;
     cabeca.appendChild(aviso);
     // O sinal muda sem nada acontecer na fila (o PC desliga em silêncio):
@@ -9303,17 +9306,21 @@
 
   // ---------- sessão ----------
 
-  // O link de acesso volta com os tokens no fragmento da URL. O supabase-js consome
-  // sozinho; aqui a gente só pesca o erro (link expirado, já usado) e limpa a barra.
-  function lerRetornoDoLink(){
+  // O link de acesso volta com os tokens no fragmento da URL. O supabase-js
+  // consome sozinho — mas só depois de terminar de iniciar. Por isso a barra
+  // é limpa DEPOIS do getSession(): limpar antes jogava a sessão fora, e o
+  // login dava certo no Supabase enquanto a tela voltava pro e-mail.
+  function lerErroDoLink(){
     const h = window.location.hash || '';
-    if(h.includes('error')){
-      const p = new URLSearchParams(h.replace(/^#/, ''));
-      const d = (p.get('error_description') || '').toLowerCase();
-      state.erro = (d.includes('expired') || d.includes('invalid'))
-        ? 'Esse link expirou ou já foi usado. Peça um novo.'
-        : 'O link não funcionou: ' + (p.get('error_description') || p.get('error'));
-    }
+    if(!h.includes('error')) return;
+    const p = new URLSearchParams(h.replace(/^#/, ''));
+    const d = (p.get('error_description') || '').toLowerCase();
+    state.erro = (d.includes('expired') || d.includes('invalid'))
+      ? 'Esse link expirou ou já foi usado. Peça um novo.'
+      : 'O link não funcionou: ' + (p.get('error_description') || p.get('error'));
+  }
+  function limparBarraDoLink(){
+    const h = window.location.hash || '';
     if(h.includes('access_token') || h.includes('error')){
       history.replaceState(null, '', window.location.pathname + window.location.search);
     }
@@ -9321,8 +9328,9 @@
 
   async function iniciarSessao(){
     state.carregando = true; render();
-    lerRetornoDoLink();
+    lerErroDoLink();
     const { data:{ session } } = await sb.auth.getSession();
+    limparBarraDoLink();
     state.user = session ? session.user : null;
     if(state.user){
       const { data, error } = await sb.rpc('is_bora_member');
