@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F5F2EC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12100E" media="(prefers-color-scheme: dark)">
+<title>Bora — seus posts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+  /* ==================================================================
+     O app do cliente — o mesmo papel morno do Estúdio, com bem menos coisa.
+     Quem usa é o dono do negócio, no celular, entre um atendimento e outro:
+     uma pergunta por tela, botão grande, nenhuma palavra de designer.
+
+     A laranja da marca é forma (barra, selo, o ponto da logo). Quando tem
+     texto em cima, o fundo é a laranja-forte — branco sobre a laranja da
+     marca dá 3,06:1 e não passa. Mesma regra do Estúdio e da Central.
+     ================================================================== */
+  :root{
+    --papel:#F5F2EC; --sup:#FFFFFF; --sup2:#FBF9F5;
+    --tinta:#1A1815; --fraco:#6E675F; --linha:#E8E2D8;
+    --laranja:#FF5E00; --laranja-forte:#B84300; --laranja-fraco:#FFF1E8; --sobre-laranja:#FFFFFF;
+    --roxo:#8800FF;
+    --ok:#1C6B45; --ok-f:#EAF3EE;
+    --al:#A93226; --al-f:#FBEAE7;
+    --es:#8A5A05; --es-f:#FBF1DE;
+    --an:#1B4F8F; --an-f:#E9F0F9;
+    --nt:#6D665F; --nt-f:#F1EEE8;
+    --s1:0 1px 2px rgba(26,24,21,.04), 0 6px 22px rgba(26,24,21,.06);
+    --r:16px;
+    --display:'Space Grotesk','Segoe UI',sans-serif;
+    --corpo:'Archivo','Helvetica Neue',Arial,sans-serif;
+    --dado:'Space Mono','SFMono-Regular',Consolas,monospace;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --papel:#12100E; --sup:#1B1815; --sup2:#221E1A;
+      --tinta:#F2EEE8; --fraco:#A09890; --linha:#302B26;
+      --laranja:#FF7A2E; --laranja-forte:#FF9A5C; --laranja-fraco:#2E1B0E; --sobre-laranja:#12100E;
+      --roxo:#B166FF;
+      --ok:#7FD6A6; --ok-f:#16291F;
+      --al:#FF9382; --al-f:#2E1714;
+      --es:#EFC873; --es-f:#2B2110;
+      --an:#9CC0F2; --an-f:#152131;
+      --nt:#B8B0A7; --nt-f:#262119;
+      --s1:0 1px 2px rgba(0,0,0,.5), 0 6px 22px rgba(0,0,0,.4);
+      color-scheme:dark;
+    }
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--papel); color:var(--tinta);
+    font-family:var(--corpo); font-size:16px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{ font-family:inherit; cursor:pointer; color:inherit; }
+  input,textarea{ font-family:var(--corpo); font-size:1rem; color:var(--tinta); }
+  *:focus-visible{ outline:2.5px solid var(--roxo); outline-offset:2px; border-radius:4px; }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+  }
+  h1,h2,h3{ font-family:var(--display); letter-spacing:-0.02em; margin:0; }
+  h1{ font-size:1.7rem; line-height:1.12; }
+  h2{ font-size:1.12rem; }
+  p{ margin:0; }
+  .rot{ font-family:var(--dado); font-size:0.66rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--fraco); }
+  .fraco{ color:var(--fraco); }
+  .pilha > * + *{ margin-top:12px; }
+  .pilha-g > * + *{ margin-top:28px; }
+
+  /* ---------- moldura ---------- */
+  .topo{
+    position:sticky; top:0; z-index:5; background:var(--papel);
+    display:flex; align-items:center; gap:12px; padding:12px 16px;
+    border-bottom:1px solid var(--linha);
+  }
+  .marca{ display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--tinta); flex-shrink:0; }
+  .marca svg{ height:30px; width:auto; display:block; }
+  .quem{ margin-left:auto; min-width:0; display:flex; align-items:center; gap:10px; }
+  .quem .nome{ font-weight:600; font-size:0.92rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .quem select{
+    max-width:52vw; font:inherit; font-weight:600; font-size:0.9rem; color:var(--tinta);
+    background:var(--sup); border:1px solid var(--linha); border-radius:10px; padding:6px 8px;
+  }
+  .linkbtn{ background:none; border:none; padding:4px 2px; color:var(--laranja-forte); font-size:0.85rem; text-decoration:underline; }
+
+  main{ max-width:720px; margin:0 auto; padding:20px 16px calc(96px + env(safe-area-inset-bottom)); }
+  .abas{
+    position:fixed; left:0; right:0; bottom:0; z-index:5;
+    display:grid; grid-template-columns:repeat(4,1fr);
+    background:var(--sup); border-top:1px solid var(--linha);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .abas a{
+    display:flex; flex-direction:column; align-items:center; gap:2px; padding:9px 4px 10px;
+    text-decoration:none; color:var(--fraco); font-size:0.78rem; font-weight:600;
+  }
+  .abas a svg{ width:22px; height:22px; }
+  .abas a[aria-current="page"]{ color:var(--laranja-forte); }
+  @media (min-width:900px){
+    .corpo{ display:grid; grid-template-columns:220px minmax(0,1fr); max-width:1080px; margin:0 auto; gap:12px; }
+    .abas{
+      position:sticky; top:72px; align-self:start; display:flex; flex-direction:column; gap:4px;
+      background:none; border:none; padding:20px 0 0 16px;
+    }
+    .abas a{ flex-direction:row; gap:10px; font-size:0.95rem; padding:10px 12px; border-radius:10px; }
+    .abas a[aria-current="page"]{ background:var(--laranja-fraco); }
+    main{ padding-bottom:48px; margin:0; }
+  }
+
+  /* ---------- blocos ---------- */
+  .cartao{ background:var(--sup); border-radius:var(--r); box-shadow:var(--s1); padding:18px; }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    min-height:48px; padding:0 22px; border-radius:100px; border:none;
+    font-family:var(--display); font-weight:700; font-size:1rem; text-decoration:none;
+  }
+  .btn.pri{ background:var(--laranja-forte); color:var(--sobre-laranja); }
+  .btn.sec{ background:var(--sup); color:var(--tinta); border:1.5px solid var(--linha); }
+  .btn.cheio{ width:100%; }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; }
+  .botoes{ display:flex; gap:10px; flex-wrap:wrap; }
+  .botoes .btn{ flex:1 1 140px; }
+  .acoes .btn{ white-space:nowrap; padding:0 14px; }
+
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; }
+  .chip{
+    border:1.5px solid var(--linha); background:var(--sup); border-radius:100px;
+    padding:9px 14px; font-size:0.92rem; font-weight:500;
+  }
+  .chip[aria-pressed="true"]{ border-color:var(--laranja-forte); background:var(--laranja-fraco); color:var(--tinta); font-weight:600; }
+
+  .campo label{ display:block; font-weight:600; margin-bottom:6px; }
+  .campo textarea, .campo input[type=email], .campo input[type=date]{
+    width:100%; border:1.5px solid var(--linha); border-radius:12px; background:var(--sup);
+    padding:12px 14px; line-height:1.45;
+  }
+  .campo textarea{ min-height:120px; resize:vertical; }
+  .contador{ font-family:var(--dado); font-size:0.72rem; color:var(--fraco); text-align:right; margin-top:4px; }
+
+  .aviso{ border-radius:12px; padding:12px 14px; font-size:0.95rem; }
+  .aviso.erro{ background:var(--al-f); color:var(--al); }
+  .aviso.ok{ background:var(--ok-f); color:var(--ok); }
+  .aviso.info{ background:var(--an-f); color:var(--an); }
+
+  .selo{ display:inline-block; font-size:0.78rem; font-weight:600; padding:3px 10px; border-radius:100px; white-space:nowrap; }
+  .selo.produzindo{ background:var(--an-f); color:var(--an); }
+  .selo.para_aprovar{ background:var(--laranja-fraco); color:var(--laranja-forte); }
+  .selo.aprovado, .selo.agendado, .selo.publicado{ background:var(--ok-f); color:var(--ok); }
+  .selo.rascunho, .selo.cancelado{ background:var(--nt-f); color:var(--nt); }
+
+  /* ---------- Hoje ---------- */
+  .tipos{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  @media (min-width:600px){ .tipos{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+  .tipo{
+    display:flex; flex-direction:column; align-items:flex-start; gap:8px; text-align:left;
+    background:var(--sup); border:none; border-radius:var(--r); box-shadow:var(--s1);
+    padding:16px 14px; min-height:132px; text-decoration:none; color:var(--tinta);
+  }
+  .tipo svg{ width:30px; height:30px; color:var(--laranja-forte); }
+  .tipo b{ font-family:var(--display); font-size:1rem; line-height:1.2; }
+  .tipo span{ font-size:0.84rem; color:var(--fraco); line-height:1.35; }
+  .tipo[aria-disabled="true"]{ box-shadow:none; background:var(--sup2); cursor:default; }
+  .tipo[aria-disabled="true"] svg{ color:var(--fraco); }
+  .tipo .breve{ margin-top:auto; font-family:var(--dado); font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--fraco); }
+
+  .lista{ display:flex; flex-direction:column; gap:10px; }
+  .linha-ped{
+    display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--tinta);
+    background:var(--sup); border-radius:14px; box-shadow:var(--s1); padding:10px 12px;
+  }
+  .miniatura{ width:52px; aspect-ratio:4/5; border-radius:8px; background:var(--sup2); object-fit:cover; flex-shrink:0; border:1px solid var(--linha); }
+  .linha-ped .txt{ min-width:0; flex:1; }
+  .linha-ped .tit{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .linha-ped .sub{ font-size:0.82rem; color:var(--fraco); }
+  .linha-ped.chama{ outline:2px solid var(--laranja-forte); outline-offset:-2px; }
+
+  /* ---------- pedido ---------- */
+  .passos{ display:flex; gap:6px; }
+  .passos i{ flex:1; height:4px; border-radius:4px; background:var(--linha); }
+  .passos i.feito{ background:var(--laranja); }
+  .resumo dt{ font-size:0.82rem; color:var(--fraco); margin-top:12px; }
+  .resumo dt:first-child{ margin-top:0; }
+  .resumo dd{ margin:2px 0 0; font-weight:500; }
+  .amostras{ display:flex; gap:6px; margin-top:6px; }
+  .amostras i{ width:28px; height:28px; border-radius:8px; border:1px solid var(--linha); display:block; }
+
+  /* ---------- acompanhamento ---------- */
+  .voltar{ display:inline-flex; align-items:center; gap:4px; color:var(--fraco); text-decoration:none; font-size:0.92rem; }
+  .cabeca{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+  .barra{ height:10px; border-radius:10px; background:var(--linha); overflow:hidden; }
+  .barra i{ display:block; height:100%; background:var(--laranja); border-radius:10px; transition:width .5s ease; }
+  .etapa{ font-family:var(--display); font-weight:700; font-size:1.2rem; }
+  /* ---------- sugestões do plano ---------- */
+  .sugestoes{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  .sugestao{ background:var(--sup); border-radius:14px; box-shadow:var(--s1); padding:14px; display:flex; flex-direction:column; gap:10px; }
+  .sugestao p{ font-weight:600; line-height:1.35; }
+  .sugestao .btn{ align-self:flex-start; min-height:40px; font-size:0.92rem; padding:0 18px; }
+
+  /* ---------- data de ir ao ar ---------- */
+  .data-ar{ display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:6px 14px; font-size:0.95rem; padding:0 2px; }
+
+  /* ---------- calendário ---------- */
+  .mes-nav{ display:flex; align-items:center; gap:6px; }
+  .mes-nav .chip{ padding:6px 12px; font-size:1rem; }
+  .mes-nome{ font-family:var(--display); font-weight:600; min-width:7.5em; text-align:center; text-transform:capitalize; }
+  .cal{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; }
+  .cal .sem{ text-align:center; font-family:var(--dado); font-size:0.7rem; color:var(--fraco); padding-bottom:2px; }
+  .dia{
+    min-height:58px; border:1px solid var(--linha); background:var(--sup); border-radius:10px;
+    padding:4px; display:flex; flex-direction:column; align-items:center; gap:3px; font:inherit; min-width:0;
+  }
+  .dia.vazio{ border:none; background:none; }
+  .dia.passado{ background:var(--sup2); }
+  .dia .num{ font-size:0.82rem; font-weight:600; line-height:1; }
+  .dia.passado .num{ color:var(--fraco); }
+  .dia.hoje .num{ color:var(--laranja-forte); }
+  .dia.hoje{ border-color:var(--laranja-forte); }
+  .dia[aria-pressed="true"]{ outline:2.5px solid var(--laranja-forte); outline-offset:-1px; }
+  .dia.alvo{ background:var(--laranja-fraco); }
+  .dia .pecas{ display:flex; gap:2px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .dia .peca{ width:18px; aspect-ratio:4/5; border-radius:3px; background:var(--laranja); overflow:hidden; display:block; }
+  .dia .peca img, .dia .peca video{ width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
+  .dia .peca.foi{ opacity:.6; }
+  .dia .mais{ font-size:0.66rem; color:var(--fraco); }
+  @media (min-width:600px){ .dia{ min-height:78px; } .dia .peca{ width:26px; } }
+
+  /* Carrossel: desliza de lado, uma imagem por vez, com a próxima aparecendo na borda. */
+  .galeria{ display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:6px; overscroll-behavior-x:contain; }
+  /* min-width:0 — sem ele a imagem não encolhe abaixo da largura própria e
+     passa da tela, em vez de deixar a próxima aparecer na borda. */
+  .galeria img, .galeria .img-vazia{ flex:0 0 86%; min-width:0; max-width:420px; aspect-ratio:4/5; border-radius:12px; scroll-snap-align:center; object-fit:cover; background:var(--sup2); box-shadow:var(--s1); display:block; }
+  .galeria.antiga, .opcoes.antiga{ opacity:.55; }
+  /* Capa: as três opções empilhadas, a escolhida com moldura. */
+  .opcao{ display:block; width:100%; text-align:left; padding:0; border:2.5px solid transparent; border-radius:14px; background:none; }
+  .opcao img, .opcao .img-vazia{ display:block; width:100%; aspect-ratio:16/9; border-radius:11px; object-fit:cover; background:var(--sup2); }
+  .opcao .rotulo-opcao{ display:block; padding:6px 4px 2px; font-weight:600; font-size:0.92rem; }
+  .opcao[aria-pressed="true"], .opcao.escolhida{ border-color:var(--laranja-forte); }
+  .texto-entrega{ white-space:pre-wrap; line-height:1.55; }
+  .titulos{ list-style:none; margin:0; padding:0; }
+  .titulos li{ display:flex; gap:12px; align-items:baseline; justify-content:space-between; padding:8px 0; border-top:1px solid var(--linha); }
+  .titulos li:first-child{ border-top:none; }
+  .baixar .btn{ flex:0 1 auto; min-height:42px; padding:0 16px; font-size:0.92rem; }
+
+  /* Só as laterais e o pé: o topo é do espaçamento entre blocos (.pilha-g). */
+  .figura{ margin-left:0; margin-right:0; margin-bottom:0; }
+  .previa{ display:block; width:100%; max-width:440px; aspect-ratio:4/5; margin:0 auto; border-radius:12px; background:var(--sup2); object-fit:contain; box-shadow:var(--s1); }
+  .previa.antiga{ opacity:.55; }
+  /* O reel é em pé, 9:16. A largura sai da altura da tela (35vh ≈ 62vh de
+     altura), pra o vídeo inteiro caber acima da barra de Aprovar no celular. */
+  video.previa{ aspect-ratio:9/16; width:min(100%, 340px, 35vh); max-width:none; object-fit:contain; background:#000; }
+  .envio .nome-arquivo{ font-weight:600; overflow-wrap:anywhere; }
+  .envio .linkbtn{ align-self:flex-start; cursor:pointer; }
+  .envio.falhou{ outline:2px solid var(--al); outline-offset:-2px; }
+  .erro-texto{ color:var(--al); font-size:0.92rem; }
+  .versoes{ display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; }
+  .versoes button{ border:2px solid transparent; background:none; padding:0; border-radius:10px; }
+  .versoes button[aria-pressed="true"]{ border-color:var(--laranja-forte); }
+  .versoes img{ width:56px; aspect-ratio:4/5; border-radius:8px; object-fit:cover; display:block; }
+  .linha-tempo{ list-style:none; margin:0; padding:0; }
+  .linha-tempo li{ display:flex; gap:12px; padding:7px 0; border-top:1px solid var(--linha); font-size:0.92rem; }
+  .linha-tempo li:first-child{ border-top:none; }
+  .linha-tempo time{ font-family:var(--dado); font-size:0.75rem; color:var(--fraco); flex-shrink:0; padding-top:2px; }
+  .acoes{ position:sticky; bottom:calc(64px + env(safe-area-inset-bottom)); background:var(--papel); padding:12px 0 4px; }
+  @media (min-width:900px){ .acoes{ bottom:0; } }
+
+  /* ---------- marca ---------- */
+  .cores{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+  .cor{ display:flex; gap:10px; align-items:flex-start; }
+  .cor i{ width:40px; height:40px; border-radius:10px; flex-shrink:0; border:1px solid var(--linha); display:block; }
+  .cor b{ display:block; font-size:0.92rem; }
+  .cor small{ display:block; font-size:0.8rem; color:var(--fraco); line-height:1.35; }
+  .combos{ display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px; }
+  .combo .mini{ aspect-ratio:4/5; border-radius:10px; padding:12px; display:flex; flex-direction:column; justify-content:center; border:1px solid var(--linha); }
+  .combo .mini b{ font-family:var(--display); font-size:1.3rem; line-height:1.05; }
+  .combo .mini i{ display:block; width:36%; height:5px; margin-top:auto; border-radius:3px; }
+  .combo p{ font-size:0.86rem; margin-top:6px; }
+  .regra dt{ font-weight:600; margin-top:14px; }
+  .regra dt:first-child{ margin-top:0; }
+  .regra dd{ margin:3px 0 0; color:var(--tinta); }
+
+  /* ---------- entrada ---------- */
+  .entrada{ min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:24px 16px; }
+  .entrada .cartao{ width:100%; max-width:400px; padding:28px 22px; }
+  .entrada .marca svg{ height:44px; }
+
+  .carregando{ padding:40px 0; text-align:center; color:var(--fraco); }
+  .vazio{ text-align:center; padding:28px 12px; color:var(--fraco); }
+  .sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(() => {
+  'use strict';
+
+  const SUPABASE_URL = 'https://yxewmauwnxnrrhevlbtc.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_G_FuzadzmX2BwkRO81H3mw_xoYnthod';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const BALDE = 'pedidos';
+
+  // O mesmo logotipo do Estúdio e da Central, em currentColor: vira com o tema.
+  const LOGO = '<svg viewBox="137 133 1150 1265" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+    + '<ellipse cx="1042.19" cy="538.341" rx="241.56" ry="245.52" fill="#FF5E00"/>'  // orelha laranja — a única cor fixa; é ela que identifica a Bora
+    + '<path d="M500.319 362.021C526.316 362.287 549.625 368.704 570.146 381.335L571.122 381.941L571.137 381.952L571.153 381.961C591.492 395.025 607.168 413.953 618.229 438.567L618.745 439.707C629.489 463.708 634.606 492.739 634.258 526.669L632.126 734.709L632.09 738.309L628.49 738.272L144.675 733.316L141.076 733.279L141.113 729.679L143.173 528.55C143.522 494.556 149.17 465.725 160.286 442.199C170.914 418.724 186.044 400.794 205.725 388.594C224.934 376.396 247.344 370.489 272.813 370.75C297.755 371.005 318.917 376.638 336.095 387.863C353.116 398.984 366.083 413.663 374.945 431.85H374.944C377.297 436.554 379.391 441.388 381.232 446.35C384.302 436.459 388.695 427.193 394.417 418.567C405.977 400.684 421.076 386.827 439.678 377.049C458.3 366.803 478.536 361.798 500.319 362.021ZM487.49 467.246C467.643 467.042 452.271 473.454 440.938 486.263C429.559 499.125 423.528 517.249 423.284 541.097L422.349 632.186L547.162 633.465L548.11 540.994C548.355 517.073 543.121 499.056 532.906 486.452C522.808 473.993 507.874 467.454 487.49 467.246ZM286.241 476.935C267.729 476.745 253.781 482.51 243.877 493.898L243.831 493.953L243.781 494.004C233.467 504.95 227.858 522.048 227.613 546.004L226.75 630.182L343.269 631.376L344.139 546.507C344.375 523.517 339.365 506.465 329.657 494.809C319.531 483.195 305.226 477.13 286.241 476.935Z" fill="currentColor" stroke="currentColor" stroke-width="7.2"/>'  // o B com os dois pontos: as duas pessoas
+    + '<circle cx="285.55" cy="226.382" r="90" fill="currentColor"/>'
+    + '<circle cx="508.26" cy="228.964" r="90" fill="currentColor"/>'
+    + '<path d="M227.486 1391V907.16H432.773C471.941 907.16 504.197 913.842 529.541 927.205C555.346 940.107 574.469 958.078 586.91 981.118C599.813 1003.7 606.264 1029.27 606.264 1057.84C606.264 1079.96 601.426 1100.47 591.749 1119.36C582.072 1137.79 569.17 1153.69 553.042 1167.05C570.552 1179.03 583.915 1194.47 593.131 1213.36C602.808 1232.25 608.107 1253.91 609.029 1278.33L614.558 1391H519.864L512.261 1278.33C511.339 1262.21 508.114 1249.07 502.584 1238.94C497.515 1228.34 489.451 1220.5 478.392 1215.44C467.333 1210.37 452.357 1207.83 433.464 1207.83H324.254V1391H227.486ZM324.254 1129.73H426.552C455.122 1129.73 475.858 1123.28 488.76 1110.37C501.662 1097.47 508.114 1079.96 508.114 1057.84C508.114 1035.26 501.662 1017.75 488.76 1005.31C475.858 992.408 455.122 985.957 426.552 985.957H324.254V1129.73Z" fill="currentColor" stroke="currentColor" stroke-width="14.4"/>'  // R
+    + '<path d="M988.997 911L813.432 1394.84H916.421L1048.44 1009.84L1181.15 1394.84H1283.45L1107.88 911H988.997Z" fill="currentColor" stroke="currentColor" stroke-width="14.4"/>'  // A (o travessão vem separado, em dois pedaços)
+    + '<path d="M937.58 1287.47L1027 1285.87" stroke="currentColor" stroke-width="75"/>'
+    + '<path d="M1065 1285.19L1153.42 1283.6" stroke="currentColor" stroke-width="75"/>'
+    + '</svg>';
+
+  const ICONE = {
+    post: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 15h8M8 18h5"/><circle cx="12" cy="9" r="2.6"/></svg>',
+    carrossel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="6" y="3" width="12" height="16" rx="2"/><path d="M3 6v10M21 6v10"/><path d="M10 22h4" stroke-linecap="round"/></svg>',
+    story: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M10 5h4"/></svg>',
+    reel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2.5"/><path d="M10.5 9.5v5l4-2.5z" fill="currentColor"/></svg>',
+    capa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M6 15l4-4 3 3 2-2 3 3"/></svg>',
+    apresentacao: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M10 8.5v5l4-2.5z" fill="currentColor"/></svg>',
+    calendario: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><rect x="7" y="13" width="3" height="3" rx="0.6" fill="currentColor" stroke="none"/></svg>',
+    hoje: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/><circle cx="12" cy="12" r="10"/></svg>',
+    pedidos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>',
+    marca: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.4" fill="currentColor"/><circle cx="12" cy="7.5" r="1.4" fill="currentColor"/><circle cx="15.5" cy="10" r="1.4" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2a2 2 0 0 0 2-2"/></svg>',
+  };
+
+  // O que dá pra pedir. Só o que tem skill que entrega fica ativo — o resto
+  // aparece, porque saber que vai existir também é informação, mas não clica.
+  const TIPOS = [
+    { k:'post-feed',    nome:'Post para feed',          sub:'Uma imagem para o feed do Instagram', icone:'post',        ativo:true },
+    { k:'carrossel',    nome:'Carrossel',               sub:'Várias imagens em sequência',         icone:'carrossel',   ativo:true },
+    { k:'story',        nome:'Story',                   sub:'Em pé, some em 24 horas',             icone:'story',       ativo:false },
+    { k:'reel',         nome:'Reel ou vídeo curto',     sub:'Do vídeo que você gravou, ou uma abertura animada', icone:'reel', ativo:true },
+    { k:'capa',         nome:'Capa ou thumbnail',       sub:'Três opções de capa pro seu vídeo',   icone:'capa',        ativo:true },
+    { k:'apresentacao', nome:'Vídeo de apresentação',   sub:'Contando o que o seu negócio faz',    icone:'apresentacao', ativo:false },
+  ];
+  const NOME_TIPO = Object.fromEntries(TIPOS.map(t => [t.k, t.nome]));
+
+  const ESTADOS = {
+    rascunho:     'Rascunho',
+    produzindo:   'Fazendo',
+    para_aprovar: 'Para você aprovar',
+    aprovado:     'Aprovado',
+    agendado:     'Agendado',
+    publicado:    'Publicado',
+    cancelado:    'Cancelado',
+  };
+  // Cada filtro junta os estados que, pra quem pede, são a mesma coisa:
+  // "aprovado" inclui o que já tem dia e o que já foi ao ar.
+  const FILTROS = [
+    ['todos', 'Todos', null], ['produzindo', 'Fazendo', ['produzindo']], ['para_aprovar', 'Para aprovar', ['para_aprovar']],
+    ['aprovado', 'Aprovados', ['aprovado', 'agendado', 'publicado']],
+  ];
+  const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  const OBJETIVOS = ['Atrair gente nova', 'Vender', 'Ensinar algo', 'Contar uma novidade'];
+  const QTD_SLIDES = [3, 5, 7, 10];
+  const PERGUNTA = {
+    'post-feed': { titulo:'O que o post precisa dizer?', ajuda:'Uma ou duas frases, do seu jeito. A Bora transforma em post com a sua marca.', exemplo:'Ex.: Abrimos turma nova no laboratório, inscrições até sexta.' },
+    carrossel:   { titulo:'Sobre o que é o carrossel?', ajuda:'Conte as ideias que ele precisa passar, uma por frase. Cada ideia vira uma imagem.', exemplo:'Ex.: Não existe atalho pra liderar. Liderança se aprende fazendo. Organização vem antes de talento.' },
+    capa:        { titulo:'Sobre o que é o vídeo?', ajuda:'Uma ou duas frases sobre o vídeo. A Bora faz três opções de capa pra você escolher.', exemplo:'Ex.: Como montei um time de produto sem saber programar.' },
+    reel:        { titulo:'Mande o vídeo que você gravou', ajuda:'Em pé, com você falando, de até 1 minuto e meio. A Bora corta as pausas e as repetições, aproxima a câmera e põe legenda nas cores da sua marca.', exemplo:'Ex.: Turma nova do laboratório, inscrições até sexta.', campo:'Em uma frase, sobre o que é o vídeo?' },
+    abertura:    { titulo:'O que a abertura vai dizer?', ajuda:'Um vídeo de 10 segundos com o seu tema entrando na tela, nas cores e na fonte da sua marca. Não precisa gravar nada.', exemplo:'Ex.: Turma nova do laboratório, inscrições abertas.' },
+  };
+  // O reel tem três jeitos de nascer: do vídeo gravado, de uma abertura
+  // animada, ou de um carrossel aprovado (esse, pelo botão no próprio carrossel).
+  const FORMATOS_REEL = [['bruto', 'Tenho um vídeo gravado'], ['abertura', 'Quero uma abertura animada']];
+  const perguntaDe = (n) => n.tipo === 'reel' && n.formato === 'abertura' ? PERGUNTA.abertura : PERGUNTA[n.tipo];
+  const formatoDe = (p) => (p.briefing && p.briefing.formato) || (p.tipo === 'reel' ? 'bruto' : null);
+  // O plano grátis do banco recusa arquivo acima de 50 MB — é mais ou menos
+  // um minuto e meio filmado no celular. Avisar antes de subir poupa a espera.
+  const LIMITE_VIDEO_MB = 50;
+  const LIMITE_VIDEO_SEG = 90;
+  const EXT_VIDEO = ['mp4', 'mov', 'm4v', 'webm'];
+
+  // O que vai sair, em palavras de quem pede. Uma frase por tipo, e a mesma
+  // frase serve no resumo do pedido e no nome do botão.
+  const SAI = {
+    'post-feed': () => ({ peca:'1 post para o feed do Instagram, em pé', botao:'Pedir post' }),
+    carrossel:   (n) => ({ peca:`1 carrossel de ${n.slides} imagens para o feed, em pé`, botao:'Pedir carrossel' }),
+    capa:        () => ({ peca:'3 opções de capa para vídeo do YouTube, deitada, e 2 sugestões de título pro vídeo', botao:'Pedir capas' }),
+    reel:        (n) => n.formato === 'abertura'
+      ? { peca:'1 abertura animada de 10 segundos, em pé, nas cores da sua marca', botao:'Pedir abertura' }
+      : { peca:'1 reel em pé, sem as pausas e com legenda na sua marca', botao:'Pedir reel' },
+  };
+  const TONS = ['Como sempre', 'Mais sério', 'Mais leve'];
+  const ATALHOS = ['mais curto', 'outra cor da marca', 'mais sério', 'troca a foto'];
+  // No vídeo, só o que a fábrica sabe mudar nele: a cor da legenda.
+  const atalhosDe = (tipo) => tipo === 'reel' ? ['outra cor da marca'] : ATALHOS;
+  const ROTULO_ATALHO = { 'mais curto':'Mais curto', 'outra cor da marca':'Outra cor da marca', 'mais sério':'Mais sério', 'troca a foto':'Troca a foto' };
+  const MAX_AJUSTES = 5;
+
+  const state = {
+    carregando: true,
+    user: null,
+    clientes: [],
+    clienteId: null,
+    marca: null,
+    pedidos: [],
+    eventos: {},          // pedido_id -> eventos visíveis
+    urls: {},             // caminho no balde -> link assinado
+    textos: {},           // caminho no balde -> conteúdo da legenda/títulos
+    escolha: {},          // pedido_id -> opção de capa marcada (antes de aprovar)
+    sugestoes: [],        // a pauta do plano do mês, tema por tema
+    sugestaoAberta: null, // o tema cujo "Criar isso" está escolhendo formato
+    agendando: null,      // { pedidoId, dia } — o seletor de data aberto
+    calMes: null,         // 'AAAA-MM' do calendário na tela
+    calDia: null,         // o dia escolhido no calendário
+    rota: { nome:'hoje', arg:null },
+    filtro: 'todos',
+    novo: null,           // rascunho do pedido em 3 passos
+    ajuste: null,         // { pedidoId, texto, atalhos:Set }
+    versaoVista: {},      // pedido_id -> job_id da versão na tela
+    aviso: null,          // { tipo, texto }
+    enviandoLink: false,
+    linkEnviadoPara: null,
+    ocupado: false,
+  };
+
+  // ---------- utilidades ----------
+
+  // Monta DOM sem innerHTML: todo texto que vem do banco entra como texto.
+  // 'html' só recebe as constantes de ícone e logo, escritas aqui.
+  function h(tag, props, ...filhos){
+    const el = document.createElement(tag);
+    for(const [k, v] of Object.entries(props || {})){
+      if(v == null || v === false) continue;
+      if(k === 'class') el.className = v;
+      else if(k === 'html') el.innerHTML = v;
+      else if(k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
+      else if(k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+      else if(v === true) el.setAttribute(k, '');
+      else el.setAttribute(k, String(v));
+    }
+    for(const f of filhos.flat(Infinity)){
+      if(f == null || f === false) continue;
+      el.append(f.nodeType ? f : String(f));
+    }
+    return el;
+  }
+
+  const lerLocal = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+  const gravarLocal = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} };
+
+  const fmtData = (iso) => new Date(iso).toLocaleDateString('pt-BR', { day:'2-digit', month:'short' });
+  const fmtHora = (iso) => new Date(iso).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+  const fmtDia = (yyyyMmDd) => new Date(yyyyMmDd + 'T12:00:00').toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
+  const hojeIso = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+  /** O dia (AAAA-MM-DD) de um horário, no fuso de quem está olhando. */
+  const diaDe = (iso) => { const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+  /** "Falta menos de um minuto." / "Faltam uns 3 minutos." — arredonda pra cima, nunca promete antes. */
+  const faltam = (s) => s < 60 ? 'Falta menos de um minuto.' : 'Faltam uns ' + Math.max(2, Math.ceil(s / 60)) + ' minutos.';
+  const fmtDiaCurto = (iso) => new Date(iso).toLocaleDateString('pt-BR', { weekday:'short', day:'numeric', month:'short' });
+
+  // A mensagem das funções do banco já é escrita pra quem pede ("espere uma
+  // terminar"); o resto vira uma frase genérica, sem código de erro na cara.
+  function mensagemDeErro(error){
+    const m = (error && error.message) || '';
+    if(/^[a-zà-ú]/i.test(m) && !/(fetch|network|jwt|permission denied|violates|syntax)/i.test(m)) return m.charAt(0).toUpperCase() + m.slice(1) + '.';
+    if(/fetch|network/i.test(m)) return 'Sem conexão agora. Confira a internet e tente de novo.';
+    return 'Algo não deu certo. Tente de novo em instantes.';
+  }
+
+  function avisar(tipo, texto){
+    state.aviso = { tipo, texto };
+    render();
+    clearTimeout(avisar.t);
+    if(tipo !== 'erro') avisar.t = setTimeout(() => { state.aviso = null; render(); }, 5000);
+  }
+
+  // ---------- rotas ----------
+
+  function lerRota(){
+    const partes = location.hash.replace(/^#\/?/, '').split('/');
+    const nome = ['hoje', 'novo', 'pedido', 'pedidos', 'calendario', 'marca'].includes(partes[0]) ? partes[0] : 'hoje';
+    return { nome, arg: partes[1] || null };
+  }
+  function ir(hash){ if(location.hash !== hash) location.hash = hash; }
+
+  // Compara com a tela antes de agir: o hashchange que eu mesmo causei não
+  // reaplica a rota. Foi uma corrida assim que quebrou a navegação da Central.
+  window.addEventListener('hashchange', () => {
+    const r = lerRota();
+    if(r.nome === state.rota.nome && r.arg === state.rota.arg) return;
+    state.rota = r;
+    aoEntrarNaRota();
+  });
+
+  async function aoEntrarNaRota(){
+    state.aviso = null;
+    const { nome, arg } = state.rota;
+    if(nome === 'novo'){
+      const tipo = TIPOS.find(t => t.k === arg && t.ativo);
+      if(!tipo){ ir('#/hoje'); return; }
+      if(!state.novo || state.novo.tipo !== tipo.k){
+        if(state.novo && state.novo.video && state.novo.video.xhr) state.novo.video.xhr.abort();
+        state.novo = { tipo:tipo.k, passo:1, texto:'', objetivo:null, tom:'Como sempre', data:'', slides:5, video:null, formato:'bruto' };
+      }
+    }
+    if(nome === 'pedido' && arg){
+      if(!state.pedidos.find(p => p.id === arg)) await carregarPedido(arg);
+      await carregarEventos(arg);
+      garantirUrls();
+    }
+    window.scrollTo(0, 0);
+    render();
+  }
+
+  // ---------- dados ----------
+
+  // O "!jobs_pedido_id_fkey" diz por qual ligação trazer as rodadas: desde que
+  // o pedido guarda a rodada aprovada (job_aprovado), há dois caminhos entre
+  // as tabelas, e sem a indicação o banco recusa a consulta inteira.
+  const COLUNAS_PEDIDO = 'id, cliente_id, tipo, titulo, briefing, estado, publicar_em, ajustes, job_aprovado, escolha, aprovado_em, assumido_em, criado_em, atualizado_em, '
+    + 'jobs!jobs_pedido_id_fkey(id, rodada, estado, etapa, progresso, restam_segundos, saidas, erro, criado_em, atualizado_em)';
+
+  async function carregarClientes(){
+    const { data, error } = await sb.rpc('meus_clientes');
+    if(error) throw error;
+    state.clientes = data || [];
+    const guardado = lerLocal('bora-app:cliente');
+    state.clienteId = (state.clientes.find(c => c.id === guardado) || state.clientes[0] || {}).id || null;
+  }
+
+  async function carregarDoCliente(){
+    if(!state.clienteId) return;
+    const [marca, pedidos] = await Promise.all([
+      sb.rpc('marca_do_cliente', { p_cliente: state.clienteId }),
+      sb.from('pedidos').select(COLUNAS_PEDIDO).eq('cliente_id', state.clienteId).order('criado_em', { ascending:false }).limit(60),
+      carregarSugestoes(),
+    ]);
+    if(marca.error) throw marca.error;
+    if(pedidos.error) throw pedidos.error;
+    state.marca = marca.data;
+    state.pedidos = pedidos.data || [];
+    escutarCliente();
+    garantirUrls();
+  }
+
+  // A pauta do plano do mês, tema por tema. Erro aqui não derruba a tela:
+  // sem sugestão o cliente ainda pede do jeito de sempre.
+  async function carregarSugestoes(){
+    const { data, error } = await sb.rpc('sugestoes_do_mes', { p_cliente: state.clienteId });
+    state.sugestoes = error ? [] : data || [];
+  }
+
+  async function carregarPedido(id){
+    const { data } = await sb.from('pedidos').select(COLUNAS_PEDIDO).eq('id', id).maybeSingle();
+    if(data) juntarPedido(data);
+  }
+
+  async function carregarEventos(pedidoId){
+    const p = state.pedidos.find(x => x.id === pedidoId);
+    if(!p) return;
+    const ids = (p.jobs || []).map(j => j.id);
+    if(!ids.length){ state.eventos[pedidoId] = []; return; }
+    const { data } = await sb.from('job_eventos').select('id, job_id, mensagem, criado_em')
+      .in('job_id', ids).eq('visivel_cliente', true).order('id');
+    state.eventos[pedidoId] = data || [];
+  }
+
+  function juntarPedido(novo){
+    const i = state.pedidos.findIndex(p => p.id === novo.id);
+    if(i < 0){ state.pedidos.unshift(novo); return; }
+    state.pedidos[i] = Object.assign({}, state.pedidos[i], novo, { jobs: novo.jobs || state.pedidos[i].jobs });
+  }
+
+  // Atualização mais velha que a que já está na tela é ignorada: a leitura e
+  // o tempo real correm em paralelo, e sem isto a barra volta de 45% pra 20%.
+  function juntarJob(job){
+    const p = state.pedidos.find(x => x.id === job.pedido_id);
+    if(!p){ carregarPedido(job.pedido_id).then(agendarRender); return; }
+    p.jobs = p.jobs || [];
+    const i = p.jobs.findIndex(j => j.id === job.id);
+    if(i >= 0 && Date.parse(p.jobs[i].atualizado_em) > Date.parse(job.atualizado_em)) return;
+    if(i >= 0) p.jobs[i] = Object.assign({}, p.jobs[i], job); else p.jobs.push(job);
+  }
+
+  const jobsDe = (p) => (p.jobs || []).slice().sort((a, b) => Date.parse(a.criado_em) - Date.parse(b.criado_em));
+  const prontos = (p) => jobsDe(p).filter(j => j.estado === 'pronto');
+  const jobEmAndamento = (p) => jobsDe(p).filter(j => j.estado === 'na_fila' || j.estado === 'rodando').pop() || null;
+  const ultimoJob = (p) => jobsDe(p).pop() || null;
+  const saidasDe = (job) => (job && job.saidas || []).filter(s => s.papel === 'saida').sort((a, b) => a.caminho.localeCompare(b.caminho));
+  const imagensDe = (job) => saidasDe(job).filter(s => /png|jpeg/.test(s.mime || ''));
+  const textoDe = (job, nome) => saidasDe(job).find(s => s.caminho.endsWith('/' + nome));
+  const pngDe = (job) => imagensDe(job)[0];
+
+  // O vídeo é redesenhado junto com a tela a cada mudança, e um <video> novo
+  // volta pro começo. Guardado aqui, o mesmo elemento só muda de lugar e
+  // continua tocando de onde estava.
+  const videos = new Map();
+  function videoDe(url, props){
+    let v = videos.get(url);
+    if(!v){
+      v = h('video', { src:url, controls:true, playsinline:true, preload:'metadata' });
+      videos.set(url, v);
+    }
+    for(const [k, valor] of Object.entries(props)) v.setAttribute(k, valor);
+    return v;
+  }
+  /** A miniatura de uma rodada: a imagem, ou o primeiro quadro do vídeo. */
+  function miniaturaDe(job, cls){
+    const s = pngDe(job) || textoDe(job, 'reel.mp4');
+    const u = s && state.urls[s.caminho];
+    if(!u) return h('span', { class:cls, 'aria-hidden':'true' });
+    return /^video/.test(s.mime || '')
+      ? h('video', { class:cls, src:u + '#t=0.5', preload:'metadata', muted:true, playsinline:true, 'aria-hidden':'true', tabindex:'-1' })
+      : h('img', { class:cls, src:u, alt:'' });
+  }
+
+  // O balde é fechado: imagem, vídeo e texto chegam por link assinado, que
+  // vale uma hora. O texto (legenda, títulos) é baixado uma vez e guardado na
+  // memória. Rodada ainda em andamento entra também: a prévia do reel chega
+  // antes do vídeo completo.
+  async function garantirUrls(){
+    const faltam = [];
+    for(const p of state.pedidos) for(const j of jobsDe(p)){
+      for(const s of saidasDe(j)) if(!state.urls[s.caminho]) faltam.push(s.caminho);
+    }
+    if(!faltam.length) return;
+    const { data } = await sb.storage.from(BALDE).createSignedUrls(faltam, 3600);
+    for(const d of data || []) if(d.signedUrl) state.urls[d.path] = d.signedUrl;
+    await Promise.all((data || []).filter(d => d.signedUrl && d.path.endsWith('.txt') && state.textos[d.path] == null).map(async d => {
+      try { state.textos[d.path] = await (await fetch(d.signedUrl)).text(); } catch { /* tenta de novo no próximo render */ }
+    }));
+    agendarRender();
+  }
+
+  async function copiar(texto, aviso){
+    try { await navigator.clipboard.writeText(texto); avisar('ok', aviso); }
+    catch { avisar('erro', 'Não deu pra copiar daqui. Segure o dedo no texto e copie.'); }
+  }
+
+  // ---------- tempo real ----------
+
+  let canal = null;
+  function escutarCliente(){
+    if(canal) sb.removeChannel(canal);
+    const filtro = 'cliente_id=eq.' + state.clienteId;
+    canal = sb.channel('cliente-' + state.clienteId)
+      .on('postgres_changes', { event:'*', schema:'public', table:'pedidos', filter:filtro }, (m) => {
+        if(m.eventType === 'DELETE') return;
+        juntarPedido(m.new);
+        agendarRender();
+      })
+      .on('postgres_changes', { event:'*', schema:'public', table:'jobs', filter:filtro }, (m) => {
+        if(m.eventType === 'DELETE') return;
+        juntarJob(m.new);
+        if((m.new.saidas || []).length) garantirUrls();
+        agendarRender();
+      })
+      .on('postgres_changes', { event:'INSERT', schema:'public', table:'job_eventos', filter:filtro }, (m) => {
+        if(!m.new.visivel_cliente) return;
+        const p = state.pedidos.find(x => (x.jobs || []).some(j => j.id === m.new.job_id));
+        if(!p) return;
+        const lista = state.eventos[p.id] = state.eventos[p.id] || [];
+        if(!lista.some(e => e.id === m.new.id)) lista.push(m.new);
+        agendarRender();
+      })
+      .subscribe();
+  }
+
+  // Tempo real não pode apagar o que a pessoa está digitando: com o foco num
+  // campo, a tela espera ele sair pra redesenhar.
+  let renderPendente = false;
+  function agendarRender(){
+    const ativo = document.activeElement;
+    if(ativo && /^(TEXTAREA|INPUT|SELECT)$/.test(ativo.tagName) && document.getElementById('app').contains(ativo)){
+      renderPendente = true;
+      return;
+    }
+    requestAnimationFrame(render);
+  }
+  document.addEventListener('focusout', () => {
+    if(!renderPendente) return;
+    setTimeout(() => {
+      const ativo = document.activeElement;
+      if(ativo && /^(TEXTAREA|INPUT|SELECT)$/.test(ativo.tagName)) return;
+      renderPendente = false;
+      render();
+    }, 0);
+  });
+
+  // ---------- ações ----------
+
+  async function pedir(){
+    const n = state.novo;
+    state.ocupado = true; render();
+    const briefing = { texto: n.texto.trim() };
+    if(n.objetivo) briefing.objetivo = n.objetivo;
+    if(n.tom && n.tom !== 'Como sempre') briefing.tom = n.tom;
+    if(n.tipo === 'carrossel') briefing.slides = n.slides;
+    if(n.tipo === 'reel'){
+      briefing.formato = n.formato;
+      if(n.formato === 'bruto') briefing.anexo = n.video.caminho;
+    }
+    const publicarEm = n.data ? new Date(n.data + 'T12:00:00').toISOString() : null;
+    const { data, error } = await sb.rpc('criar_pedido', {
+      p_cliente: state.clienteId, p_tipo: n.tipo, p_briefing: briefing, p_publicar_em: publicarEm,
+      p_origem_plano: n.origem ? n.origem.plano : null, p_origem_tema: n.origem ? n.origem.tema : null,
+    });
+    state.ocupado = false;
+    if(error){ avisar('erro', mensagemDeErro(error)); return; }
+    state.novo = null;
+    if(n.origem) await carregarSugestoes();
+    await carregarPedido(data);
+    await carregarEventos(data);
+    ir('#/pedido/' + data);
+  }
+
+  // O vídeo sobe assim que é escolhido, enquanto a pessoa escreve o resto:
+  // quando ela chega no "Pedir reel", ele já está lá. Vai por XHR e não pelo
+  // supabase-js porque só o XHR conta quanto já subiu.
+  async function enviarVideo(arquivo){
+    const n = state.novo;
+    if(n.video && n.video.xhr) n.video.xhr.abort();
+    const ext = (arquivo.name.split('.').pop() || '').toLowerCase();
+    const mb = arquivo.size / 1048576;
+    const v = n.video = { nome:arquivo.name, mb, progresso:0, estado:'enviando', caminho:null, erro:null, xhr:null };
+    const falhar = (texto) => { v.estado = 'erro'; v.erro = texto; v.xhr = null; atualizarEnvio(v); };
+    if(!EXT_VIDEO.includes(ext)) return falhar('Esse arquivo não parece um vídeo. Mande em MP4 ou MOV, o formato do celular.');
+    if(mb > LIMITE_VIDEO_MB) return falhar('Esse vídeo tem ' + Math.round(mb) + ' MB, e por enquanto o limite é ' + LIMITE_VIDEO_MB + ' MB. Grave um pouco mais curto, ou mande numa qualidade menor.');
+    const seg = await duracaoDe(arquivo);
+    if(n.video !== v) return;
+    if(seg > LIMITE_VIDEO_SEG + 1) return falhar('Esse vídeo tem ' + Math.round(seg) + ' segundos, e o reel aceita até 1 minuto e meio. Grave um pouco mais curto.');
+    agendarRender();
+
+    const [{ data:pasta, error }, { data:{ session } }] = await Promise.all([
+      sb.rpc('pasta_de_envio', { p_cliente: state.clienteId }), sb.auth.getSession()]);
+    if(n.video !== v) return;
+    if(error || !session) return falhar(mensagemDeErro(error));
+    const caminho = pasta + '/bruto.' + ext;
+    const xhr = v.xhr = new XMLHttpRequest();
+    xhr.open('POST', SUPABASE_URL + '/storage/v1/object/' + BALDE + '/' + caminho);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + session.access_token);
+    xhr.setRequestHeader('apikey', SUPABASE_KEY);
+    xhr.setRequestHeader('x-upsert', 'false');
+    xhr.setRequestHeader('Content-Type', arquivo.type || 'video/mp4');
+    xhr.upload.onprogress = (e) => { if(e.lengthComputable){ v.progresso = e.loaded / e.total; atualizarEnvio(v); } };
+    xhr.onload = () => {
+      if(xhr.status >= 200 && xhr.status < 300){ v.estado = 'pronto'; v.caminho = caminho; v.progresso = 1; v.xhr = null; atualizarEnvio(v); return; }
+      falhar(xhr.status === 413 ? 'O vídeo passou do tamanho que dá pra mandar agora. Grave um pouco mais curto.' : 'O vídeo não subiu. Confira a internet e escolha de novo.');
+    };
+    xhr.onerror = () => falhar('Sem conexão agora. Confira a internet e escolha o vídeo de novo.');
+    xhr.send(arquivo);
+  }
+
+  /** Quantos segundos tem o vídeo, lido no próprio aparelho. Se o navegador não souber ler, 0 — o worker confere depois. */
+  function duracaoDe(arquivo){
+    return new Promise((ok) => {
+      const v = document.createElement('video');
+      const url = URL.createObjectURL(arquivo);
+      const fim = (s) => { URL.revokeObjectURL(url); ok(Number.isFinite(s) ? s : 0); };
+      v.preload = 'metadata';
+      v.onloadedmetadata = () => fim(v.duration);
+      v.onerror = () => fim(0);
+      setTimeout(() => fim(0), 8000);
+      v.src = url;
+    });
+  }
+
+  // A barra anda sem redesenhar a tela: o campo de texto ao lado pode estar
+  // com o cursor, e um render a cada pedaço enviado atrapalharia a digitação.
+  // Quando termina, o botão de continuar destrava na hora, mesmo que o resto
+  // da tela só seja redesenhado quando o cursor sair do campo.
+  function atualizarEnvio(v){
+    const barra = document.getElementById('envio-barra');
+    const texto = document.getElementById('envio-texto');
+    const continuar = document.getElementById('continuar');
+    const pct = Math.round(v.progresso * 100);
+    if(barra){ barra.style.width = Math.max(pct, 4) + '%'; barra.parentElement.setAttribute('aria-valuenow', String(pct)); }
+    if(texto && v.estado === 'enviando') texto.textContent = 'Enviando… ' + pct + '%';
+    if(v.estado !== 'enviando'){
+      if(texto) texto.textContent = v.estado === 'pronto' ? 'Vídeo recebido.' : v.erro;
+      if(continuar){
+        continuar.disabled = !(v.estado === 'pronto' && state.novo && state.novo.texto.trim().length >= 3);
+        continuar.textContent = 'Continuar';
+      }
+      agendarRender();
+    }
+  }
+
+  /** O carrossel aprovado vira um pedido de reel novo, com as mesmas imagens. */
+  async function virarVideo(p){
+    state.ocupado = true; render();
+    const { data, error } = await sb.rpc('criar_pedido', {
+      p_cliente: p.cliente_id, p_tipo: 'reel',
+      p_briefing: { texto: (p.briefing && p.briefing.texto) || p.titulo || 'Carrossel em vídeo', formato: 'carrossel', de_pedido: p.id },
+    });
+    state.ocupado = false;
+    if(error){ avisar('erro', mensagemDeErro(error)); return; }
+    await carregarPedido(data);
+    await carregarEventos(data);
+    ir('#/pedido/' + data);
+  }
+
+  async function aprovar(p){
+    state.ocupado = true; render();
+    const { error } = await sb.rpc('aprovar_pedido', { p_pedido: p.id, p_escolha: p.tipo === 'capa' ? state.escolha[p.id] : null });
+    state.ocupado = false;
+    if(error){ avisar('erro', mensagemDeErro(error)); return; }
+    await carregarPedido(p.id);
+    const atual = state.pedidos.find(x => x.id === p.id);
+    avisar('ok', atual && atual.estado === 'agendado'
+      ? 'Aprovado e agendado pra ' + fmtDiaCurto(atual.publicar_em) + '. A Bora cuida da publicação.'
+      : 'Aprovado! Escolha o dia em que vai ao ar.');
+  }
+
+  // Agendar, reagendar ou tirar da agenda (dia vazio). A agenda da Bora anda
+  // junto, no banco — aqui só se pede o dia.
+  async function agendar(p, dia){
+    state.ocupado = true; render();
+    const { error } = await sb.rpc('agendar_pedido', { p_pedido: p.id, p_dia: dia || null });
+    state.ocupado = false;
+    if(error){ avisar('erro', mensagemDeErro(error)); return; }
+    state.agendando = null;
+    await carregarPedido(p.id);
+    avisar('ok', dia ? 'Agendado pra ' + fmtDia(dia) + '.' : 'Tirado da agenda. Escolha outro dia quando quiser.');
+  }
+
+  /** "Criar isso": o tema da pauta vira um pedido já escrito, no formato escolhido. */
+  function criarDaSugestao(s, tipo){
+    state.novo = { tipo, passo:1, texto:s.tema, objetivo:null, tom:'Como sempre', data:'', slides:5, video:null, formato:'bruto', origem:{ plano:s.plano_id, tema:s.tema } };
+    state.sugestaoAberta = null;
+    ir('#/novo/' + tipo);
+  }
+
+  async function enviarAjuste(p){
+    const a = state.ajuste;
+    state.ocupado = true; render();
+    const { error } = await sb.rpc('pedir_ajuste', { p_pedido: p.id, p_texto: a.texto.trim(), p_atalhos: [...a.atalhos] });
+    state.ocupado = false;
+    if(error){ avisar('erro', mensagemDeErro(error)); return; }
+    state.ajuste = null;
+    delete state.versaoVista[p.id];
+    await carregarPedido(p.id);
+    await carregarEventos(p.id);
+    avisar('info', 'Pedido de ajuste enviado. A nova versão aparece aqui.');
+  }
+
+  async function trocarCliente(id){
+    state.clienteId = id;
+    gravarLocal('bora-app:cliente', id);
+    state.pedidos = []; state.marca = null; state.eventos = {}; state.novo = null; state.ajuste = null; state.escolha = {};
+    state.carregando = true; render();
+    try { await carregarDoCliente(); } catch(e){ avisar('erro', mensagemDeErro(e)); }
+    state.carregando = false;
+    if(state.rota.nome === 'pedido') ir('#/pedidos');
+    render();
+  }
+
+  // ---------- telas ----------
+
+  function render(){
+    const app = document.getElementById('app');
+    app.replaceChildren(state.user ? telaPrincipal() : telaEntrada());
+  }
+
+  function telaEntrada(){
+    if(state.carregando) return h('div', { class:'entrada' }, h('p', { class:'carregando' }, 'Abrindo…'));
+    const form = h('form', { class:'pilha', novalidate:true },
+      h('div', { class:'campo' },
+        h('label', { for:'email' }, 'Seu e-mail'),
+        h('input', { id:'email', name:'email', type:'email', autocomplete:'email', inputmode:'email', required:true, placeholder:'voce@seunegocio.com.br' })),
+      h('button', { class:'btn pri cheio', type:'submit', disabled: state.enviandoLink }, state.enviandoLink ? 'Enviando…' : 'Receber link de acesso'),
+    );
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = form.email.value.trim();
+      if(!email){ avisar('erro', 'Falta o e-mail.'); return; }
+      state.enviandoLink = true; state.aviso = null; render();
+      // shouldCreateUser: false — só entra quem a Bora cadastrou. Este projeto
+      // é o mesmo do app antigo; sem isso qualquer pessoa criaria conta.
+      const { error } = await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:false, emailRedirectTo: location.origin + location.pathname } });
+      state.enviandoLink = false;
+      if(error){
+        const m = (error.message || '').toLowerCase();
+        avisar('erro', m.includes('signup') || m.includes('not allowed')
+          ? 'Esse e-mail ainda não tem acesso. Fale com a Bora.'
+          : m.includes('rate') || m.includes('seconds')
+            ? 'Muitos pedidos seguidos. Espere alguns minutos e tente de novo.'
+            : 'Não deu pra enviar o link agora. Tente de novo em instantes.');
+        return;
+      }
+      state.linkEnviadoPara = email;
+      render();
+    });
+    return h('div', { class:'entrada' },
+      h('div', { class:'cartao pilha-g' },
+        h('div', { class:'marca', html: LOGO }),
+        state.linkEnviadoPara
+          ? h('div', { class:'pilha' },
+              h('h1', {}, 'Confira o seu e-mail'),
+              h('p', {}, 'Mandamos um link de acesso para ', h('b', {}, state.linkEnviadoPara), '. Abra por este mesmo aparelho.'),
+              h('button', { class:'linkbtn', onclick: () => { state.linkEnviadoPara = null; render(); } }, 'Usar outro e-mail'))
+          : h('div', { class:'pilha' },
+              h('h1', {}, 'Entrar'),
+              h('p', { class:'fraco' }, 'Sem senha: mandamos um link para o seu e-mail.'),
+              state.aviso && h('div', { class:'aviso ' + state.aviso.tipo, role:'alert' }, state.aviso.texto),
+              form)));
+  }
+
+  function telaPrincipal(){
+    const cliente = state.clientes.find(c => c.id === state.clienteId);
+    const topo = h('header', { class:'topo' },
+      h('a', { class:'marca', href:'#/hoje', 'aria-label':'Início', html: LOGO }),
+      h('div', { class:'quem' },
+        state.clientes.length > 1
+          ? h('select', { 'aria-label':'Para qual negócio', onchange: (e) => trocarCliente(e.target.value) },
+              state.clientes.map(c => h('option', { value:c.id, selected: c.id === state.clienteId }, c.nome)))
+          : cliente && h('span', { class:'nome' }, cliente.nome),
+        h('button', { class:'linkbtn', onclick: sair }, 'Sair')));
+
+    if(!state.clientes.length){
+      return h('div', {}, topo, h('main', {}, h('div', { class:'cartao pilha' },
+        h('h1', {}, 'Quase lá'),
+        h('p', {}, 'O seu acesso ainda não foi ligado a um negócio. Fale com a Bora que a gente resolve.'))));
+    }
+
+    const aba = (hash, nome, icone, ativa) => h('a', { href:hash, 'aria-current': ativa ? 'page' : null, html: ICONE[icone] }, nome);
+    const r = state.rota.nome;
+    const abas = h('nav', { class:'abas', 'aria-label':'Seções' },
+      aba('#/hoje', 'Hoje', 'hoje', r === 'hoje' || r === 'novo'),
+      aba('#/pedidos', 'Pedidos', 'pedidos', r === 'pedidos' || r === 'pedido'),
+      aba('#/calendario', 'Calendário', 'calendario', r === 'calendario'),
+      aba('#/marca', 'Minha marca', 'marca', r === 'marca'));
+
+    let conteudo;
+    if(state.carregando) conteudo = h('p', { class:'carregando' }, 'Carregando…');
+    else if(r === 'novo' && state.novo) conteudo = telaNovo();
+    else if(r === 'pedido') conteudo = telaPedido(state.rota.arg);
+    else if(r === 'pedidos') conteudo = telaPedidos();
+    else if(r === 'calendario') conteudo = telaCalendario();
+    else if(r === 'marca') conteudo = telaMarca();
+    else conteudo = telaHoje();
+
+    return h('div', {}, topo, h('div', { class:'corpo' }, abas,
+      h('main', { id:'conteudo' },
+        state.aviso && state.aviso.tipo === 'erro' && h('div', { class:'aviso erro', role:'alert', style:{ marginBottom:'16px' } }, state.aviso.texto),
+        state.aviso && state.aviso.tipo !== 'erro' && h('div', { class:'aviso ' + state.aviso.tipo, role:'status', style:{ marginBottom:'16px' } }, state.aviso.texto),
+        conteudo)));
+  }
+
+  function linhaPedido(p){
+    const ultimo = prontos(p).pop();
+    const andamento = jobEmAndamento(p);
+    const sub = p.estado === 'produzindo' && andamento
+      ? (andamento.etapa && andamento.etapa !== 'preparando' ? andamento.etapa.charAt(0).toUpperCase() + andamento.etapa.slice(1) : 'Na fila')
+      : (p.estado === 'agendado' || p.estado === 'publicado') && p.publicar_em
+        ? (NOME_TIPO[p.tipo] || p.tipo) + ' · ' + (p.estado === 'publicado' ? 'foi ao ar ' : 'vai ao ar ') + fmtDiaCurto(p.publicar_em)
+        : (NOME_TIPO[p.tipo] || p.tipo) + ' · ' + fmtData(p.criado_em);
+    return h('a', { class:'linha-ped' + (p.estado === 'para_aprovar' ? ' chama' : ''), href:'#/pedido/' + p.id },
+      miniaturaDe(ultimo, 'miniatura'),
+      h('span', { class:'txt' },
+        h('span', { class:'tit', style:{ display:'block' } }, p.titulo || NOME_TIPO[p.tipo]),
+        h('span', { class:'sub' }, sub)),
+      h('span', { class:'selo ' + p.estado }, ESTADOS[p.estado] || p.estado));
+  }
+
+  function telaHoje(){
+    const cliente = state.clientes.find(c => c.id === state.clienteId);
+    const primeiro = cliente ? String(cliente.nome).split(' ')[0] : '';
+    const andando = state.pedidos.filter(p => p.estado === 'produzindo' || p.estado === 'para_aprovar');
+    return h('div', { class:'pilha-g' },
+      h('div', { class:'pilha' },
+        primeiro && h('p', { class:'rot' }, 'Olá, ' + primeiro),
+        h('h1', {}, 'O que você quer criar hoje?')),
+      h('div', { class:'tipos' }, TIPOS.map(t => t.ativo
+        ? h('a', { class:'tipo', href:'#/novo/' + t.k, html: ICONE[t.icone] }, h('b', {}, t.nome), h('span', {}, t.sub))
+        : h('div', { class:'tipo', 'aria-disabled':'true', html: ICONE[t.icone] }, h('b', {}, t.nome), h('span', {}, t.sub), h('span', { class:'breve' }, 'Em breve')))),
+      andando.length > 0 && h('section', { class:'pilha', 'aria-labelledby':'em-andamento' },
+        h('h2', { id:'em-andamento' }, 'Em andamento'),
+        h('div', { class:'lista' }, andando.map(linhaPedido))),
+      secaoSugestoes());
+  }
+
+  // Os temas do plano do mês que a Bora escreveu, ainda sem pedido. "Criar
+  // isso" pergunta só o formato e cai no pedido já escrito.
+  function secaoSugestoes(){
+    const todas = state.sugestoes || [];
+    if(!todas.length) return null;
+    const livres = todas.filter(s => !s.pedido_id);
+    const feitas = todas.length - livres.length;
+    const mes = MESES[Number(String(todas[0].mes).slice(5, 7)) - 1];
+    return h('section', { class:'pilha', 'aria-labelledby':'sugestoes' },
+      h('h2', { id:'sugestoes' }, 'Sugestões do seu plano de ' + mes),
+      h('p', { class:'fraco', style:{ fontSize:'0.9rem' } }, feitas
+        ? feitas + ' de ' + todas.length + ' temas já viraram pedido.'
+        : 'Os temas que a Bora separou pra este mês. Escolha um e a gente faz.'),
+      livres.length
+        ? h('ul', { class:'sugestoes' }, livres.map(s => {
+            const aberta = state.sugestaoAberta === s.tema;
+            return h('li', { class:'sugestao' },
+              h('p', {}, s.tema),
+              aberta
+                ? h('div', { class:'chips', role:'group', 'aria-label':'Em que formato' },
+                    TIPOS.filter(t => t.ativo).map(t => h('button', { class:'chip', type:'button', onclick: () => criarDaSugestao(s, t.k) }, t.nome)),
+                    h('button', { class:'linkbtn', type:'button', onclick: () => { state.sugestaoAberta = null; render(); } }, 'Cancelar'))
+                : h('button', { class:'btn sec', type:'button', 'aria-label':'Criar isso: ' + s.tema,
+                    onclick: () => { state.sugestaoAberta = s.tema; render(); } }, 'Criar isso'));
+          }))
+        : h('p', { class:'aviso ok' }, 'Todos os temas do mês já viraram pedido.'));
+  }
+
+  // ---------- data de ir ao ar ----------
+
+  /**
+   * O controle de data de uma peça aprovada: mostra o dia, e abre um seletor
+   * pra mudar ou tirar da agenda. Usado na tela do pedido e no calendário.
+   */
+  function controleDeData(p){
+    const aberto = state.agendando && state.agendando.pedidoId === p.id;
+    const dia = p.publicar_em ? diaDe(p.publicar_em) : '';
+    if(!aberto){
+      return h('div', { class:'data-ar' },
+        h('span', {}, p.publicar_em ? h('b', {}, (p.estado === 'publicado' ? 'Foi ao ar ' : 'Vai ao ar ') + fmtDia(dia)) : 'Ainda sem dia pra ir ao ar'),
+        p.estado !== 'publicado' && h('button', { class:'linkbtn', type:'button', 'aria-label':(p.publicar_em ? 'Mudar a data: ' : 'Escolher a data: ') + (p.titulo || ''),
+          onclick: () => { state.agendando = { pedidoId:p.id, dia }; render(); } }, p.publicar_em ? 'Mudar data' : 'Escolher data'));
+    }
+    const a = state.agendando;
+    const campo = h('input', { type:'date', id:'dia-' + p.id, min: hojeIso(),
+      oninput: (e) => { a.dia = e.target.value; salvar.disabled = !a.dia; } });
+    campo.value = a.dia;
+    const salvar = h('button', { class:'btn pri', type:'button', disabled: !a.dia || state.ocupado, onclick: () => agendar(p, a.dia) }, 'Salvar');
+    return h('div', { class:'cartao pilha' },
+      h('div', { class:'campo' }, h('label', { for:'dia-' + p.id }, 'Em que dia vai ao ar?'), campo),
+      h('div', { class:'botoes' },
+        h('button', { class:'btn sec', type:'button', onclick: () => { state.agendando = null; render(); } }, 'Cancelar'),
+        salvar),
+      p.publicar_em && h('button', { class:'linkbtn', type:'button', onclick: () => agendar(p, null) }, 'Tirar da agenda'));
+  }
+
+  // ---------- calendário ----------
+
+  function telaCalendario(){
+    const hoje = hojeIso();
+    const mes = state.calMes || hoje.slice(0, 7);
+    const [ano, m] = mes.split('-').map(Number);
+    const primeiro = new Date(ano, m - 1, 1);
+    const dias = new Date(ano, m, 0).getDate();
+    const naAgenda = state.pedidos.filter(p => (p.estado === 'agendado' || p.estado === 'publicado') && p.publicar_em);
+    const porDia = {};
+    for(const p of naAgenda) (porDia[diaDe(p.publicar_em)] = porDia[diaDe(p.publicar_em)] || []).push(p);
+    const semData = state.pedidos.filter(p => p.estado === 'aprovado');
+    const escolhido = state.calDia && state.calDia.startsWith(mes) ? state.calDia
+      : (Object.keys(porDia).filter(d => d.startsWith(mes) && d >= hoje).sort()[0] || (hoje.startsWith(mes) ? hoje : mes + '-01'));
+
+    const mudarMes = (delta) => {
+      const d = new Date(ano, m - 1 + delta, 1);
+      state.calMes = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      state.calDia = null;
+      render();
+    };
+
+    // Arrastar de um dia pro outro, no computador. No celular o arraste de
+    // HTML não dispara com o dedo — lá o caminho é "Mudar data".
+    const soltar = (dia) => ({
+      ondragover: (e) => { e.preventDefault(); e.currentTarget.classList.add('alvo'); },
+      ondragleave: (e) => e.currentTarget.classList.remove('alvo'),
+      ondrop: (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('alvo');
+        const p = state.pedidos.find(x => x.id === e.dataTransfer.getData('text/plain'));
+        if(p && dia >= hoje && diaDe(p.publicar_em || '1970-01-01') !== dia) agendar(p, dia);
+        else if(p && dia < hoje) avisar('erro', 'Escolha um dia de hoje em diante.');
+      },
+    });
+
+    const celulas = [];
+    const vazias = (primeiro.getDay() + 6) % 7; // semana começando na segunda
+    for(let i = 0; i < vazias; i++) celulas.push(h('span', { class:'dia vazio', 'aria-hidden':'true' }));
+    for(let d = 1; d <= dias; d++){
+      const dia = mes + '-' + String(d).padStart(2, '0');
+      const itens = porDia[dia] || [];
+      celulas.push(h('button', Object.assign({
+        type:'button', class:'dia' + (dia === hoje ? ' hoje' : '') + (dia === escolhido ? ' escolhido' : '') + (dia < hoje ? ' passado' : ''),
+        'aria-pressed': String(dia === escolhido), 'data-dia': dia,
+        'aria-label': fmtDia(dia) + (itens.length ? ', ' + itens.length + (itens.length === 1 ? ' peça' : ' peças') : ''),
+        onclick: () => { state.calDia = dia; render(); },
+      }, soltar(dia)),
+        h('span', { class:'num' }, String(d)),
+        itens.length > 0 && h('span', { class:'pecas' }, itens.slice(0, 2).map(p => {
+          const j = p.job_aprovado && (p.jobs || []).find(x => x.id === p.job_aprovado) || prontos(p).pop();
+          return h('span', { class:'peca' + (p.estado === 'publicado' ? ' foi' : ''), draggable: p.estado === 'agendado' ? 'true' : null,
+            ondragstart: (e) => e.dataTransfer.setData('text/plain', p.id) },
+            j && miniaturaDe(j, null));
+        }), itens.length > 2 && h('span', { class:'mais' }, '+' + (itens.length - 2)))));
+    }
+
+    const doDia = porDia[escolhido] || [];
+    return h('div', { class:'pilha-g' },
+      h('div', { class:'cabeca' },
+        h('h1', {}, 'Calendário'),
+        h('div', { class:'mes-nav' },
+          h('button', { class:'chip', type:'button', 'aria-label':'Mês anterior', onclick: () => mudarMes(-1) }, '‹'),
+          h('span', { class:'mes-nome' }, MESES[m - 1] + ' ' + ano),
+          h('button', { class:'chip', type:'button', 'aria-label':'Próximo mês', onclick: () => mudarMes(1) }, '›'))),
+      h('div', { class:'cal', role:'group', 'aria-label':'Dias de ' + MESES[m - 1] },
+        ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map(l => h('span', { class:'sem', 'aria-hidden':'true' }, l)),
+        celulas),
+      h('section', { class:'pilha', 'aria-labelledby':'do-dia' },
+        h('h2', { id:'do-dia' }, fmtDia(escolhido).replace(/^./, (c) => c.toUpperCase())),
+        doDia.length
+          ? h('div', { class:'lista' }, doDia.map(p => h('div', { class:'pilha' }, linhaPedido(p), controleDeData(p))))
+          : h('p', { class:'fraco' }, 'Nada vai ao ar neste dia.')),
+      semData.length > 0 && h('section', { class:'pilha', 'aria-labelledby':'sem-data' },
+        h('h2', { id:'sem-data' }, 'Aprovadas, sem dia ainda'),
+        h('div', { class:'lista' }, semData.map(p => h('div', { class:'pilha' }, linhaPedido(p), controleDeData(p))))));
+  }
+
+  // ---------- pedido em três passos ----------
+
+  // O vídeo do reel: escolher, ver subir, trocar. O input fica escondido
+  // atrás de um rótulo com cara de botão, que é o que abre a galeria no celular.
+  function campoDoVideo(n){
+    const v = n.video;
+    const input = h('input', { id:'video', type:'file', accept:'video/*', class:'sr',
+      onchange: (e) => { const f = e.target.files && e.target.files[0]; if(f){ enviarVideo(f); render(); } } });
+    const escolher = (rotulo, cls) => h('label', { for:'video', class:cls, role:'button', tabindex:'0',
+      onkeydown: (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); input.click(); } } }, rotulo);
+    if(!v) return h('div', { class:'pilha' }, input, escolher('Escolher o vídeo', 'btn sec cheio'));
+    const pct = Math.round(v.progresso * 100);
+    return h('div', { class:'cartao pilha envio' + (v.estado === 'erro' ? ' falhou' : '') },
+      input,
+      h('p', { class:'nome-arquivo' }, v.nome, h('span', { class:'fraco' }, ' · ' + (v.mb < 1 ? '<1' : Math.round(v.mb)) + ' MB')),
+      v.estado === 'enviando' && h('div', { class:'barra', role:'progressbar', 'aria-valuemin':'0', 'aria-valuemax':'100', 'aria-valuenow':String(pct), 'aria-label':'Envio do vídeo' },
+        h('i', { id:'envio-barra', style:{ width: Math.max(pct, 4) + '%' } })),
+      h('p', { id:'envio-texto', class: v.estado === 'erro' ? 'erro-texto' : 'fraco', 'aria-live':'polite' },
+        v.estado === 'enviando' ? (v.xhr ? 'Enviando… ' + pct + '%' : 'Conferindo o vídeo…')
+          : v.estado === 'pronto' ? 'Vídeo recebido.' : v.erro),
+      escolher(v.estado === 'erro' ? 'Escolher outro vídeo' : 'Trocar o vídeo', 'linkbtn'));
+  }
+
+  function telaNovo(){
+    const n = state.novo;
+    const tipo = TIPOS.find(t => t.k === n.tipo);
+    const passos = h('div', { class:'passos', 'aria-hidden':'true' }, [1, 2, 3].map(i => h('i', { class: i <= n.passo ? 'feito' : '' })));
+    const cabeca = h('div', { class:'pilha' },
+      h('a', { class:'voltar', href:'#/hoje' }, '‹ Voltar'),
+      passos,
+      h('p', { class:'rot' }, tipo.nome + ' · passo ' + n.passo + ' de 3'));
+
+    if(n.passo === 1){
+      const ehReel = n.tipo === 'reel';
+      const comVideo = ehReel && n.formato === 'bruto';
+      const pode = () => n.texto.trim().length >= 3 && (!comVideo || (n.video && n.video.estado === 'pronto'));
+      const contador = h('p', { class:'contador', 'aria-live':'polite' }, n.texto.length + ' / 800');
+      const continuar = h('button', { id:'continuar', class:'btn pri cheio', disabled: !pode(),
+        onclick: () => { n.passo = 2; render(); window.scrollTo(0, 0); } },
+        comVideo && n.video && n.video.estado === 'enviando' ? 'Esperando o vídeo subir…' : 'Continuar');
+      const area = h('textarea', { id:'texto', maxlength:'800', placeholder:'Ex.: Abrimos turma nova no laboratório, inscrições até sexta.',
+        style: ehReel ? { minHeight:'90px' } : null,
+        oninput: (e) => {
+          n.texto = e.target.value;
+          contador.textContent = n.texto.length + ' / 800';
+          continuar.disabled = !pode();
+        } });
+      area.value = n.texto;
+      const pergunta = perguntaDe(n);
+      area.placeholder = pergunta.exemplo;
+      return h('div', { class:'pilha-g' }, cabeca,
+        ehReel && h('div', { class:'chips', role:'group', 'aria-label':'Como vai ser o reel' }, FORMATOS_REEL.map(([k, rotulo]) =>
+          h('button', { class:'chip', type:'button', 'aria-pressed': String(n.formato === k),
+            onclick: () => { n.formato = k; render(); } }, rotulo))),
+        h('div', { class:'pilha' },
+          h('h1', {}, pergunta.titulo),
+          h('p', { class:'fraco' }, n.origem && !comVideo
+            ? 'Este tema veio do seu plano do mês. Mude o que quiser — ou só continue.'
+            : pergunta.ajuda)),
+        comVideo && campoDoVideo(n),
+        h('div', { class:'campo' },
+          h('label', { for:'texto', class: pergunta.campo ? null : 'sr' }, pergunta.campo || pergunta.titulo), area, contador),
+        continuar);
+    }
+
+    if(n.passo === 2){
+      const grupo = (titulo, opcoes, valor, definir, id) => h('fieldset', { class:'pilha', style:{ border:'none', padding:0, margin:0 } },
+        h('legend', { style:{ fontWeight:600, padding:0, marginBottom:'8px' } }, titulo),
+        h('div', { class:'chips', role:'group', 'aria-labelledby':id }, opcoes.map(o =>
+          h('button', { class:'chip', type:'button', 'aria-pressed': String(valor === o), onclick: () => { definir(valor === o ? null : o); render(); } }, o))));
+      const data = h('input', { id:'data', type:'date', min: hojeIso(), oninput: (e) => { n.data = e.target.value; } });
+      data.value = n.data;
+      return h('div', { class:'pilha-g' }, cabeca,
+        h('h1', {}, 'Algumas escolhas'),
+        n.tipo === 'carrossel' && h('fieldset', { class:'pilha', style:{ border:'none', padding:0, margin:0 } },
+          h('legend', { style:{ fontWeight:600, padding:0, marginBottom:'8px' } }, 'Quantas imagens?'),
+          h('div', { class:'chips', role:'group', 'aria-label':'Quantas imagens' }, QTD_SLIDES.map(q =>
+            h('button', { class:'chip', type:'button', 'aria-pressed': String(n.slides === q), onclick: () => { n.slides = q; render(); } }, String(q)))),
+          h('p', { class:'fraco', style:{ fontSize:'0.88rem' } }, 'A primeira é a capa e a última é o convite. Se o assunto rende pouco, menos imagens ficam melhores.')),
+        grupo(n.tipo === 'capa' || n.tipo === 'reel' ? 'Pra que serve esse vídeo?' : 'Pra que serve esse post?', OBJETIVOS, n.objetivo, (v) => { n.objetivo = v; }, 'g-obj'),
+        grupo('Que jeito ele tem?', TONS, n.tom, (v) => { n.tom = v || 'Como sempre'; }, 'g-tom'),
+        h('div', { class:'campo' }, h('label', { for:'data' }, 'Quando vai ao ar? ', h('span', { class:'fraco', style:{ fontWeight:400 } }, '(se já souber)')), data),
+        h('div', { class:'botoes' },
+          h('button', { class:'btn sec', onclick: () => { n.passo = 1; render(); } }, 'Voltar'),
+          h('button', { class:'btn pri', onclick: () => { n.passo = 3; render(); window.scrollTo(0, 0); } }, 'Continuar')));
+    }
+
+    // Passo 3: o que vai sair, em palavras de quem pede — sem pixel, sem fonte.
+    const m = state.marca || {};
+    const conj = (m.conjuntos || []).find(c => c.k === m.conjuntoPadrao) || (m.conjuntos || [])[0];
+    const cores = conj ? [conj.fundo, conj.tinta || '#FFFFFF', conj.faixa || conj.destaque].filter(Boolean) : (m.paleta || []).slice(0, 3).map(p => p.cor);
+    const sai = SAI[n.tipo](n);
+    const comVideo = n.tipo === 'reel' && n.formato === 'bruto';
+    return h('div', { class:'pilha-g' }, cabeca,
+      h('h1', {}, 'Confere antes de pedir'),
+      h('dl', { class:'cartao resumo' },
+        h('dt', {}, 'O que vai sair'),
+        h('dd', {}, sai.peca),
+        h('dt', {}, 'Junto'),
+        h('dd', {}, n.tipo === 'capa' ? 'A descrição do vídeo, com hashtags'
+          : comVideo ? 'A legenda e as hashtags, prontas pra colar, e o arquivo das legendas do vídeo'
+          : 'A legenda e as hashtags, prontas pra colar'),
+        comVideo && h('dt', {}, 'Com o seu vídeo'),
+        comVideo && h('dd', { style:{ overflowWrap:'anywhere' } }, n.video.nome),
+        h('dt', {}, comVideo ? 'Sobre' : 'Com o seu texto'),
+        h('dd', {}, '“' + n.texto.trim() + '”'),
+        (n.objetivo || n.tom !== 'Como sempre') && h('dt', {}, 'Do jeito que você escolheu'),
+        (n.objetivo || n.tom !== 'Como sempre') && h('dd', {}, [n.objetivo, n.tom !== 'Como sempre' ? n.tom.toLowerCase() : null].filter(Boolean).join(' · ')),
+        h('dt', {}, 'Nas cores da sua marca'),
+        h('dd', {}, cores.length ? h('span', { class:'amostras' }, cores.map(c => h('i', { style:{ background:c }, title:c }))) : 'As cores cadastradas pela Bora'),
+        n.data && h('dt', {}, 'Vai ao ar'),
+        n.data && h('dd', {}, fmtDia(n.data)),
+        h('dt', {}, 'Quando fica pronto'),
+        h('dd', {}, comVideo
+          ? 'Uns 10 minutos. Os primeiros 15 segundos aparecem antes, pra você já ir vendo. Nada vai ao ar sem a sua aprovação.'
+          : n.tipo === 'reel'
+            ? 'Em poucos minutos. Os primeiros segundos aparecem antes, e a tela mostra quanto falta. Nada vai ao ar sem a sua aprovação.'
+            : 'Em poucos minutos. Você vê e aprova antes de qualquer coisa ir ao ar.')),
+      h('div', { class:'botoes' },
+        h('button', { class:'btn sec', onclick: () => { n.passo = 2; render(); } }, 'Voltar'),
+        h('button', { class:'btn pri', disabled: state.ocupado, onclick: pedir }, state.ocupado ? 'Enviando…' : sai.botao)));
+  }
+
+  // ---------- acompanhamento ----------
+
+  function telaPedido(id){
+    const p = state.pedidos.find(x => x.id === id);
+    if(!p) return h('div', { class:'pilha' }, h('a', { class:'voltar', href:'#/pedidos' }, '‹ Pedidos'), h('p', { class:'vazio' }, 'Não achamos esse pedido.'));
+
+    const versoes = prontos(p);
+    const andamento = jobEmAndamento(p);
+    const ultimo = ultimoJob(p);
+    const falhouDeVez = ultimo && ultimo.estado === 'falhou';
+    const vistaId = state.versaoVista[p.id];
+    const vista = versoes.find(v => v.id === vistaId) || (p.job_aprovado && versoes.find(v => v.id === p.job_aprovado)) || versoes[versoes.length - 1];
+    const s = pngDe(vista);
+    const url = s && state.urls[s.caminho];
+
+    const blocos = [];
+
+    if(p.estado === 'produzindo' && andamento){
+      const pct = Math.round(Number(andamento.progresso) || 0);
+      const etapa = andamento.estado === 'na_fila' ? 'Esperando a vez' : (andamento.etapa === 'preparando' || !andamento.etapa ? 'Preparando' : andamento.etapa.charAt(0).toUpperCase() + andamento.etapa.slice(1));
+      blocos.push(h('div', { class:'cartao pilha' },
+        h('p', { class:'rot' }, andamento.rodada === 'da_bora' ? 'A equipe da Bora terminou'
+          : andamento.rodada === 'ajuste' ? 'Fazendo o ajuste'
+          : formatoDe(p) === 'abertura' ? 'Fazendo a sua abertura'
+          : formatoDe(p) === 'carrossel' ? 'Fazendo o vídeo do carrossel'
+          : { carrossel:'Fazendo o seu carrossel', capa:'Fazendo as suas capas', reel:'Fazendo o seu reel' }[p.tipo] || 'Fazendo o seu post'),
+        h('p', { class:'etapa', 'aria-live':'polite' }, etapa),
+        h('div', { class:'barra', role:'progressbar', 'aria-valuemin':'0', 'aria-valuemax':'100', 'aria-valuenow':String(pct), 'aria-label':'Andamento' },
+          h('i', { style:{ width: Math.max(pct, 4) + '%' } })),
+        // Quanto falta só aparece quando foi medido (o render conta os quadros); senão, a estimativa geral.
+        h('p', { class:'fraco falta', style:{ fontSize:'0.9rem' } },
+          andamento.restam_segundos != null ? faltam(andamento.restam_segundos) + ' Pode fechar esta tela: o pedido continua andando.'
+            : (formatoDe(p) === 'bruto' ? 'Leva uns 10 minutos.' : 'Leva poucos minutos.') + ' Pode fechar esta tela: o pedido continua andando.')));
+      // A prévia chega antes do vídeo inteiro: 15 s do reel gravado, 3 s do motion.
+      const previa = textoDe(andamento, 'previa.mp4');
+      const urlPrevia = previa && state.urls[previa.caminho];
+      if(urlPrevia){
+        const seg = formatoDe(p) === 'bruto' ? '15 segundos' : '3 segundos';
+        blocos.push(h('figure', { class:'pilha figura' },
+          videoDe(urlPrevia, { class:'previa', 'aria-label':'Prévia do reel, os primeiros ' + seg }),
+          h('figcaption', { class:'fraco', style:{ textAlign:'center', fontSize:'0.9rem' } }, 'Prévia: os primeiros ' + seg + '. O vídeo inteiro vem logo depois.')));
+      }
+    }
+    // A equipe assumiu: a fábrica parou, e quem termina é gente.
+    if(p.estado === 'produzindo' && !andamento && p.assumido_em){
+      blocos.push(h('div', { class:'aviso info' }, 'A equipe da Bora está finalizando este pedido. Você recebe aqui assim que estiver pronto.'));
+    } else if(p.estado === 'produzindo' && !andamento && falhouDeVez){
+      blocos.push(h('div', { class:'aviso info' }, 'A equipe da Bora vai finalizar este pedido e te avisa quando estiver pronto.'));
+    }
+    const jaAprovado = ['aprovado', 'agendado', 'publicado'].includes(p.estado);
+    if(jaAprovado){
+      // A data abreviada já termina em ponto ("25 de out."): a frase seguinte vem depois de travessão.
+      blocos.push(h('div', { class:'aviso ok' }, p.estado === 'publicado'
+        ? 'Publicado — já está no ar.'
+        : 'Aprovado' + (p.aprovado_em ? ' em ' + fmtData(p.aprovado_em) : '') + ' — a Bora cuida da publicação.'));
+      blocos.push(controleDeData(p));
+    }
+
+    if(vista){
+      const antiga = andamento && andamento.rodada === 'ajuste';
+      const imagens = imagensDe(vista);
+      const legendaFoto = antiga ? 'Versão anterior. O ajuste está sendo feito.' : null;
+
+      const reel = p.tipo === 'reel' && textoDe(vista, 'reel.mp4');
+      if(reel){
+        const u = state.urls[reel.caminho];
+        blocos.push(h('figure', { class:'pilha figura' },
+          u ? videoDe(u, { class:'previa' + (antiga ? ' antiga' : ''), 'aria-label':'O reel: ' + (p.titulo || '') })
+            : h('div', { class:'previa', style:{ aspectRatio:'9/16', maxWidth:'340px' }, role:'img', 'aria-label':'Carregando o reel' }),
+          legendaFoto && h('figcaption', { class:'fraco', style:{ textAlign:'center', fontSize:'0.9rem' } }, legendaFoto)));
+      } else if(p.tipo === 'capa'){
+        // Três opções: o cliente escolhe uma, e é ela que vai pro pedido.
+        const marcada = jaAprovado ? p.escolha : state.escolha[p.id];
+        const podeEscolher = p.estado === 'para_aprovar';
+        blocos.push(h('fieldset', { class:'pilha opcoes' + (antiga ? ' antiga' : ''), style:{ border:'none', padding:0, margin:0 } },
+          h('legend', { class:'rot', style:{ padding:0, marginBottom:'8px' } }, podeEscolher ? 'Escolha uma das três' : 'As três opções'),
+          imagens.map((s, i) => {
+            const n = i + 1;
+            const u = state.urls[s.caminho];
+            const conteudo = [
+              u ? h('img', { src:u, alt:'Capa, opção ' + n }) : h('span', { class:'img-vazia', role:'img', 'aria-label':'Carregando a opção ' + n }),
+              h('span', { class:'rotulo-opcao' }, 'Opção ' + n + (jaAprovado && marcada === n ? ' · a escolhida' : '')),
+            ];
+            return podeEscolher
+              ? h('button', { type:'button', class:'opcao', 'aria-pressed': String(marcada === n),
+                  onclick: () => { state.escolha[p.id] = n; render(); } }, conteudo)
+              : h('div', { class:'opcao' + (marcada === n ? ' escolhida' : '') }, conteudo);
+          }),
+          legendaFoto && h('p', { class:'fraco', style:{ fontSize:'0.9rem' } }, legendaFoto)));
+      } else if(imagens.length > 1){
+        // Carrossel: desliza como no Instagram, uma imagem por vez.
+        blocos.push(h('figure', { class:'pilha figura' },
+          h('div', { class:'galeria' + (antiga ? ' antiga' : ''), role:'group', 'aria-label':'Imagens do carrossel', tabindex:'0' },
+            imagens.map((s, i) => {
+              const u = state.urls[s.caminho];
+              return u ? h('img', { src:u, alt:'Imagem ' + (i + 1) + ' de ' + imagens.length })
+                       : h('span', { class:'img-vazia', role:'img', 'aria-label':'Carregando a imagem ' + (i + 1) });
+            })),
+          h('figcaption', { class:'fraco', style:{ textAlign:'center', fontSize:'0.9rem' } },
+            legendaFoto || imagens.length + ' imagens · deslize pro lado')));
+      } else {
+        blocos.push(h('figure', { class:'pilha figura' },
+          url ? h('img', { class:'previa' + (antiga ? ' antiga' : ''), src:url, alt:'Prévia do post: ' + (p.titulo || '') })
+              : h('div', { class:'previa', role:'img', 'aria-label':'Carregando a prévia' }),
+          legendaFoto && h('figcaption', { class:'fraco', style:{ textAlign:'center', fontSize:'0.9rem' } }, legendaFoto)));
+      }
+
+      // O que acompanha a imagem: a legenda (ou a descrição do vídeo) e, na
+      // capa, as duas sugestões de título. Cada um com o seu botão de copiar.
+      const leg = textoDe(vista, 'legenda.txt');
+      const legTexto = leg && state.textos[leg.caminho];
+      if(legTexto){
+        blocos.push(h('section', { class:'cartao pilha', 'aria-labelledby':'legenda' },
+          h('h2', { id:'legenda' }, p.tipo === 'capa' ? 'Descrição do vídeo' : 'Legenda'),
+          h('p', { class:'texto-entrega' }, legTexto.trim()),
+          h('button', { class:'btn sec', type:'button', onclick: () => copiar(legTexto.trim(), p.tipo === 'capa' ? 'Descrição copiada.' : 'Legenda copiada.') },
+            p.tipo === 'capa' ? 'Copiar a descrição' : 'Copiar a legenda')));
+      }
+      const tit = textoDe(vista, 'titulos.txt');
+      const titTexto = tit && state.textos[tit.caminho];
+      if(titTexto){
+        blocos.push(h('section', { class:'cartao pilha', 'aria-labelledby':'titulos' },
+          h('h2', { id:'titulos' }, 'Títulos pro vídeo'),
+          h('ul', { class:'titulos' }, titTexto.split('\n').map(t => t.trim()).filter(Boolean).map(t =>
+            h('li', {}, h('span', {}, t), h('button', { class:'linkbtn', type:'button', 'aria-label':'Copiar o título ' + t, onclick: () => copiar(t, 'Título copiado.') }, 'Copiar'))))));
+      }
+      if(versoes.length > 1){
+        blocos.push(h('div', { class:'pilha' },
+          h('p', { class:'rot' }, 'Versões'),
+          h('div', { class:'versoes' }, versoes.map((v, i) =>
+            h('button', { type:'button', 'aria-pressed': String(v.id === vista.id), 'aria-label':'Versão ' + (i + 1),
+              onclick: () => { state.versaoVista[p.id] = v.id; render(); } },
+              miniaturaDe(v, 'miniatura'))))));
+      }
+      if(jaAprovado && reel){
+        // O reel e o arquivo das legendas (pra quem posta no YouTube ou quer editar o texto).
+        const srt = textoDe(vista, 'legendas.srt');
+        const links = [[reel, 'Baixar o reel', 'btn pri cheio'], [srt, 'Baixar as legendas (.srt)', 'btn sec cheio']]
+          .filter(([s]) => s && state.urls[s.caminho])
+          .map(([s, rotulo, cls]) => h('a', { class:cls, href:state.urls[s.caminho], download:s.caminho.split('/').pop(), target:'_blank', rel:'noopener' }, rotulo));
+        if(links.length) blocos.push(h('div', { class:'pilha' }, links));
+      } else if(jaAprovado){
+        // O que baixar: a imagem do post, todas as do carrossel, ou a capa escolhida.
+        const baixar = p.tipo === 'capa' ? imagens.filter((_, i) => i + 1 === p.escolha) : imagens;
+        const links = baixar.map((s, i) => state.urls[s.caminho] && h('a', {
+          class:'btn sec' + (baixar.length === 1 ? ' cheio' : ''), href:state.urls[s.caminho], download:s.caminho.split('/').pop(), target:'_blank', rel:'noopener',
+        }, baixar.length === 1 ? 'Baixar a imagem' : 'Imagem ' + (i + 1))).filter(Boolean);
+        if(links.length) blocos.push(baixar.length === 1 ? links[0] : h('div', { class:'pilha' }, h('p', { class:'rot' }, 'Baixar'), h('div', { class:'botoes baixar' }, links)));
+        // O carrossel aprovado também vai pro Reels, que alcança quem não segue a conta.
+        if(p.tipo === 'carrossel'){
+          blocos.push(h('div', { class:'cartao pilha' },
+            h('h2', {}, 'Leve pro Reels'),
+            h('p', { class:'fraco' }, 'As mesmas imagens, em vídeo: uma entra depois da outra, sobre o fundo da sua marca.'),
+            h('button', { class:'btn sec cheio', type:'button', disabled: state.ocupado, onclick: () => virarVideo(p) },
+              state.ocupado ? 'Pedindo…' : 'Transformar em vídeo')));
+        }
+      }
+    }
+
+    if(p.estado === 'para_aprovar'){
+      const restam = MAX_AJUSTES - (p.ajustes || 0);
+      if(state.ajuste && state.ajuste.pedidoId === p.id){
+        const a = state.ajuste;
+        const podeEnviar = a.atalhos.size > 0 || a.texto.trim().length >= 3;
+        const enviar = h('button', { class:'btn pri', disabled: !podeEnviar || state.ocupado, onclick: () => enviarAjuste(p) }, state.ocupado ? 'Enviando…' : 'Enviar ajuste');
+        const area = h('textarea', { id:'ajuste', maxlength:'600', placeholder:'Ex.: troca “turma” por “grupo”.', style:{ minHeight:'90px' },
+          oninput: (e) => { a.texto = e.target.value; enviar.disabled = !(a.atalhos.size > 0 || a.texto.trim().length >= 3); } });
+        area.value = a.texto;
+        blocos.push(h('div', { class:'cartao pilha' },
+          h('h2', {}, 'O que mudar?'),
+          h('div', { class:'chips', role:'group', 'aria-label':'Atalhos de ajuste' }, atalhosDe(p.tipo).map(t =>
+            h('button', { class:'chip', type:'button', 'aria-pressed': String(a.atalhos.has(t)),
+              onclick: () => { a.atalhos.has(t) ? a.atalhos.delete(t) : a.atalhos.add(t); render(); } }, ROTULO_ATALHO[t]))),
+          h('div', { class:'campo' }, h('label', { for:'ajuste' }, 'Ou conte com as suas palavras'), area),
+          h('p', { class:'fraco', style:{ fontSize:'0.85rem' } }, restam === 1 ? 'Este é o último ajuste antes de a equipe da Bora entrar.' : 'Você ainda pode pedir ' + restam + ' ajustes ' + (p.tipo === 'reel' ? 'neste reel.' : 'neste post.')),
+          h('div', { class:'botoes' },
+            h('button', { class:'btn sec', onclick: () => { state.ajuste = null; render(); } }, 'Cancelar'),
+            enviar)));
+      } else {
+        blocos.push(h('div', { class:'acoes' }, h('div', { class:'botoes' },
+          h('button', { class:'btn sec', disabled: restam <= 0 || state.ocupado,
+            onclick: () => { state.ajuste = { pedidoId:p.id, texto:'', atalhos:new Set() }; render(); } }, 'Pedir ajuste'),
+          p.tipo === 'capa'
+            ? h('button', { class:'btn pri', disabled: state.ocupado || !state.escolha[p.id], onclick: () => aprovar(p) },
+                state.ocupado ? 'Aprovando…' : state.escolha[p.id] ? 'Aprovar opção ' + state.escolha[p.id] : 'Escolha uma opção')
+            : h('button', { class:'btn pri', disabled: state.ocupado, onclick: () => aprovar(p) }, state.ocupado ? 'Aprovando…' : 'Aprovar'))));
+      }
+    }
+
+    // O histórico separado por rodada, a mais recente em cima: com um ajuste,
+    // "Desenhando o post" aparece duas vezes, e sem separação parece repetido.
+    const eventos = state.eventos[p.id] || [];
+    const rodadas = jobsDe(p).filter(j => eventos.some(e => e.job_id === j.id)).reverse();
+    const nomeRodada = (j) => {
+      const i = jobsDe(p).indexOf(j);
+      return j.rodada === 'da_bora' ? 'Versão da equipe da Bora'
+        : j.rodada === 'ajuste' ? 'Ajuste ' + jobsDe(p).slice(0, i + 1).filter(x => x.rodada === 'ajuste').length : 'Primeira versão';
+    };
+    return h('div', { class:'pilha-g' },
+      h('div', { class:'pilha' },
+        h('a', { class:'voltar', href:'#/pedidos' }, '‹ Pedidos'),
+        h('div', { class:'cabeca' },
+          h('h1', { style:{ fontSize:'1.35rem' } }, p.titulo || NOME_TIPO[p.tipo]),
+          h('span', { class:'selo ' + p.estado }, ESTADOS[p.estado] || p.estado)),
+        h('p', { class:'fraco', style:{ fontSize:'0.9rem' } }, (NOME_TIPO[p.tipo] || p.tipo) + ' · pedido em ' + fmtData(p.criado_em)
+          + (p.publicar_em ? ' · vai ao ar ' + fmtData(p.publicar_em) : ''))),
+      ...blocos,
+      eventos.length > 0 && h('section', { class:'pilha', 'aria-labelledby':'historico' },
+        h('h2', { id:'historico' }, 'O que aconteceu'),
+        rodadas.map(j => h('div', { class:'pilha', style:{ marginTop:'14px' } },
+          rodadas.length > 1 && h('p', { class:'rot' }, nomeRodada(j)),
+          h('ol', { class:'linha-tempo' }, eventos.filter(e => e.job_id === j.id).reverse().map(e =>
+            h('li', {}, h('time', { datetime:e.criado_em }, fmtHora(e.criado_em)), h('span', {}, e.mensagem.charAt(0).toUpperCase() + e.mensagem.slice(1)))))))));
+  }
+
+  // ---------- lista ----------
+
+  function telaPedidos(){
+    const doFiltro = (k) => (FILTROS.find(f => f[0] === k) || [])[2];
+    const lista = state.pedidos.filter(p => !doFiltro(state.filtro) || doFiltro(state.filtro).includes(p.estado));
+    return h('div', { class:'pilha-g' },
+      h('h1', {}, 'Seus pedidos'),
+      h('div', { class:'chips', role:'group', 'aria-label':'Mostrar' }, FILTROS.map(([k, nome]) => {
+        const n = doFiltro(k) ? state.pedidos.filter(p => doFiltro(k).includes(p.estado)).length : state.pedidos.length;
+        return h('button', { class:'chip', type:'button', 'aria-pressed': String(state.filtro === k),
+          onclick: () => { state.filtro = k; render(); } }, nome + (n ? ' · ' + n : ''));
+      })),
+      lista.length
+        ? h('div', { class:'lista' }, lista.map(linhaPedido))
+        : h('div', { class:'vazio pilha' },
+            h('p', {}, state.pedidos.length ? 'Nenhum pedido aqui.' : 'Você ainda não fez nenhum pedido.'),
+            !state.pedidos.length && h('a', { class:'btn pri', href:'#/novo/post-feed' }, 'Pedir o primeiro post')));
+  }
+
+  // ---------- marca ----------
+
+  function telaMarca(){
+    const m = state.marca;
+    if(!m) return h('p', { class:'carregando' }, 'Carregando…');
+    const regras = [
+      ['Tom de voz', m.tom], ['Para quem', m.publico], ['Nunca', m.evitar], ['Sempre aparece', m.obrigatorios], ['Chamada que você usa', m.chamada],
+    ].filter(([, v]) => v);
+    const conjuntos = (m.conjuntos || []).filter(c => c && c.fundo);
+    return h('div', { class:'pilha-g' },
+      h('div', { class:'pilha' },
+        h('h1', {}, 'Sua marca'),
+        h('p', { class:'fraco' }, 'Toda peça sai com isto. Se algo não for mais assim, fale com a Bora que a gente atualiza.')),
+      (m.paleta || []).length > 0 && h('section', { class:'pilha' },
+        h('h2', {}, 'Cores'),
+        h('div', { class:'cores' }, m.paleta.map(c => h('div', { class:'cor' },
+          h('i', { style:{ background:c.cor }, 'aria-hidden':'true' }),
+          h('span', {}, h('b', {}, c.nome || c.cor), c.uso && h('small', {}, c.uso)))))),
+      conjuntos.length > 0 && h('section', { class:'pilha' },
+        h('h2', {}, 'Combinações'),
+        h('div', { class:'combos' }, conjuntos.map(c => h('div', { class:'combo' },
+          h('div', { class:'mini', style:{ background:c.fundo, color:c.tinta || '#FFFFFF' }, 'aria-hidden':'true' },
+            h('b', {}, 'Aa'), h('i', { style:{ background:c.faixa || c.destaque } })),
+          h('p', {}, h('b', {}, c.nome), c.k === m.conjuntoPadrao && h('span', { class:'fraco' }, ' · a de sempre')))))),
+      m.fonte && h('section', { class:'pilha' }, h('h2', {}, 'Letra'), h('p', {}, m.fonte)),
+      regras.length > 0 && h('section', { class:'pilha' },
+        h('h2', {}, 'Jeito de falar'),
+        h('dl', { class:'cartao regra' }, regras.flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)]))));
+  }
+
+  // ---------- sessão ----------
+
+  async function sair(){
+    await sb.auth.signOut();
+    if(canal){ sb.removeChannel(canal); canal = null; }
+    Object.assign(state, { user:null, clientes:[], clienteId:null, pedidos:[], marca:null, eventos:{}, novo:null, ajuste:null, linkEnviadoPara:null, aviso:null });
+    ir('#/hoje');
+    render();
+  }
+
+  function lerRetornoDoLink(){
+    const hsh = location.hash || '';
+    if(hsh.includes('error')){
+      const q = new URLSearchParams(hsh.replace(/^#/, ''));
+      const d = (q.get('error_description') || '').toLowerCase();
+      state.aviso = { tipo:'erro', texto: d.includes('expired') || d.includes('invalid') ? 'Esse link expirou ou já foi usado. Peça um novo.' : 'O link não funcionou. Peça um novo.' };
+    }
+    if(hsh.includes('access_token') || hsh.includes('error')) history.replaceState(null, '', location.pathname + location.search + '#/hoje');
+  }
+
+  // Uma vez só: ao abrir com sessão guardada, o supabase-js também avisa
+  // "entrou", e sem esta trava a página carregava tudo duas vezes, em paralelo.
+  let iniciando = null;
+  function iniciar(){
+    if(!iniciando) iniciando = carregarInicio().finally(() => { iniciando = null; });
+    return iniciando;
+  }
+
+  async function carregarInicio(){
+    lerRetornoDoLink();
+    state.rota = lerRota();
+    const { data:{ session } } = await sb.auth.getSession();
+    state.user = session ? session.user : null;
+    if(state.user){
+      try {
+        await carregarClientes();
+        await carregarDoCliente();
+      } catch(e){
+        state.aviso = { tipo:'erro', texto: mensagemDeErro(e) };
+      }
+    }
+    state.carregando = false;
+    await aoEntrarNaRota();
+  }
+
+  sb.auth.onAuthStateChange((evento, session) => {
+    if(evento === 'SIGNED_IN' && !state.user && !iniciando && session){
+      state.user = session.user; state.carregando = true; render();
+      iniciar();
+    }
+  });
+
+  (function favicon(){
+    const marca = LOGO.replace('>', '><style>:root{color:#1A1815}@media(prefers-color-scheme:dark){:root{color:#F2EEE8}}</style>');
+    const l = document.createElement('link');
+    l.rel = 'icon';
+    l.href = 'data:image/svg+xml,' + encodeURIComponent(marca);
+    document.head.appendChild(l);
+  })();
+
+  render();
+  iniciar();
+})();
+</script>
+</body>
+</html>

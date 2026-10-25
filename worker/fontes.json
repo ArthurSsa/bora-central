@@ -1,0 +1,21 @@
+{
+  "comentario": "Fontes das marcas, todas OFL, do repositório oficial github.com/google/fonts. O link aponta pra um commit fixo, não pro main: a fonte não muda debaixo de uma peça já aprovada. O sha256 confere o arquivo baixado. Instale com: npm run fontes",
+  "fontes": [
+    {
+      "familia": "Manrope",
+      "quem": "Ana Beatriz Leite (fonte da marca)",
+      "arquivo": "Manrope[wght].ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/b31870aff700ab7a1d74fa0c6887d95beb9e0037/ofl/manrope/Manrope%5Bwght%5D.ttf",
+      "licenca": "https://raw.githubusercontent.com/google/fonts/b31870aff700ab7a1d74fa0c6887d95beb9e0037/ofl/manrope/OFL.txt",
+      "sha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6"
+    },
+    {
+      "familia": "Anton",
+      "quem": "Moacyr (a letra de impacto do Estúdio)",
+      "arquivo": "Anton-Regular.ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/cee74d7ca45d66d5c1878c828645c862f2788d2d/ofl/anton/Anton-Regular.ttf",
+      "licenca": "https://raw.githubusercontent.com/google/fonts/cee74d7ca45d66d5c1878c828645c862f2788d2d/ofl/anton/OFL.txt",
+      "sha256": "a4ba3a92350ebb031da0cb47630ac49eb265082ca1bc0450442f4a83ab947cab"
+    }
+  ]
+}

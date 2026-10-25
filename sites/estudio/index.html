@@ -260,6 +260,18 @@
   details[open] > summary{ background:var(--tinta); color:#fff; border-style:solid; border-color:var(--tinta); }
   .card{ background:var(--sup); border-radius:var(--r); box-shadow:var(--s1); padding:20px 22px; margin-bottom:16px; }
   .card.flat{ background:var(--sup2); box-shadow:none; border:1px solid var(--linha); }
+  /* Fábrica: cada pedido na fila. O que precisa da equipe ganha a borda de alerta. */
+  .card.fab{ margin:14px 0 0; box-shadow:none; border:1px solid var(--linha); }
+  .card.fab.precisa{ border-color:var(--al-b); }
+  .fab-topo{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; }
+  .fab-tit{ font-family:var(--display); font-weight:600; font-size:1rem; overflow-wrap:anywhere; }
+  .fab-linha{ margin:8px 0 0; font-size:0.84rem; }
+  .fab-motivos{ margin:6px 0 0; padding-left:20px; font-size:0.86rem; display:grid; gap:4px; overflow-wrap:anywhere; }
+  .fab-acoes{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .fab-arquivos{ display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; }
+  .fab-entrega{ margin-top:16px; padding-top:14px; border-top:1px solid var(--linha2); display:grid; gap:8px; justify-items:start; }
+  .fab-entrega p{ margin:0; }
+  .fab-custos td, .fab-custos th{ text-align:left; }
 
   /* ---------- respostas do formulário ---------- */
   .qa{ margin-bottom:18px; padding-left:15px; border-left:2px solid var(--laranja); }
@@ -1644,6 +1656,7 @@
     if(a === 'perfil') return { tipo:'perfil' };
     if(a === 'clientes') return { tipo:'clientes' };
     if(a === 'agenda') return { tipo:'agenda' };
+    if(a === 'fabrica') return { tipo:'fabrica' };
     if(a === 'estudio') return { tipo:'estudio' };
     if(a === 'lote') return { tipo:'lote' };
     if(a === 'inbox') return { tipo:'inbox' };
@@ -1659,6 +1672,7 @@
     if(vista.tipo === 'perfil') return '#/perfil';
     if(vista.tipo === 'clientes') return '#/clientes';
     if(vista.tipo === 'agenda') return '#/agenda';
+    if(vista.tipo === 'fabrica') return '#/fabrica';
     if(vista.tipo === 'lote') return '#/lote';
     if(vista.tipo === 'inbox') return '#/inbox';
     if(vista.tipo === 'novo') return '#/novo';
@@ -2213,10 +2227,13 @@
   // Três áreas, e a primeira é onde se trabalha. A ordem aqui não é estética:
   // quem abre isto vem fazer peça, e o resto existe pra servir a peça — o
   // cliente é de quem a peça é, a agenda é quando ela sai.
+  // A Fábrica é a Visão Bora: o que a fábrica faz pelos clientes, e onde ela
+  // precisa da equipe. Fica por último: abre-se quando o número acende.
   const AREAS = [
     ['estudio',  'Estúdio'],
     ['clientes', 'Clientes'],
     ['agenda',   'Agenda'],
+    ['fabrica',  'Fábrica'],
   ];
 
   // Qual área está acesa. Telas filhas acendem a área a que pertencem: a ficha
@@ -2235,6 +2252,7 @@
       return n || null;
     }
     if(chave === 'clientes') return state.inbox.length || null;
+    if(chave === 'fabrica') return precisamDaEquipe() || null;
     return null;
   }
 
@@ -2376,6 +2394,21 @@
       const w = el('div',{class:'act'});
       w.appendChild(el('button',{class:'btn ghost small', onclick:()=>ir({tipo:'novo'})},'+ Novo cliente'));
       s.appendChild(w);
+      return s;
+    }
+
+    // Fábrica: o que acender, em ordem de urgência, e o caminho pro app do cliente.
+    if(t === 'fabrica'){
+      const fila = (state.fabrica || {}).fila || [];
+      s.appendChild(el('h4',{},'Na fábrica'));
+      [['Precisam da equipe', fila.filter(x => x.job_estado === 'falhou' && !x.assumido_por).length],
+       ['Com a equipe', fila.filter(x => x.assumido_por && x.pedido_estado === 'produzindo').length],
+       ['Fazendo agora', fila.filter(x => !x.assumido_por && (x.job_estado === 'na_fila' || x.job_estado === 'rodando')).length]]
+        .forEach(([rot, n]) => {
+          const b = el('div',{class:'navitem'});
+          b.innerHTML = '<b>' + esc(rot) + '</b><span class="sub">' + n + '</span>';
+          s.appendChild(b);
+        });
       return s;
     }
 
@@ -2535,12 +2568,266 @@
     if(state.vista.tipo==='perfil') return telaPerfil();
     if(state.vista.tipo==='clientes') return telaClientes();
     if(state.vista.tipo==='agenda') return telaAgenda();
+    if(state.vista.tipo==='fabrica') return telaFabrica();
     if(state.vista.tipo==='estudio') return telaEstudio();
     if(state.vista.tipo==='lote') return telaLote();
     if(state.vista.tipo==='inbox') return telaInbox();
     if(state.vista.tipo==='novo') return telaNovoCliente();
     if(state.vista.tipo==='cliente') return telaCliente();
     return telaEstudio();
+  }
+
+  // ---------- fábrica (Visão Bora) ----------
+  //
+  // O que a fábrica está fazendo pelos clientes, e onde ela precisa de gente.
+  // O cliente nunca vê esta tela: aqui mora o olho de designer — o motivo de
+  // cada reprovação, o editável, o custo — e o "assumir" quando a fábrica
+  // não dá conta. Assumido, o pedido sai da fila; a equipe corrige no editor
+  // dela, sobe os arquivos aqui, e a entrega passa pela mesma conferência de
+  // marca que qualquer rodada antes de chegar no cliente.
+
+  const TIPO_PEDIDO = { 'post-feed':'Post', carrossel:'Carrossel', story:'Story', reel:'Reel', capa:'Capa', apresentacao:'Apresentação' };
+
+  // O que cada skill entrega, pelo nome. Espelha as "saidas" dos SKILL.md: se a
+  // entrega vier sem um deles, a conferência diz qual faltou.
+  const ARQUIVOS_DA_SKILL = {
+    'post-feed': 'post.png, post.psd e legenda.txt',
+    'carrossel': 'slide-01.png… e slide-01.psd… (um par por imagem) e legenda.txt',
+    'capa-thumbnail': 'capa-1.png a capa-3.png, capa-1.psd a capa-3.psd, titulos.txt e legenda.txt',
+    'reel-de-bruto': 'previa.mp4, reel.mp4, legendas.srt, legenda.txt e reel.fcproj',
+    'abertura-com-motion': 'previa.mp4, reel.mp4, legenda.txt e abertura.ecproj',
+    'carrossel-em-video': 'previa.mp4, reel.mp4, legenda.txt e carrossel.ecproj',
+  };
+
+  function mesAtualFabrica(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+
+  async function carregarFabrica(){
+    const f = state.fabrica || (state.fabrica = { fila:[], custos:[], mes:mesAtualFabrica(), editaveis:{}, enviando:null });
+    const [y, m] = f.mes.split('-').map(Number);
+    const fim = new Date(y, m, 0).getDate();
+    const [fila, custos] = await Promise.all([
+      sb.rpc('fila_da_fabrica'),
+      sb.rpc('custos_da_fabrica', { p_de: f.mes + '-01', p_ate: f.mes + '-' + String(fim).padStart(2,'0') }),
+    ]);
+    if(fila.error) toast('Não deu pra ler a fila: ' + fila.error.message);
+    f.fila = fila.data || [];
+    f.custos = custos.data || [];
+    escutarFabrica();
+  }
+
+  // A fila muda sozinha (o worker anda, o cliente aprova). Um canal só, e
+  // recarga agrupada: um render de vídeo manda atualização a cada 2 s.
+  let canalFabrica = null, recargaFabrica = null;
+  function escutarFabrica(){
+    if(canalFabrica) return;
+    const recarregar = () => {
+      clearTimeout(recargaFabrica);
+      recargaFabrica = setTimeout(async () => {
+        await carregarFabrica();
+        if(state.vista.tipo === 'fabrica' || precisamDaEquipe() !== state.fabricaContada) render();
+      }, 600);
+    };
+    canalFabrica = sb.channel('fabrica')
+      .on('postgres_changes', { event:'*', schema:'public', table:'jobs' }, recarregar)
+      .on('postgres_changes', { event:'UPDATE', schema:'public', table:'pedidos' }, recarregar)
+      .subscribe();
+  }
+
+  const precisamDaEquipe = () => ((state.fabrica || {}).fila || []).filter(x => x.job_estado === 'falhou' && !x.assumido_por).length;
+
+  async function assumir(x){
+    if(!confirm('Assumir "' + (x.titulo || 'este pedido') + '"? A fábrica para de mexer nele, e o cliente passa a ver que a equipe está finalizando.')) return;
+    const { error } = await sb.rpc('assumir_pedido', { p_pedido: x.pedido_id });
+    if(error){ toast('Não deu: ' + error.message); return; }
+    toast('Assumido. Corrija no seu editor e suba a versão aqui.');
+    await carregarFabrica(); render();
+  }
+
+  /** Os editáveis da última rodada que tem arquivo — a versão de onde a correção parte. */
+  async function verEditaveis(x){
+    const f = state.fabrica;
+    const { data } = await sb.from('jobs').select('id, saidas, criado_em').eq('pedido_id', x.pedido_id).order('criado_em', { ascending:false });
+    const rodada = (data || []).find(j => (j.saidas || []).length);
+    const arquivos = rodada ? rodada.saidas : [];
+    if(!arquivos.length){ f.editaveis[x.pedido_id] = []; render(); return; }
+    const { data: links } = await sb.storage.from('pedidos').createSignedUrls(arquivos.map(s => s.caminho), 600);
+    f.editaveis[x.pedido_id] = (links || []).filter(l => l.signedUrl).map(l => ({ nome: l.path.split('/').pop(), url: l.signedUrl,
+      editavel: (arquivos.find(s => s.caminho === l.path) || {}).papel === 'editavel' }));
+    render();
+  }
+
+  /** Sobe os arquivos corrigidos numa pasta da Bora dentro do pedido e manda conferir. */
+  async function entregarCorrecao(x, arquivos){
+    const f = state.fabrica;
+    const cli = state.clientes.find(c => c.id === x.cliente_id);
+    if(!cli || !arquivos.length) return;
+    const pasta = cli.conta_id + '/' + x.cliente_id + '/' + x.pedido_id + '/bora/' + crypto.randomUUID();
+    f.enviando = { pedido: x.pedido_id, feitos: 0, total: arquivos.length };
+    render();
+    for(const a of arquivos){
+      const { error } = await sb.storage.from('pedidos').upload(pasta + '/' + a.name, a, { contentType: a.type || undefined });
+      if(error){ f.enviando = null; toast('Não subiu ' + a.name + ': ' + error.message); render(); return; }
+      f.enviando.feitos++; render();
+    }
+    const { error } = await sb.rpc('entregar_pela_bora', { p_pedido: x.pedido_id, p_pasta: pasta });
+    f.enviando = null;
+    if(error){ toast('Não deu: ' + error.message); render(); return; }
+    toast('Enviado. A fábrica confere e, passando, o cliente já vê.');
+    await carregarFabrica(); render();
+  }
+
+  // Um pedido na fila, do jeito que a equipe precisa ver.
+  function cartaoFabrica(x){
+    const f = state.fabrica;
+    const c = el('div',{class:'card fab' + (x.job_estado === 'falhou' && !x.assumido_por ? ' precisa' : ''), 'data-pedido': x.pedido_id});
+    const topo = el('div',{class:'fab-topo'});
+    const t = el('div',{style:'min-width:0'});
+    const tit = el('div',{class:'fab-tit'}); tit.textContent = x.titulo || TIPO_PEDIDO[x.tipo] || x.tipo;
+    const sub = el('div',{class:'muted'});
+    sub.textContent = x.cliente + ' · ' + (TIPO_PEDIDO[x.tipo] || x.tipo) + (x.skill ? ' · ' + x.skill : '') + ' · pedido em ' + dataBR(x.criado_em);
+    t.appendChild(tit); t.appendChild(sub);
+    topo.appendChild(t);
+    const estado = x.assumido_por ? ['Com a equipe','roxo']
+      : x.job_estado === 'falhou' ? ['Precisa da equipe','alerta']
+      : x.job_estado === 'rodando' ? ['Fazendo','andamento']
+      : x.job_estado === 'na_fila' ? ['Na fila','espera']
+      : x.pedido_estado === 'para_aprovar' ? ['Com o cliente','ok'] : [x.pedido_estado,'neutro'];
+    const selo = el('span',{class:'chip ' + estado[1]}); selo.textContent = estado[0];
+    topo.appendChild(selo);
+    c.appendChild(topo);
+
+    const linha = el('p',{class:'muted fab-linha'});
+    const partes = [];
+    if(x.rodada) partes.push(x.rodada === 'da_bora' ? 'entrega da equipe' : x.rodada === 'ajuste' ? 'ajuste' : 'produção');
+    if(x.job_estado === 'rodando' && x.etapa) partes.push(x.etapa + ' · ' + Math.round(x.progresso) + '%');
+    if(x.tentativas) partes.push('tentativa ' + x.tentativas + ' de ' + x.max_tentativas);
+    partes.push('US$ ' + Number(x.custo_usd || 0).toFixed(2) + ' · ' + Math.round(Number(x.render_segundos || 0)) + ' s nos apps');
+    linha.textContent = partes.join(' · ');
+    c.appendChild(linha);
+
+    // Por que reprovou, tentativa por tentativa: é o que a correção precisa saber.
+    if((x.motivos || []).length){
+      c.appendChild(el('p',{class:'rot', style:'margin-top:12px'},'Por que não passou'));
+      const ol = el('ol',{class:'fab-motivos'});
+      x.motivos.forEach(m => { const li = el('li'); li.textContent = m; ol.appendChild(li); });
+      c.appendChild(ol);
+    }
+
+    const acoes = el('div',{class:'fab-acoes'});
+    const podeAssumir = !x.assumido_por && ['produzindo','para_aprovar'].includes(x.pedido_estado);
+    if(podeAssumir) acoes.appendChild(el('button',{class:'btn small', onclick:()=>assumir(x)},'Assumir o pedido'));
+    acoes.appendChild(el('button',{class:'btn ghost small', onclick:()=>verEditaveis(x)},'Arquivos da última versão'));
+    c.appendChild(acoes);
+
+    const ed = f.editaveis[x.pedido_id];
+    if(ed){
+      const lista = el('div',{class:'fab-arquivos'});
+      if(!ed.length) lista.appendChild(el('span',{class:'muted'},'Nenhuma versão com arquivo ainda.'));
+      ed.forEach(a => {
+        const l = el('a',{href:a.url, target:'_blank', rel:'noopener', download:a.nome, class:'tag'});
+        l.textContent = a.nome + (a.editavel ? ' (editável)' : '');
+        lista.appendChild(l);
+      });
+      c.appendChild(lista);
+    }
+
+    // Assumido: subir a versão corrigida.
+    if(x.assumido_por && x.pedido_estado === 'produzindo'){
+      const caixa = el('div',{class:'fab-entrega'});
+      caixa.appendChild(el('p',{class:'rot'},'Entregar a versão corrigida'));
+      const dica = el('p',{class:'muted'});
+      dica.textContent = 'Suba os arquivos com os mesmos nomes da entrega' + (ARQUIVOS_DA_SKILL[x.skill] ? ': ' + ARQUIVOS_DA_SKILL[x.skill] + '.' : '.')
+        + ' Antes de chegar no cliente, passam pela mesma conferência de marca da fábrica.';
+      caixa.appendChild(dica);
+      const enviando = f.enviando && f.enviando.pedido === x.pedido_id;
+      if(x.job_estado === 'na_fila' || x.job_estado === 'rodando'){
+        caixa.appendChild(el('p',{class:'muted'},'Conferindo a entrega…'));
+      } else if(enviando){
+        const p = el('p',{class:'muted'}); p.textContent = 'Subindo ' + f.enviando.feitos + ' de ' + f.enviando.total + '…';
+        caixa.appendChild(p);
+      } else {
+        const id = 'arq-' + x.pedido_id;
+        const inp = el('input',{type:'file', multiple:'', id});
+        const lab = el('label',{for:id, class:'muted'},'Arquivos corrigidos');
+        const ir = el('button',{class:'btn small', onclick:()=>entregarCorrecao(x, [...inp.files])},'Entregar pro cliente');
+        caixa.appendChild(lab); caixa.appendChild(inp); caixa.appendChild(ir);
+      }
+      c.appendChild(caixa);
+    }
+    return c;
+  }
+
+  function telaFabrica(){
+    const m = el('main');
+    const f = state.fabrica;
+    const cabeca = el('div',{class:'bloco'});
+    cabeca.appendChild(el('p',{class:'rot laranja'},'Visão Bora'));
+    cabeca.appendChild(el('h1',{class:'page'},'Fábrica'));
+    cabeca.appendChild(el('p',{class:'intro'},
+      'Tudo o que a fábrica está fazendo pelos clientes. Ela refaz sozinha duas vezes quando a conferência reprova; '
+      + 'na terceira, o pedido cai em "Precisa da equipe". Assumir tira o pedido da fábrica e avisa o cliente.'));
+    if(!f){ cabeca.appendChild(el('p',{class:'muted'},'Carregando…')); m.appendChild(cabeca); carregarFabrica().then(render); return m; }
+
+    const fila = f.fila;
+    const precisa = fila.filter(x => x.job_estado === 'falhou' && !x.assumido_por);
+    const comEquipe = fila.filter(x => x.assumido_por && x.pedido_estado === 'produzindo');
+    const naFabrica = fila.filter(x => !x.assumido_por && (x.job_estado === 'na_fila' || x.job_estado === 'rodando'));
+    const comCliente = fila.filter(x => x.pedido_estado === 'para_aprovar' && !(x.job_estado === 'na_fila' || x.job_estado === 'rodando'));
+    const cifras = el('div',{class:'capa-fila'});
+    const cif = (g,r,d)=>{ const x=el('div');
+      x.innerHTML = '<span class="cifra">'+(d?'<u>':'')+esc(g)+(d?'</u>':'')+'</span><p class="rot">'+esc(r)+'</p>'; return x; };
+    cifras.appendChild(cif(precisa.length, 'Precisam da equipe', precisa.length > 0));
+    cifras.appendChild(cif(comEquipe.length, 'Com a equipe'));
+    cifras.appendChild(cif(naFabrica.length, 'Na fábrica agora'));
+    cifras.appendChild(cif(comCliente.length, 'Esperando o cliente'));
+    cabeca.appendChild(cifras);
+    m.appendChild(cabeca);
+
+    const secao = (titulo, lista, vazio) => {
+      const b = el('div',{class:'bloco'});
+      const h = el('h3',{}); h.textContent = titulo; b.appendChild(h);
+      if(!lista.length) b.appendChild(el('div',{class:'vazio'}, vazio));
+      lista.forEach(x => b.appendChild(cartaoFabrica(x)));
+      m.appendChild(b);
+    };
+    secao('Precisam da equipe', precisa, 'Nada parado. A fábrica está dando conta.');
+    secao('Com a equipe', comEquipe, 'Ninguém da equipe está com pedido na mão.');
+    secao('Na fábrica agora', naFabrica, 'Fila vazia.');
+    if(comCliente.length) secao('Esperando o cliente aprovar', comCliente, '');
+
+    // Custos do mês: o Claude em dólar e o tempo dentro dos apps, por cliente.
+    const bc = el('div',{class:'bloco'});
+    const cab = el('div',{class:'fab-topo'});
+    cab.appendChild(el('h3',{},'Custos do mês'));
+    const mes = el('input',{type:'month', value:f.mes, 'aria-label':'Mês dos custos'});
+    mes.addEventListener('change', async ()=>{ f.mes = mes.value || mesAtualFabrica(); await carregarFabrica(); render(); });
+    cab.appendChild(mes);
+    bc.appendChild(cab);
+    if(!f.custos.length){
+      bc.appendChild(el('div',{class:'vazio'},'Nenhuma rodada neste mês.'));
+    } else {
+      const tb = el('table',{class:'fab-custos'});
+      tb.innerHTML = '<thead><tr><th>Cliente</th><th>Pedidos</th><th>Rodadas</th><th>Tentativas</th><th>Falharam</th><th>Da equipe</th><th>Claude</th><th>Nos apps</th></tr></thead>';
+      const corpo = el('tbody');
+      let usd = 0, seg = 0;
+      f.custos.forEach(r => {
+        usd += Number(r.custo_usd); seg += Number(r.render_segundos);
+        const tr = el('tr');
+        [r.cliente, r.pedidos, r.rodadas, r.tentativas, r.falharam, r.da_bora,
+         'US$ ' + Number(r.custo_usd).toFixed(2), Math.round(Number(r.render_segundos) / 6) / 10 + ' min']
+          .forEach(v => { const td = el('td'); td.textContent = String(v); tr.appendChild(td); });
+        corpo.appendChild(tr);
+      });
+      tb.appendChild(corpo);
+      bc.appendChild(tb);
+      const tot = el('p',{class:'muted', style:'margin-top:10px'});
+      tot.textContent = 'No mês: US$ ' + usd.toFixed(2) + ' com o Claude e ' + Math.round(seg / 6) / 10 + ' min dentro dos apps. '
+        + 'Rodadas sem o Claude (roteiro) custam US$ 0.';
+      bc.appendChild(tot);
+    }
+    m.appendChild(bc);
+    state.fabricaContada = precisamDaEquipe();
+    return m;
   }
 
   // ---------- agenda ----------
@@ -9012,6 +9299,8 @@
       state.membro = !error && data === true;
       if(state.membro){
         await carregarTudo();
+        // A fila vem à parte: o número na aba Fábrica acende sem segurar a abertura.
+        carregarFabrica().then(render);
         // Respeita o endereço com que a pessoa chegou: link mandado pela Bia,
         // aba recarregada, favorito. Cliente que não existe mais cai no Estúdio.
         const r = rotaAtual();
@@ -9019,7 +9308,7 @@
           state.vista = { tipo:'cliente', id:r.id };
           state.aba = (r.aba && ABAS.some(a => a[0] === r.aba)) ? r.aba : 'respostas';
           carregarDetalhe(r.id).then(render);
-        } else if(['inbox','novo','agenda','clientes','perfil','estudio','lote'].includes(r.tipo)){
+        } else if(['inbox','novo','agenda','clientes','perfil','estudio','lote','fabrica'].includes(r.tipo)){
           state.vista = { tipo:r.tipo };
         } else {
           state.vista = { tipo: ((state.perfil || {}).tela_inicial) || 'estudio' };
