@@ -65,6 +65,13 @@ async function prepararCliente() {
     if (fundo.length) await admin.storage.from('pedidos').remove(fundo);
   }
   ok(await admin.from('pedidos').delete().eq('cliente_id', CLIENTE), 'limpar pedidos');
+  await limparAgenda();
+
+  // Um plano do mês de mentira, no mês corrente: é dele que saem as sugestões.
+  ok(await admin.from('planos').upsert(
+    { cliente_id: CLIENTE, mes: hojeIso().slice(0, 8) + '01', pauta: 'Bastidor do laboratório numa sexta\nO erro mais comum de quem começa\nTurma nova: inscrições abertas', diagnostico: {} },
+    { onConflict: 'cliente_id,mes' },
+  ), 'plano do mês');
 
   // Senha nova a cada rodada, que só existe na memória deste processo.
   const senha = randomBytes(24).toString('base64url');
@@ -110,7 +117,26 @@ before(async () => {
   navegador = await chromium.launch({ executablePath: exe, headless: true });
 });
 
+/**
+ * As tarefas de publicação do cliente de teste vivem na agenda de verdade da
+ * Central. Saem no começo e no fim de cada rodada — a Bora não pode abrir a
+ * agenda de segunda e achar "Publicar: Bastidor do laboratório".
+ */
+async function limparAgenda() {
+  const { error } = await admin.from('tarefas').delete().eq('cliente_id', CLIENTE);
+  if (error) throw new Error(`limpar agenda: ${error.message}`);
+}
+
+/** Hoje + n dias, no fuso desta máquina (o mesmo do app). */
+function hojeIso(mais = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + mais);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 10);
+}
+
 after(async () => {
+  await limparAgenda().catch((e) => console.error(e.message));
   await navegador?.close();
   worker?.kill();
   servidor?.close();
@@ -418,6 +444,98 @@ test('capa: três opções, aprovar só depois de escolher, e a escolhida é a q
   assert.match((await page.getByRole('link', { name: 'Baixar a imagem' }).getAttribute('download'))!, /capa-2\.png/);
   const { data: pedido } = await admin.from('pedidos').select('estado, escolha').eq('id', pedidoId).single();
   assert.deepEqual(pedido, { estado: 'aprovado', escolha: 2 });
+  await semErroNaTela(page);
+  await page.context().close();
+});
+
+/** No calendário, vai até o mês do dia (no máximo dois meses pra frente). */
+async function calendarioNoDia(page: Page, dia: string) {
+  for (let i = 0; i < 3 && !(await page.locator(`[data-dia="${dia}"]`).count()); i++) {
+    await page.getByRole('button', { name: 'Próximo mês' }).click();
+  }
+  return page.locator(`[data-dia="${dia}"]`);
+}
+
+test('plano do mês: "Criar isso" vira pedido escrito, e o calendário e a agenda da Bora andam juntos', { timeout: 240_000 }, async () => {
+  const page = await abrir();
+  const tema = 'O erro mais comum de quem começa';
+
+  // As sugestões do plano, e o "Criar isso" pedindo só o formato.
+  await page.getByRole('heading', { name: /Sugestões do seu plano de/ }).waitFor();
+  assert.equal(await page.locator('.sugestao').count(), 3);
+  await page.getByRole('button', { name: `Criar isso: ${tema}` }).click();
+  await page.locator('.sugestao').filter({ hasText: tema }).getByRole('button', { name: 'Post para feed' }).click();
+
+  // O pedido já vem escrito.
+  await page.getByRole('heading', { name: 'O que o post precisa dizer?' }).waitFor();
+  assert.equal(await page.locator('#texto').inputValue(), tema);
+  assert.match((await page.locator('main').textContent())!, /veio do seu plano do mês/);
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByRole('heading', { name: 'Algumas escolhas' }).waitFor();
+  const dia1 = hojeIso(2);
+  await page.locator('#data').fill(dia1);
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  assert.match((await page.locator('.resumo').textContent())!, /Vai ao ar/);
+  await page.getByRole('button', { name: 'Pedir post' }).click();
+  await page.waitForURL(/#\/pedido\//);
+  const pedidoId = page.url().split('/').pop()!;
+
+  // Aprovado com data → agendado, e a tarefa aparece na agenda da Central.
+  await page.locator('.selo.para_aprovar').first().waitFor({ timeout: 90_000 });
+  await page.getByRole('button', { name: 'Aprovar' }).click();
+  await page.locator('.aviso.ok').filter({ hasText: 'Aprovado e agendado' }).waitFor();
+  await page.locator('.selo.agendado').first().waitFor();
+  const lerPedido = async () => (await admin.from('pedidos').select('estado, publicar_em, tarefa_id, origem_tema').eq('id', pedidoId).single()).data!;
+  const lerTarefa = async (id: string) => (await admin.from('tarefas').select('tipo, data, estado, titulo, campos').eq('id', id).single()).data!;
+  let ped = await lerPedido();
+  assert.equal(ped.estado, 'agendado');
+  assert.equal(ped.origem_tema, tema);
+  let tarefa = await lerTarefa(ped.tarefa_id);
+  assert.equal(tarefa.tipo, 'publicacao');
+  assert.equal(tarefa.data, dia1);
+  assert.equal((tarefa.campos as { pedido_id: string }).pedido_id, pedidoId);
+
+  // O tema saiu das sugestões.
+  const abas = page.getByRole('navigation', { name: 'Seções' });
+  await abas.getByRole('link', { name: 'Hoje' }).click();
+  await page.getByText('1 de 3 temas já viraram pedido.').waitFor();
+  assert.equal(await page.locator('.sugestao').count(), 2);
+  assert.equal(await page.locator('.sugestao').filter({ hasText: tema }).count(), 0);
+
+  // Calendário: a peça no dia, e "Mudar data" move a tarefa da Central.
+  await abas.getByRole('link', { name: 'Calendário' }).click();
+  await page.getByRole('heading', { name: 'Calendário' }).waitFor();
+  const celula1 = await calendarioNoDia(page, dia1);
+  assert.equal(await celula1.locator('.peca').count(), 1);
+  assert.ok(await semRolagemLateral(page), 'o calendário vazou pro lado');
+  for (const tema2 of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: tema2 });
+    assert.deepEqual(await varrerContraste(page), [], `contraste do calendário no tema ${tema2}`);
+  }
+  await foto(page, 'calendario');
+  await celula1.click();
+  const dia2 = hojeIso(4);
+  await page.getByRole('button', { name: /Mudar a data:/ }).click();
+  await page.getByLabel('Em que dia vai ao ar?').fill(dia2);
+  await page.getByRole('button', { name: 'Salvar' }).click();
+  await page.locator('.aviso.ok').filter({ hasText: 'Agendado pra' }).waitFor();
+  tarefa = await lerTarefa(ped.tarefa_id);
+  assert.equal(tarefa.data, dia2, 'mudar a data no app não moveu a tarefa da Central');
+
+  // A Bora move a tarefa na Central → o calendário do cliente acompanha, ao vivo.
+  const dia3 = hojeIso(5);
+  await admin.from('tarefas').update({ data: dia3 }).eq('id', ped.tarefa_id);
+  const celula3 = await calendarioNoDia(page, dia3);
+  await celula3.locator('.peca').waitFor({ timeout: 15_000 });
+  ped = await lerPedido();
+  assert.equal(ped.publicar_em.slice(0, 10), dia3);
+
+  // A Bora marca a publicação como feita → o pedido vira "publicado".
+  await admin.from('tarefas').update({ estado: 'concluido' }).eq('id', ped.tarefa_id);
+  await page.goto(origem + '/#/pedido/' + pedidoId);
+  await page.locator('.selo.publicado').first().waitFor({ timeout: 15_000 });
+  assert.match((await page.locator('.data-ar').textContent())!, /Foi ao ar/);
+  assert.equal(await page.getByRole('button', { name: /Mudar a data/ }).count(), 0, 'peça publicada não muda de data');
   await semErroNaTela(page);
   await page.context().close();
 });

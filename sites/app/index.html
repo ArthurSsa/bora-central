@@ -93,7 +93,7 @@
   main{ max-width:720px; margin:0 auto; padding:20px 16px calc(96px + env(safe-area-inset-bottom)); }
   .abas{
     position:fixed; left:0; right:0; bottom:0; z-index:5;
-    display:grid; grid-template-columns:repeat(3,1fr);
+    display:grid; grid-template-columns:repeat(4,1fr);
     background:var(--sup); border-top:1px solid var(--linha);
     padding-bottom:env(safe-area-inset-bottom);
   }
@@ -197,6 +197,40 @@
   .barra{ height:10px; border-radius:10px; background:var(--linha); overflow:hidden; }
   .barra i{ display:block; height:100%; background:var(--laranja); border-radius:10px; transition:width .5s ease; }
   .etapa{ font-family:var(--display); font-weight:700; font-size:1.2rem; }
+  /* ---------- sugestões do plano ---------- */
+  .sugestoes{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  .sugestao{ background:var(--sup); border-radius:14px; box-shadow:var(--s1); padding:14px; display:flex; flex-direction:column; gap:10px; }
+  .sugestao p{ font-weight:600; line-height:1.35; }
+  .sugestao .btn{ align-self:flex-start; min-height:40px; font-size:0.92rem; padding:0 18px; }
+
+  /* ---------- data de ir ao ar ---------- */
+  .data-ar{ display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:6px 14px; font-size:0.95rem; padding:0 2px; }
+
+  /* ---------- calendário ---------- */
+  .mes-nav{ display:flex; align-items:center; gap:6px; }
+  .mes-nav .chip{ padding:6px 12px; font-size:1rem; }
+  .mes-nome{ font-family:var(--display); font-weight:600; min-width:7.5em; text-align:center; text-transform:capitalize; }
+  .cal{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; }
+  .cal .sem{ text-align:center; font-family:var(--dado); font-size:0.7rem; color:var(--fraco); padding-bottom:2px; }
+  .dia{
+    min-height:58px; border:1px solid var(--linha); background:var(--sup); border-radius:10px;
+    padding:4px; display:flex; flex-direction:column; align-items:center; gap:3px; font:inherit; min-width:0;
+  }
+  .dia.vazio{ border:none; background:none; }
+  .dia.passado{ background:var(--sup2); }
+  .dia .num{ font-size:0.82rem; font-weight:600; line-height:1; }
+  .dia.passado .num{ color:var(--fraco); }
+  .dia.hoje .num{ color:var(--laranja-forte); }
+  .dia.hoje{ border-color:var(--laranja-forte); }
+  .dia[aria-pressed="true"]{ outline:2.5px solid var(--laranja-forte); outline-offset:-1px; }
+  .dia.alvo{ background:var(--laranja-fraco); }
+  .dia .pecas{ display:flex; gap:2px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .dia .peca{ width:18px; aspect-ratio:4/5; border-radius:3px; background:var(--laranja); overflow:hidden; display:block; }
+  .dia .peca img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .dia .peca.foi{ opacity:.6; }
+  .dia .mais{ font-size:0.66rem; color:var(--fraco); }
+  @media (min-width:600px){ .dia{ min-height:78px; } .dia .peca{ width:26px; } }
+
   /* Carrossel: desliza de lado, uma imagem por vez, com a próxima aparecendo na borda. */
   .galeria{ display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:6px; overscroll-behavior-x:contain; }
   /* min-width:0 — sem ele a imagem não encolhe abaixo da largura própria e
@@ -284,6 +318,7 @@
     reel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2.5"/><path d="M10.5 9.5v5l4-2.5z" fill="currentColor"/></svg>',
     capa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M6 15l4-4 3 3 2-2 3 3"/></svg>',
     apresentacao: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M10 8.5v5l4-2.5z" fill="currentColor"/></svg>',
+    calendario: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><rect x="7" y="13" width="3" height="3" rx="0.6" fill="currentColor" stroke="none"/></svg>',
     hoje: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/><circle cx="12" cy="12" r="10"/></svg>',
     pedidos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>',
     marca: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.4" fill="currentColor"/><circle cx="12" cy="7.5" r="1.4" fill="currentColor"/><circle cx="15.5" cy="10" r="1.4" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2a2 2 0 0 0 2-2"/></svg>',
@@ -310,9 +345,13 @@
     publicado:    'Publicado',
     cancelado:    'Cancelado',
   };
+  // Cada filtro junta os estados que, pra quem pede, são a mesma coisa:
+  // "aprovado" inclui o que já tem dia e o que já foi ao ar.
   const FILTROS = [
-    ['todos', 'Todos'], ['produzindo', 'Fazendo'], ['para_aprovar', 'Para aprovar'], ['aprovado', 'Aprovados'],
+    ['todos', 'Todos', null], ['produzindo', 'Fazendo', ['produzindo']], ['para_aprovar', 'Para aprovar', ['para_aprovar']],
+    ['aprovado', 'Aprovados', ['aprovado', 'agendado', 'publicado']],
   ];
+  const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
   const OBJETIVOS = ['Atrair gente nova', 'Vender', 'Ensinar algo', 'Contar uma novidade'];
   const QTD_SLIDES = [3, 5, 7, 10];
   const PERGUNTA = {
@@ -344,6 +383,11 @@
     urls: {},             // caminho no balde -> link assinado
     textos: {},           // caminho no balde -> conteúdo da legenda/títulos
     escolha: {},          // pedido_id -> opção de capa marcada (antes de aprovar)
+    sugestoes: [],        // a pauta do plano do mês, tema por tema
+    sugestaoAberta: null, // o tema cujo "Criar isso" está escolhendo formato
+    agendando: null,      // { pedidoId, dia } — o seletor de data aberto
+    calMes: null,         // 'AAAA-MM' do calendário na tela
+    calDia: null,         // o dia escolhido no calendário
     rota: { nome:'hoje', arg:null },
     filtro: 'todos',
     novo: null,           // rascunho do pedido em 3 passos
@@ -384,6 +428,9 @@
   const fmtHora = (iso) => new Date(iso).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
   const fmtDia = (yyyyMmDd) => new Date(yyyyMmDd + 'T12:00:00').toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
   const hojeIso = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+  /** O dia (AAAA-MM-DD) de um horário, no fuso de quem está olhando. */
+  const diaDe = (iso) => { const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+  const fmtDiaCurto = (iso) => new Date(iso).toLocaleDateString('pt-BR', { weekday:'short', day:'numeric', month:'short' });
 
   // A mensagem das funções do banco já é escrita pra quem pede ("espere uma
   // terminar"); o resto vira uma frase genérica, sem código de erro na cara.
@@ -405,7 +452,7 @@
 
   function lerRota(){
     const partes = location.hash.replace(/^#\/?/, '').split('/');
-    const nome = ['hoje', 'novo', 'pedido', 'pedidos', 'marca'].includes(partes[0]) ? partes[0] : 'hoje';
+    const nome = ['hoje', 'novo', 'pedido', 'pedidos', 'calendario', 'marca'].includes(partes[0]) ? partes[0] : 'hoje';
     return { nome, arg: partes[1] || null };
   }
   function ir(hash){ if(location.hash !== hash) location.hash = hash; }
@@ -457,6 +504,7 @@
     const [marca, pedidos] = await Promise.all([
       sb.rpc('marca_do_cliente', { p_cliente: state.clienteId }),
       sb.from('pedidos').select(COLUNAS_PEDIDO).eq('cliente_id', state.clienteId).order('criado_em', { ascending:false }).limit(60),
+      carregarSugestoes(),
     ]);
     if(marca.error) throw marca.error;
     if(pedidos.error) throw pedidos.error;
@@ -464,6 +512,13 @@
     state.pedidos = pedidos.data || [];
     escutarCliente();
     garantirUrls();
+  }
+
+  // A pauta do plano do mês, tema por tema. Erro aqui não derruba a tela:
+  // sem sugestão o cliente ainda pede do jeito de sempre.
+  async function carregarSugestoes(){
+    const { data, error } = await sb.rpc('sugestoes_do_mes', { p_cliente: state.clienteId });
+    state.sugestoes = error ? [] : data || [];
   }
 
   async function carregarPedido(id){
@@ -590,10 +645,12 @@
     const publicarEm = n.data ? new Date(n.data + 'T12:00:00').toISOString() : null;
     const { data, error } = await sb.rpc('criar_pedido', {
       p_cliente: state.clienteId, p_tipo: n.tipo, p_briefing: briefing, p_publicar_em: publicarEm,
+      p_origem_plano: n.origem ? n.origem.plano : null, p_origem_tema: n.origem ? n.origem.tema : null,
     });
     state.ocupado = false;
     if(error){ avisar('erro', mensagemDeErro(error)); return; }
     state.novo = null;
+    if(n.origem) await carregarSugestoes();
     await carregarPedido(data);
     await carregarEventos(data);
     ir('#/pedido/' + data);
@@ -605,7 +662,29 @@
     state.ocupado = false;
     if(error){ avisar('erro', mensagemDeErro(error)); return; }
     await carregarPedido(p.id);
-    avisar('ok', 'Aprovado! A Bora cuida da publicação.');
+    const atual = state.pedidos.find(x => x.id === p.id);
+    avisar('ok', atual && atual.estado === 'agendado'
+      ? 'Aprovado e agendado pra ' + fmtDiaCurto(atual.publicar_em) + '. A Bora cuida da publicação.'
+      : 'Aprovado! Escolha o dia em que vai ao ar.');
+  }
+
+  // Agendar, reagendar ou tirar da agenda (dia vazio). A agenda da Bora anda
+  // junto, no banco — aqui só se pede o dia.
+  async function agendar(p, dia){
+    state.ocupado = true; render();
+    const { error } = await sb.rpc('agendar_pedido', { p_pedido: p.id, p_dia: dia || null });
+    state.ocupado = false;
+    if(error){ avisar('erro', mensagemDeErro(error)); return; }
+    state.agendando = null;
+    await carregarPedido(p.id);
+    avisar('ok', dia ? 'Agendado pra ' + fmtDia(dia) + '.' : 'Tirado da agenda. Escolha outro dia quando quiser.');
+  }
+
+  /** "Criar isso": o tema da pauta vira um pedido já escrito, no formato escolhido. */
+  function criarDaSugestao(s, tipo){
+    state.novo = { tipo, passo:1, texto:s.tema, objetivo:null, tom:'Como sempre', data:'', slides:5, origem:{ plano:s.plano_id, tema:s.tema } };
+    state.sugestaoAberta = null;
+    ir('#/novo/' + tipo);
   }
 
   async function enviarAjuste(p){
@@ -705,6 +784,7 @@
     const abas = h('nav', { class:'abas', 'aria-label':'Seções' },
       aba('#/hoje', 'Hoje', 'hoje', r === 'hoje' || r === 'novo'),
       aba('#/pedidos', 'Pedidos', 'pedidos', r === 'pedidos' || r === 'pedido'),
+      aba('#/calendario', 'Calendário', 'calendario', r === 'calendario'),
       aba('#/marca', 'Minha marca', 'marca', r === 'marca'));
 
     let conteudo;
@@ -712,6 +792,7 @@
     else if(r === 'novo' && state.novo) conteudo = telaNovo();
     else if(r === 'pedido') conteudo = telaPedido(state.rota.arg);
     else if(r === 'pedidos') conteudo = telaPedidos();
+    else if(r === 'calendario') conteudo = telaCalendario();
     else if(r === 'marca') conteudo = telaMarca();
     else conteudo = telaHoje();
 
@@ -729,7 +810,9 @@
     const andamento = jobEmAndamento(p);
     const sub = p.estado === 'produzindo' && andamento
       ? (andamento.etapa && andamento.etapa !== 'preparando' ? andamento.etapa.charAt(0).toUpperCase() + andamento.etapa.slice(1) : 'Na fila')
-      : (NOME_TIPO[p.tipo] || p.tipo) + ' · ' + fmtData(p.criado_em);
+      : (p.estado === 'agendado' || p.estado === 'publicado') && p.publicar_em
+        ? (NOME_TIPO[p.tipo] || p.tipo) + ' · ' + (p.estado === 'publicado' ? 'foi ao ar ' : 'vai ao ar ') + fmtDiaCurto(p.publicar_em)
+        : (NOME_TIPO[p.tipo] || p.tipo) + ' · ' + fmtData(p.criado_em);
     return h('a', { class:'linha-ped' + (p.estado === 'para_aprovar' ? ' chama' : ''), href:'#/pedido/' + p.id },
       url ? h('img', { class:'miniatura', src:url, alt:'' }) : h('span', { class:'miniatura', 'aria-hidden':'true' }),
       h('span', { class:'txt' },
@@ -751,7 +834,143 @@
         : h('div', { class:'tipo', 'aria-disabled':'true', html: ICONE[t.icone] }, h('b', {}, t.nome), h('span', {}, t.sub), h('span', { class:'breve' }, 'Em breve')))),
       andando.length > 0 && h('section', { class:'pilha', 'aria-labelledby':'em-andamento' },
         h('h2', { id:'em-andamento' }, 'Em andamento'),
-        h('div', { class:'lista' }, andando.map(linhaPedido))));
+        h('div', { class:'lista' }, andando.map(linhaPedido))),
+      secaoSugestoes());
+  }
+
+  // Os temas do plano do mês que a Bora escreveu, ainda sem pedido. "Criar
+  // isso" pergunta só o formato e cai no pedido já escrito.
+  function secaoSugestoes(){
+    const todas = state.sugestoes || [];
+    if(!todas.length) return null;
+    const livres = todas.filter(s => !s.pedido_id);
+    const feitas = todas.length - livres.length;
+    const mes = MESES[Number(String(todas[0].mes).slice(5, 7)) - 1];
+    return h('section', { class:'pilha', 'aria-labelledby':'sugestoes' },
+      h('h2', { id:'sugestoes' }, 'Sugestões do seu plano de ' + mes),
+      h('p', { class:'fraco', style:{ fontSize:'0.9rem' } }, feitas
+        ? feitas + ' de ' + todas.length + ' temas já viraram pedido.'
+        : 'Os temas que a Bora separou pra este mês. Escolha um e a gente faz.'),
+      livres.length
+        ? h('ul', { class:'sugestoes' }, livres.map(s => {
+            const aberta = state.sugestaoAberta === s.tema;
+            return h('li', { class:'sugestao' },
+              h('p', {}, s.tema),
+              aberta
+                ? h('div', { class:'chips', role:'group', 'aria-label':'Em que formato' },
+                    TIPOS.filter(t => t.ativo).map(t => h('button', { class:'chip', type:'button', onclick: () => criarDaSugestao(s, t.k) }, t.nome)),
+                    h('button', { class:'linkbtn', type:'button', onclick: () => { state.sugestaoAberta = null; render(); } }, 'Cancelar'))
+                : h('button', { class:'btn sec', type:'button', 'aria-label':'Criar isso: ' + s.tema,
+                    onclick: () => { state.sugestaoAberta = s.tema; render(); } }, 'Criar isso'));
+          }))
+        : h('p', { class:'aviso ok' }, 'Todos os temas do mês já viraram pedido.'));
+  }
+
+  // ---------- data de ir ao ar ----------
+
+  /**
+   * O controle de data de uma peça aprovada: mostra o dia, e abre um seletor
+   * pra mudar ou tirar da agenda. Usado na tela do pedido e no calendário.
+   */
+  function controleDeData(p){
+    const aberto = state.agendando && state.agendando.pedidoId === p.id;
+    const dia = p.publicar_em ? diaDe(p.publicar_em) : '';
+    if(!aberto){
+      return h('div', { class:'data-ar' },
+        h('span', {}, p.publicar_em ? h('b', {}, (p.estado === 'publicado' ? 'Foi ao ar ' : 'Vai ao ar ') + fmtDia(dia)) : 'Ainda sem dia pra ir ao ar'),
+        p.estado !== 'publicado' && h('button', { class:'linkbtn', type:'button', 'aria-label':(p.publicar_em ? 'Mudar a data: ' : 'Escolher a data: ') + (p.titulo || ''),
+          onclick: () => { state.agendando = { pedidoId:p.id, dia }; render(); } }, p.publicar_em ? 'Mudar data' : 'Escolher data'));
+    }
+    const a = state.agendando;
+    const campo = h('input', { type:'date', id:'dia-' + p.id, min: hojeIso(),
+      oninput: (e) => { a.dia = e.target.value; salvar.disabled = !a.dia; } });
+    campo.value = a.dia;
+    const salvar = h('button', { class:'btn pri', type:'button', disabled: !a.dia || state.ocupado, onclick: () => agendar(p, a.dia) }, 'Salvar');
+    return h('div', { class:'cartao pilha' },
+      h('div', { class:'campo' }, h('label', { for:'dia-' + p.id }, 'Em que dia vai ao ar?'), campo),
+      h('div', { class:'botoes' },
+        h('button', { class:'btn sec', type:'button', onclick: () => { state.agendando = null; render(); } }, 'Cancelar'),
+        salvar),
+      p.publicar_em && h('button', { class:'linkbtn', type:'button', onclick: () => agendar(p, null) }, 'Tirar da agenda'));
+  }
+
+  // ---------- calendário ----------
+
+  function telaCalendario(){
+    const hoje = hojeIso();
+    const mes = state.calMes || hoje.slice(0, 7);
+    const [ano, m] = mes.split('-').map(Number);
+    const primeiro = new Date(ano, m - 1, 1);
+    const dias = new Date(ano, m, 0).getDate();
+    const naAgenda = state.pedidos.filter(p => (p.estado === 'agendado' || p.estado === 'publicado') && p.publicar_em);
+    const porDia = {};
+    for(const p of naAgenda) (porDia[diaDe(p.publicar_em)] = porDia[diaDe(p.publicar_em)] || []).push(p);
+    const semData = state.pedidos.filter(p => p.estado === 'aprovado');
+    const escolhido = state.calDia && state.calDia.startsWith(mes) ? state.calDia
+      : (Object.keys(porDia).filter(d => d.startsWith(mes) && d >= hoje).sort()[0] || (hoje.startsWith(mes) ? hoje : mes + '-01'));
+
+    const mudarMes = (delta) => {
+      const d = new Date(ano, m - 1 + delta, 1);
+      state.calMes = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      state.calDia = null;
+      render();
+    };
+
+    // Arrastar de um dia pro outro, no computador. No celular o arraste de
+    // HTML não dispara com o dedo — lá o caminho é "Mudar data".
+    const soltar = (dia) => ({
+      ondragover: (e) => { e.preventDefault(); e.currentTarget.classList.add('alvo'); },
+      ondragleave: (e) => e.currentTarget.classList.remove('alvo'),
+      ondrop: (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('alvo');
+        const p = state.pedidos.find(x => x.id === e.dataTransfer.getData('text/plain'));
+        if(p && dia >= hoje && diaDe(p.publicar_em || '1970-01-01') !== dia) agendar(p, dia);
+        else if(p && dia < hoje) avisar('erro', 'Escolha um dia de hoje em diante.');
+      },
+    });
+
+    const celulas = [];
+    const vazias = (primeiro.getDay() + 6) % 7; // semana começando na segunda
+    for(let i = 0; i < vazias; i++) celulas.push(h('span', { class:'dia vazio', 'aria-hidden':'true' }));
+    for(let d = 1; d <= dias; d++){
+      const dia = mes + '-' + String(d).padStart(2, '0');
+      const itens = porDia[dia] || [];
+      celulas.push(h('button', Object.assign({
+        type:'button', class:'dia' + (dia === hoje ? ' hoje' : '') + (dia === escolhido ? ' escolhido' : '') + (dia < hoje ? ' passado' : ''),
+        'aria-pressed': String(dia === escolhido), 'data-dia': dia,
+        'aria-label': fmtDia(dia) + (itens.length ? ', ' + itens.length + (itens.length === 1 ? ' peça' : ' peças') : ''),
+        onclick: () => { state.calDia = dia; render(); },
+      }, soltar(dia)),
+        h('span', { class:'num' }, String(d)),
+        itens.length > 0 && h('span', { class:'pecas' }, itens.slice(0, 2).map(p => {
+          const s = pngDe(p.job_aprovado && (p.jobs || []).find(j => j.id === p.job_aprovado) || prontos(p).pop());
+          const u = s && state.urls[s.caminho];
+          return h('span', { class:'peca' + (p.estado === 'publicado' ? ' foi' : ''), draggable: p.estado === 'agendado' ? 'true' : null,
+            ondragstart: (e) => e.dataTransfer.setData('text/plain', p.id) },
+            u ? h('img', { src:u, alt:'' }) : null);
+        }), itens.length > 2 && h('span', { class:'mais' }, '+' + (itens.length - 2)))));
+    }
+
+    const doDia = porDia[escolhido] || [];
+    return h('div', { class:'pilha-g' },
+      h('div', { class:'cabeca' },
+        h('h1', {}, 'Calendário'),
+        h('div', { class:'mes-nav' },
+          h('button', { class:'chip', type:'button', 'aria-label':'Mês anterior', onclick: () => mudarMes(-1) }, '‹'),
+          h('span', { class:'mes-nome' }, MESES[m - 1] + ' ' + ano),
+          h('button', { class:'chip', type:'button', 'aria-label':'Próximo mês', onclick: () => mudarMes(1) }, '›'))),
+      h('div', { class:'cal', role:'group', 'aria-label':'Dias de ' + MESES[m - 1] },
+        ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map(l => h('span', { class:'sem', 'aria-hidden':'true' }, l)),
+        celulas),
+      h('section', { class:'pilha', 'aria-labelledby':'do-dia' },
+        h('h2', { id:'do-dia' }, fmtDia(escolhido).replace(/^./, (c) => c.toUpperCase())),
+        doDia.length
+          ? h('div', { class:'lista' }, doDia.map(p => h('div', { class:'pilha' }, linhaPedido(p), controleDeData(p))))
+          : h('p', { class:'fraco' }, 'Nada vai ao ar neste dia.')),
+      semData.length > 0 && h('section', { class:'pilha', 'aria-labelledby':'sem-data' },
+        h('h2', { id:'sem-data' }, 'Aprovadas, sem dia ainda'),
+        h('div', { class:'lista' }, semData.map(p => h('div', { class:'pilha' }, linhaPedido(p), controleDeData(p))))));
   }
 
   // ---------- pedido em três passos ----------
@@ -781,7 +1000,9 @@
       return h('div', { class:'pilha-g' }, cabeca,
         h('div', { class:'pilha' },
           h('h1', {}, pergunta.titulo),
-          h('p', { class:'fraco' }, pergunta.ajuda)),
+          h('p', { class:'fraco' }, n.origem
+            ? 'Este tema veio do seu plano do mês. Mude o que quiser — ou só continue.'
+            : pergunta.ajuda)),
         h('div', { class:'campo' }, h('label', { for:'texto', class:'sr' }, pergunta.titulo), area, contador),
         continuar);
     }
@@ -866,9 +1087,13 @@
     if(p.estado === 'produzindo' && !andamento && falhouDeVez){
       blocos.push(h('div', { class:'aviso info' }, 'A equipe da Bora vai finalizar este pedido e te avisa quando estiver pronto.'));
     }
-    if(p.estado === 'aprovado'){
+    const jaAprovado = ['aprovado', 'agendado', 'publicado'].includes(p.estado);
+    if(jaAprovado){
       // A data abreviada já termina em ponto ("25 de out."): a frase seguinte vem depois de travessão.
-      blocos.push(h('div', { class:'aviso ok' }, 'Aprovado' + (p.aprovado_em ? ' em ' + fmtData(p.aprovado_em) : '') + ' — a Bora cuida da publicação.'));
+      blocos.push(h('div', { class:'aviso ok' }, p.estado === 'publicado'
+        ? 'Publicado — já está no ar.'
+        : 'Aprovado' + (p.aprovado_em ? ' em ' + fmtData(p.aprovado_em) : '') + ' — a Bora cuida da publicação.'));
+      blocos.push(controleDeData(p));
     }
 
     if(vista){
@@ -878,7 +1103,7 @@
 
       if(p.tipo === 'capa'){
         // Três opções: o cliente escolhe uma, e é ela que vai pro pedido.
-        const marcada = p.estado === 'aprovado' ? p.escolha : state.escolha[p.id];
+        const marcada = jaAprovado ? p.escolha : state.escolha[p.id];
         const podeEscolher = p.estado === 'para_aprovar';
         blocos.push(h('fieldset', { class:'pilha opcoes' + (antiga ? ' antiga' : ''), style:{ border:'none', padding:0, margin:0 } },
           h('legend', { class:'rot', style:{ padding:0, marginBottom:'8px' } }, podeEscolher ? 'Escolha uma das três' : 'As três opções'),
@@ -887,7 +1112,7 @@
             const u = state.urls[s.caminho];
             const conteudo = [
               u ? h('img', { src:u, alt:'Capa, opção ' + n }) : h('span', { class:'img-vazia', role:'img', 'aria-label':'Carregando a opção ' + n }),
-              h('span', { class:'rotulo-opcao' }, 'Opção ' + n + (p.estado === 'aprovado' && marcada === n ? ' · a escolhida' : '')),
+              h('span', { class:'rotulo-opcao' }, 'Opção ' + n + (jaAprovado && marcada === n ? ' · a escolhida' : '')),
             ];
             return podeEscolher
               ? h('button', { type:'button', class:'opcao', 'aria-pressed': String(marcada === n),
@@ -942,7 +1167,7 @@
               uv ? h('img', { src:uv, alt:'' }) : h('span', { class:'miniatura' }));
           }))));
       }
-      if(p.estado === 'aprovado'){
+      if(jaAprovado){
         // O que baixar: a imagem do post, todas as do carrossel, ou a capa escolhida.
         const baixar = p.tipo === 'capa' ? imagens.filter((_, i) => i + 1 === p.escolha) : imagens;
         const links = baixar.map((s, i) => state.urls[s.caminho] && h('a', {
@@ -1010,11 +1235,12 @@
   // ---------- lista ----------
 
   function telaPedidos(){
-    const lista = state.pedidos.filter(p => state.filtro === 'todos' || p.estado === state.filtro);
+    const doFiltro = (k) => (FILTROS.find(f => f[0] === k) || [])[2];
+    const lista = state.pedidos.filter(p => !doFiltro(state.filtro) || doFiltro(state.filtro).includes(p.estado));
     return h('div', { class:'pilha-g' },
       h('h1', {}, 'Seus pedidos'),
       h('div', { class:'chips', role:'group', 'aria-label':'Mostrar' }, FILTROS.map(([k, nome]) => {
-        const n = k === 'todos' ? state.pedidos.length : state.pedidos.filter(p => p.estado === k).length;
+        const n = doFiltro(k) ? state.pedidos.filter(p => doFiltro(k).includes(p.estado)).length : state.pedidos.length;
         return h('button', { class:'chip', type:'button', 'aria-pressed': String(state.filtro === k),
           onclick: () => { state.filtro = k; render(); } }, nome + (n ? ' · ' + n : ''));
       })),
