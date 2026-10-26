@@ -9,9 +9,9 @@
 // Usa o Edge ou o Chrome que já estão na máquina; não baixa navegador.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn, type ChildProcess } from 'node:child_process';
+import { execFileSync, spawn, type ChildProcess } from 'node:child_process';
 import { createServer, type Server } from 'node:http';
-import { readFileSync, existsSync, mkdtempSync } from 'node:fs';
+import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
@@ -145,9 +145,11 @@ before(async () => {
   // O app do cliente na raiz e o Estúdio da equipe em /estudio/, no mesmo servidor.
   const html = readFileSync(path.join(RAIZ_REPO, 'sites', 'app', 'index.html'));
   const estudio = readFileSync(path.join(RAIZ_REPO, 'sites', 'estudio', 'index.html'));
+  const central = readFileSync(path.join(RAIZ_REPO, 'sites', 'central', 'index.html'));
   servidor = createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-    res.end((req.url ?? '').startsWith('/estudio') ? estudio : html);
+    const url = req.url ?? '';
+    res.end(url.startsWith('/estudio') ? estudio : url.startsWith('/central') ? central : html);
   });
   // Porta fixa 3000: é um endereço que o Supabase aceita como destino do link
   // de acesso, e o teste do link do e-mail precisa voltar pra cá. Ocupada,
@@ -942,3 +944,169 @@ for (const [onde, email, caminho, dentro] of [
     await ctx.close();
   });
 }
+
+// ---------- a Central cria pela fábrica ----------
+//
+// A etapa A: a equipe pede pela Central, acompanha, pede ajuste, edita à mão
+// no PhotoCraft (baixa o PSD, troca o título, exporta, sobe) e aprova — sem o
+// editor antigo. E vídeo também: abertura animada e reel do vídeo gravado.
+
+async function abrirCentral(rota: string): Promise<Page> {
+  const ctx = await navegador.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: origem });
+  await ctx.addInitScript(([chave, valor]) => localStorage.setItem(chave, valor), ['sb-yxewmauwnxnrrhevlbtc-auth-token', JSON.stringify(sessaoEquipe)]);
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => { throw e; });
+  page.on('dialog', (d) => d.accept());
+  await page.goto(origem + '/central/' + rota);
+  return page;
+}
+
+/** Pede pela tela Nova peça e devolve o id do pedido. */
+async function pedirPelaCentral(page: Page, tipo: RegExp, texto: string, antes?: (p: Page) => Promise<void>) {
+  await page.getByRole('heading', { name: 'Criar', exact: true, level: 1 }).waitFor();
+  await page.getByRole('button', { name: 'Nova peça', exact: true }).click();
+  await page.locator('#cr-cliente').selectOption(CLIENTE);
+  await page.locator('.cr-tipo', { hasText: tipo }).click();
+  if (antes) await antes(page);
+  await page.locator('#cr-texto').fill(texto);
+  await page.getByRole('button', { name: 'Pedir à fábrica' }).click();
+  await page.waitForURL(/#\/p\//);
+  return page.url().split('/').pop()!;
+}
+
+test('Central: a equipe pede um post, ajusta, edita à mão no PhotoCraft e aprova — sem o editor antigo', { timeout: 300_000 }, async () => {
+  const page = await abrirCentral('#/criar');
+  // O antigo Estúdio virou Criar: o endereço velho cai no lugar novo, e o editor de navegador sumiu.
+  await page.goto(origem + '/central/#/estudio');
+  await page.getByRole('heading', { name: 'Criar', exact: true, level: 1 }).waitFor();
+  assert.equal(await page.getByText('Monta e exporta a peça').count(), 0, 'o editor antigo ainda está na tela');
+  await page.locator('.fab-sinal.ligada', { hasText: /Fábrica ligada/ }).waitFor({ timeout: 15_000 });
+
+  const pedidoId = await pedirPelaCentral(page, /^Post/, 'Turma nova do laboratório: inscrições até sexta');
+  const { data: criado } = await admin.from('pedidos').select('pela_equipe').eq('id', pedidoId).single();
+  assert.equal(criado!.pela_equipe, true, 'o banco não marcou que foi a equipe');
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 90_000 });
+  await page.waitForFunction(() => [...document.querySelectorAll('.cr-imagens img')].some((i) => (i as HTMLImageElement).naturalWidth === 1080));
+  await page.getByText('Legenda', { exact: true }).waitFor();
+  if (process.env.E2E_FOTOS) await page.screenshot({ path: path.join(process.env.E2E_FOTOS, 'central-pedido.png'), fullPage: true });
+
+  // Ajuste por atalho: a fábrica refaz e aparece a segunda versão.
+  await page.getByRole('button', { name: 'Pedir ajuste' }).click();
+  await page.getByRole('button', { name: 'Outra cor da marca' }).click();
+  await page.getByRole('button', { name: 'Enviar ajuste' }).click();
+  await page.getByRole('button', { name: 'Versão 2' }).waitFor({ timeout: 90_000 });
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 90_000 });
+
+  // Editar à mão: a fábrica para, o PSD é baixado, o título muda no PhotoCraft, e a versão sobe.
+  await page.getByRole('button', { name: 'Editar à mão' }).click();
+  const linkPsd = page.locator('.cr-edicao a', { hasText: 'post.psd · abre no PhotoCraft' });
+  await linkPsd.waitFor();
+  const pasta = mkdtempSync(path.join(tmpdir(), 'mao-'));
+  const baixar = async (nome: string) => {
+    const href = await page.locator('.cr-edicao a', { hasText: nome }).first().getAttribute('href');
+    const r = await fetch(href!);
+    assert.ok(r.ok, `baixar ${nome}`);
+    writeFileSync(path.join(pasta, nome), Buffer.from(await r.arrayBuffer()));
+  };
+  await baixar('post.psd');
+  await baixar('legenda.txt');
+  const cli = acharCli('photocraft');
+  const info = JSON.parse(execFileSync(cli, ['info', path.join(pasta, 'post.psd'), '--compact'], { encoding: 'utf8' }));
+  type Camada = { id: number; kind: string; bounds: number[] };
+  const titulo = (info.layers as Camada[]).filter((l) => l.kind === 'Type').sort((a, b) => b.bounds[2] * b.bounds[3] - a.bounds[2] * a.bounds[3])[0];
+  mkdirSync(path.join(pasta, 'corrigido'));
+  execFileSync(cli, ['run', path.join(pasta, 'post.psd'), '--cmd', 'type.edit', '--params', JSON.stringify({ layer: titulo.id, text: 'Turma nova, corrigida à mão' }),
+    '--out', path.join(pasta, 'corrigido', 'post.psd')]);
+  execFileSync(cli, ['convert', path.join(pasta, 'corrigido', 'post.psd'), path.join(pasta, 'corrigido', 'post.png')]);
+  writeFileSync(path.join(pasta, 'corrigido', 'legenda.txt'), readFileSync(path.join(pasta, 'legenda.txt')));
+  await page.locator(`#cr-entrega-${pedidoId}`).setInputFiles(['post.psd', 'post.png', 'legenda.txt'].map((n) => path.join(pasta, 'corrigido', n)));
+  await page.getByRole('button', { name: 'Entregar a versão corrigida' }).click();
+  await page.getByRole('button', { name: /^Equipe \d/ }).waitFor({ timeout: 90_000 });
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 30_000 });
+  const { data: rodadas } = await admin.from('jobs').select('rodada, estado').eq('pedido_id', pedidoId).order('criado_em');
+  assert.deepEqual(rodadas!.map((j) => `${j.rodada}:${j.estado}`), ['producao:pronto', 'ajuste:pronto', 'da_bora:pronto']);
+
+  // O texto novo está mesmo na peça entregue.
+  const { data: ult } = await admin.from('jobs').select('saidas').eq('pedido_id', pedidoId).eq('rodada', 'da_bora').single();
+  const psdEntregue = (ult!.saidas as Array<{ caminho: string }>).find((s) => s.caminho.endsWith('post.psd'))!;
+  const { data: blob } = await admin.storage.from('pedidos').download(psdEntregue.caminho);
+  writeFileSync(path.join(pasta, 'entregue.psd'), Buffer.from(await blob!.arrayBuffer()));
+  const textos = (JSON.parse(execFileSync(cli, ['info', path.join(pasta, 'entregue.psd'), '--compact'], { encoding: 'utf8' })).layers as Array<{ kind: string; text?: { text: string } }>)
+    .filter((l) => l.kind === 'Type').map((l) => l.text?.text ?? '');
+  assert.ok(textos.includes('Turma nova, corrigida à mão'), textos.join(' | '));
+
+  await page.getByRole('button', { name: 'Aprovar', exact: true }).click();
+  await page.locator('.chip', { hasText: 'Aprovado' }).first().waitFor();
+  await page.locator('.cr-aprovado a', { hasText: 'Baixar post.png' }).waitFor();
+  await semErroNaTela(page);
+  await page.context().close();
+});
+
+test('Central: vídeo — abertura animada e reel do vídeo gravado, pedidos pela equipe', {
+  skip: !temEffectCraft && 'falta o EffectCraft', timeout: 400_000,
+}, async () => {
+  const page = await abrirCentral('#/criar');
+  const abertura = await pedirPelaCentral(page, /^Abertura animada/, 'Turma nova do laboratório, inscrições abertas');
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 120_000 });
+  const reelPronto = () => page.waitForFunction(() => {
+    const v = document.querySelector('video.cr-video') as HTMLVideoElement;
+    return v && /reel\.mp4/.test(v.src) && v.readyState >= 1;
+  });
+  await reelPronto();
+  const v = await page.locator('video.cr-video').evaluate((x: HTMLVideoElement) => [x.videoWidth, x.videoHeight, Math.round(x.duration)]);
+  assert.deepEqual(v, [1080, 1920, 10]);
+  if (process.env.E2E_FOTOS) await page.screenshot({ path: path.join(process.env.E2E_FOTOS, 'central-abertura.png'), fullPage: true });
+  const { data: j } = await admin.from('jobs').select('skill').eq('pedido_id', abertura).single();
+  assert.equal(j!.skill, 'abertura-com-motion');
+
+  if (temTudoProReel) {
+    const bruto = montarBrutoDeTeste();
+    await page.getByRole('button', { name: '← Peças' }).click();
+    await pedirPelaCentral(page, /^Reel do vídeo gravado/, 'Turma nova do laboratório de redes', async (p) => {
+      await p.locator('#cr-video').setInputFiles(bruto);
+      await p.locator('#cr-envio', { hasText: 'recebido' }).waitFor({ timeout: 60_000 });
+    });
+    await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 300_000 });
+    await reelPronto();
+  }
+
+  // A Fábrica, na Central: o aviso de ligada e os custos do mês com o cliente de teste.
+  await page.goto(origem + '/central/#/fabrica');
+  await page.getByRole('heading', { name: 'Fábrica', exact: true, level: 1 }).waitFor();
+  await page.locator('.fab-sinal.ligada').waitFor({ timeout: 15_000 });
+  await page.locator('.fab-custos tr', { hasText: 'Cliente de Teste' }).waitFor();
+  if (process.env.E2E_FOTOS) await page.screenshot({ path: path.join(process.env.E2E_FOTOS, 'central-fabrica.png'), fullPage: true });
+  await semErroNaTela(page);
+  await page.context().close();
+});
+
+test('Central: todas as áreas e todas as abas da ficha abrem sem erro, depois de tirar o editor antigo', { timeout: 180_000 }, async () => {
+  const page = await abrirCentral('#/agora');
+  const erros: string[] = [];
+  page.on('console', (m) => { if (m.type() === 'error' && !/favicon|Failed to load resource/i.test(m.text())) erros.push(m.text()); });
+  for (const [rota, titulo] of [
+    ['#/agora', 'Agora'], ['#/agenda', 'Agenda'], ['#/funil', 'Funil'], ['#/lista', 'Planilha'], ['#/clientes', 'Clientes'],
+    ['#/economia', 'Economia'], ['#/listas', 'Listas'], ['#/fabrica', 'Fábrica'], ['#/criar', 'Criar'],
+  ] as const) {
+    await page.goto(origem + '/central/' + rota);
+    await page.getByRole('heading', { name: titulo, exact: true, level: 1 }).waitFor({ timeout: 15_000 });
+  }
+  // A Economia mostra o que a fábrica gastou no mês.
+  await page.goto(origem + '/central/#/economia');
+  await page.getByRole('heading', { name: 'Custos da fábrica no mês' }).waitFor({ timeout: 15_000 });
+  // A Marca ficou, com a prévia desenhada no navegador.
+  await page.goto(origem + '/central/#/criar');
+  await page.getByRole('button', { name: 'Marca', exact: true }).click();
+  await page.locator('.bloco .visao button', { hasText: 'Cliente de Teste' }).click();
+  await page.locator('canvas.previa-cv').waitFor();
+  await page.waitForFunction(() => (document.querySelector('canvas.previa-cv') as HTMLCanvasElement).width > 0);
+  // Cada aba da ficha do cliente de teste.
+  for (const aba of ['respostas', 'acessos', 'metas', 'baseline', 'marcos', 'conformidade', 'horas', 'agenda', 'pagina']) {
+    await page.goto(origem + `/central/#/c/${CLIENTE}/${aba}`);
+    await page.locator('.side .navitem.active').waitFor({ timeout: 15_000 });
+  }
+  assert.deepEqual(erros, [], 'erro no console');
+  await semErroNaTela(page);
+  await page.context().close();
+});
