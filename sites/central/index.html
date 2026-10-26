@@ -4372,15 +4372,17 @@
     { k:'reel',       tipo:'reel',      formato:'bruto',     nome:'Reel do vídeo gravado', sub:'Corta pausas e legenda na marca', midia:'vídeo' },
     { k:'abertura',   tipo:'reel',      formato:'abertura',  nome:'Abertura animada',      sub:'10 s com o tema animado',         midia:'vídeo' },
     { k:'carvideo',   tipo:'reel',      formato:'carrossel', nome:'Carrossel em vídeo',    sub:'De um carrossel já aprovado',     midia:'vídeo' },
+    { k:'cartaz',     tipo:'cartaz',    nome:'Cartaz para imprimir', sub:'A4 ou A3, PDF pronto pra gráfica', midia:'impressão' },
   ];
   const ESTADOS_PEDIDO = { rascunho:'Rascunho', produzindo:'Fazendo', para_aprovar:'Para aprovar', aprovado:'Aprovado',
     agendado:'Agendado', publicado:'Publicado', cancelado:'Cancelado' };
   const COR_ESTADO = { produzindo:'andamento', para_aprovar:'espera', aprovado:'ok', agendado:'ok', publicado:'ok', cancelado:'neutro' };
   // No vídeo, a fábrica sem o Claude troca a cor da legenda e mexe na música.
   const ATALHOS_CRIAR = tipo => tipo === 'reel' ? [['outra cor da marca','Outra cor da marca'], ['música mais baixa','Música mais baixa'], ['sem música','Sem música']]
+    : tipo === 'cartaz' ? [['mais curto','Mais curto'], ['outra cor da marca','Outra cor da marca']]
     : [['mais curto','Mais curto'], ['outra cor da marca','Outra cor da marca'], ['mais sério','Mais sério'], ['troca a foto','Troca a foto']];
   // Qual app da ArtCraft abre cada editável.
-  const APP_DO_ARQUIVO = { psd:'PhotoCraft', fcproj:'FilmCraft', ecproj:'EffectCraft', zip:'SoundCraft (descompacte)' };
+  const APP_DO_ARQUIVO = { psd:'PhotoCraft', fcproj:'FilmCraft', ecproj:'EffectCraft', zip:'SoundCraft (descompacte)', vectorcraft:'VectorCraft', ai:'VectorCraft ou Illustrator' };
   const COLUNAS_PEDIDO = 'id, cliente_id, tipo, titulo, briefing, estado, publicar_em, ajustes, job_aprovado, escolha, aprovado_em, '
     + 'assumido_por, assumido_em, pela_equipe, criado_em, atualizado_em, '
     + 'jobs!jobs_pedido_id_fkey(id, rodada, skill, estado, etapa, progresso, restam_segundos, saidas, erro, tentativas, max_tentativas, criado_em, atualizado_em)';
@@ -4531,7 +4533,7 @@
 
   function formNovaPeca(){
     const c = C();
-    if(!c.novo) c.novo = { cliente:'', tipo:'post', texto:'', slides:5, objetivo:null, tom:null, data:'', video:null, deCarrossel:'', trilha:'' };
+    if(!c.novo) c.novo = { cliente:'', tipo:'post', texto:'', slides:5, objetivo:null, tom:null, data:'', video:null, deCarrossel:'', trilha:'', folha:'a4' };
     const n = c.novo;
     const t = TIPOS_CRIAR.find(x => x.k === n.tipo);
     const b = el('div',{class:'bloco'});
@@ -4586,6 +4588,11 @@
     campo(n.tipo === 'abertura' ? 'O que a abertura vai dizer' : n.tipo === 'reel' ? 'Em uma frase, sobre o que é o vídeo' : 'O que a peça precisa dizer', area)
       .querySelector('label').setAttribute('for', 'cr-texto');
 
+    if(n.tipo === 'cartaz'){
+      const g = el('div',{class:'chips', role:'group', 'aria-label':'Tamanho do cartaz'});
+      [['a4','A4'],['a3','A3']].forEach(([k, rot]) => g.appendChild(el('button',{class:'chip-p', type:'button', 'aria-pressed':String(n.folha === k), onclick:()=>{ n.folha = k; render(); }}, rot)));
+      campo('Tamanho', g, 'A4 é a folha comum; A3 é o dobro, pra parede. Sai com 3 mm de sangria e marcas de corte.');
+    }
     if(n.tipo === 'carrossel'){
       const g = el('div',{class:'chips'});
       [3,5,7,10].forEach(q => g.appendChild(el('button',{class:'chip-p', type:'button', 'aria-pressed':String(n.slides === q), onclick:()=>{ n.slides = q; render(); }}, String(q))));
@@ -4616,6 +4623,7 @@
     rodape.appendChild(botao);
     const d = el('p',{class:'dica'});
     d.textContent = t.midia === 'vídeo' ? 'Sai com prévia antes do vídeo inteiro. Vídeo do cliente: até 1 minuto e meio e 50 MB.'
+      : t.midia === 'impressão' ? 'Sai o PDF pra gráfica, uma imagem pro WhatsApp e o editável (VectorCraft e .ai).'
       : 'Sai em poucos minutos, com a legenda pronta. Você aprova antes do cliente ver como pronta.';
     rodape.appendChild(d);
     b.appendChild(rodape);
@@ -4674,6 +4682,7 @@
     if(t.formato === 'bruto') briefing.anexo = n.video.caminho;
     if(t.formato === 'carrossel') briefing.de_pedido = n.deCarrossel;
     if(t.tipo === 'reel' && n.trilha) briefing.trilha = n.trilha;
+    if(t.tipo === 'cartaz') briefing.folha = n.folha;
     c.pedindo = true; render();
     const { data, error } = await sb.rpc('criar_pedido', { p_cliente: n.cliente, p_tipo: t.tipo, p_briefing: briefing,
       p_publicar_em: n.data ? new Date(n.data + 'T12:00:00').toISOString() : null });
@@ -4691,9 +4700,10 @@
 
   // Só o que sai do texto do tema: o reel do vídeo gravado e o carrossel em
   // vídeo precisam de material, e esses se pedem em "Nova peça".
-  const FORMATOS_LOTE = ['post', 'carrossel', 'capa', 'abertura'];
+  const FORMATOS_LOTE = ['post', 'carrossel', 'capa', 'abertura', 'cartaz'];
   // Um palpite pelo texto do tema; a equipe troca na lista antes de mandar.
   const formatoSugerido = tema => /carross/i.test(tema) ? 'carrossel' : /\bcapa\b/i.test(tema) ? 'capa'
+    : /\b(cartaz|panfleto|flyer|impress)/i.test(tema) ? 'cartaz'
     : /\b(reels?|v[ií]deo)\b/i.test(tema) ? 'abertura' : 'post';
 
   async function carregarLote(){
@@ -5056,7 +5066,7 @@
       });
       w.appendChild(l);
     }
-    passo(2, 'Abra o editável no app da ArtCraft deste PC (PhotoCraft pra .psd, FilmCraft pra .fcproj, EffectCraft pra .ecproj), corrija e exporte de novo.');
+    passo(2, 'Abra o editável no app da ArtCraft deste PC (PhotoCraft pra .psd, FilmCraft pra .fcproj, EffectCraft pra .ecproj, VectorCraft pra .vectorcraft, SoundCraft pro som.zip descompactado), corrija e exporte de novo.');
     passo(3, 'Suba todos os arquivos da entrega, com os mesmos nomes. Antes de chegar no cliente, passam pela conferência de marca.');
     if(c.enviando && c.enviando.pedido === p.id){
       const x = el('p',{class:'dica'}); x.textContent = 'Subindo ' + c.enviando.feitos + ' de ' + c.enviando.total + '…'; w.appendChild(x);
@@ -7115,7 +7125,11 @@
   // tamanho de cada um pra pôr o logo com 140 px sem adivinhar a escala; o
   // tamanho se mede aqui, na hora de subir. A fábrica usa o primeiro logo.
   const TIPOS_ELEMENTO = [['logo','Logo'], ['selo','Selo'], ['foto','Foto']];
-  const MIMES_ELEMENTO = ['image/png', 'image/jpeg', 'image/webp'];
+  const MIMES_ELEMENTO = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml', 'application/pdf', 'application/postscript'];
+  // Em vetor o logo fica nítido em qualquer tamanho e ganha a versão de uma cor;
+  // o navegador não mede PDF, AI e EPS — quem mede é a fábrica, no VectorCraft.
+  const VETOR_ELEMENTO = /\.(svg|pdf|ai|eps)$/i;
+  const mimeDoElemento = f => ({ ai:'application/postscript', eps:'application/postscript' })[extDe(f.name)] || mimeDe(f);
 
   function medirImagem(f){
     return new Promise((ok, falha) => {
@@ -7130,14 +7144,15 @@
   function blocoElementos(c, box){
     box.appendChild(el('p',{class:'rot laranja', style:'margin-top:26px'},'O que entra nas peças'));
     box.appendChild(el('p',{class:'dica', style:'margin:6px 0 10px'},
-      'O logo, o selo e as fotos oficiais que a fábrica põe nas peças deste cliente. Logo em PNG com fundo transparente. '
-      + 'Sem logo aqui, a peça sai sem logo: a fábrica não desenha nem inventa um.'));
+      'O logo, o selo e as fotos oficiais que a fábrica põe nas peças deste cliente. O logo de preferência em vetor (SVG, PDF, AI ou EPS): '
+      + 'fica nítido em qualquer tamanho, até no cartaz, e quando uma cor dele some no fundo a fábrica usa a versão de uma cor. '
+      + 'Senão, PNG com fundo transparente. Sem logo aqui, a peça sai sem logo: a fábrica não desenha nem inventa um.'));
     let tipo = 'logo';
     const tipos = el('div',{class:'chips', style:'margin-bottom:10px', role:'group', 'aria-label':'O que é a imagem'});
     TIPOS_ELEMENTO.forEach(([k, nome]) => tipos.appendChild(el('button',{class:'chip-p', type:'button', 'aria-pressed':String(k === tipo),
       onclick:()=>{ tipo = k; tipos.querySelectorAll('.chip-p').forEach((b, i) => b.setAttribute('aria-pressed', String(TIPOS_ELEMENTO[i][0] === k))); }}, nome)));
     box.appendChild(tipos);
-    const entrada = el('input',{type:'file', class:'el-entrada', style:'display:none', accept:'.png,.jpg,.jpeg,.webp'});
+    const entrada = el('input',{type:'file', class:'el-entrada', style:'display:none', accept:'.png,.jpg,.jpeg,.webp,.svg,.pdf,.ai,.eps'});
     const botao = el('button',{class:'btn small', type:'button', onclick:()=>entrada.click()}, 'Subir imagem');
     box.appendChild(botao); box.appendChild(entrada);
     const lista = el('div',{class:'idv-arqs el-lista'});
@@ -7153,11 +7168,12 @@
     const itens = () => cache[c.id] || [];
     entrada.addEventListener('change', ()=>{ const f = entrada.files && entrada.files[0]; entrada.value = ''; if(f) subir(f); });
     async function subir(f){
-      const mime = mimeDe(f);
-      if(!MIMES_ELEMENTO.includes(mime)){ toast('Aqui entra PNG, JPEG ou WebP.'); return; }
+      const mime = mimeDoElemento(f);
+      if(!MIMES_ELEMENTO.includes(mime)){ toast('Aqui entra SVG, PDF, AI, EPS, PNG, JPEG ou WebP.'); return; }
       if(f.size > 20 * 1048576){ toast('Passa de 20 MB. Exporte menor.'); return; }
-      let medida;
-      try { medida = await medirImagem(f); } catch(e){ toast('Não deu pra abrir: ' + e.message); return; }
+      const vetor = VETOR_ELEMENTO.test(f.name);
+      let medida = [null, null];
+      if(!vetor){ try { medida = await medirImagem(f); } catch(e){ toast('Não deu pra abrir: ' + e.message); return; } }
       botao.disabled = true; botao.textContent = 'Subindo ' + peso(f.size) + '…';
       const pronto = () => { botao.disabled = false; botao.textContent = 'Subir imagem'; };
       const caminho = c.id + '/' + Date.now() + '-' + f.name.replace(/[^\w.\-]+/g,'-').slice(-80);
@@ -7189,10 +7205,11 @@
       lista.innerHTML = '';
       itens().forEach(a => {
         const l = el('div',{class:'idv-arq el-item'});
-        l.appendChild(urls[a.caminho] ? el('img',{class:'el-mini', src:urls[a.caminho], alt:''}) : el('span',{class:'el-mini'}));
+        // PDF, AI e EPS o navegador não desenha: a miniatura fica vazia, e o "vetor" ao lado diz o que é.
+        l.appendChild(urls[a.caminho] && !/\.(pdf|ai|eps)$/i.test(a.caminho) ? el('img',{class:'el-mini', src:urls[a.caminho], alt:''}) : el('span',{class:'el-mini'}));
         const tag = el('span',{class:'tag'}); tag.textContent = (TIPOS_ELEMENTO.find(t => t[0] === a.tipo) || [a.tipo, a.tipo])[1];
         const nm = el('span',{class:'nm'}); nm.textContent = a.nome;
-        const pq = el('span',{class:'pq'}); pq.textContent = (a.largura && a.altura ? a.largura + '×' + a.altura + ' · ' : '') + peso(a.bytes);
+        const pq = el('span',{class:'pq'}); pq.textContent = (VETOR_ELEMENTO.test(a.caminho) ? 'vetor · ' : a.largura && a.altura ? a.largura + '×' + a.altura + ' · ' : '') + peso(a.bytes);
         [tag, nm, pq].forEach(n => l.appendChild(n));
         l.appendChild(el('button',{class:'lixo', 'aria-label':'Apagar ' + a.nome, onclick:async()=>{
           if(!confirm('Apagar "' + a.nome + '"? As próximas peças saem sem ele.')) return;

@@ -21,6 +21,7 @@ import { fontesDoProjeto, quadroDoProjeto } from './motion.ts';
 import { lerSrt } from './reel.ts';
 import { lerPng, type Imagem } from './png.ts';
 import { audioDe, curvaDaSessao, picoDb, trilhaAbaixaNaFala, type Trecho } from './som.ts';
+import { caixaDoLogo, caixasDoPdf, FORMATOS_CARTAZ, MARGEM_SEGURA_PT, SANGRIA_PT, textosDoDocumento, type FormatoCartaz } from './vetor.ts';
 import { lerWav, listar, loudnessIntegrado, silencioMaisLongo, sondar } from './video.ts';
 import type { SaidaConferida } from './verificar.ts';
 
@@ -347,6 +348,60 @@ export function conferirMotion(
     }
   }
   return { erros: [...new Set(erros)], avisos };
+}
+
+// ---------- cartaz ----------
+
+/**
+ * A conferência do cartaz. O que a gráfica e a marca pedem, medido:
+ *   - o PDF: a área de corte (TrimBox) no tamanho da folha, e a de sangria
+ *     (BleedBox) 3 mm maior de cada lado — sem ela, a gráfica devolve;
+ *   - o texto: toda caixa de texto 15 mm pra dentro do corte, e só na fonte
+ *     da marca (lidas do .vectorcraft);
+ *   - a imagem: toda cor que ocupa espaço é da paleta (a área do logo não
+ *     conta: o logo é da marca como veio) e o texto lê sobre o fundo.
+ */
+export function conferirCartaz(pastaJob: string, regra: { cores: string[]; fonte: string; folha: FormatoCartaz }): Resultado {
+  const erros: string[] = [];
+  const f = FORMATOS_CARTAZ[regra.folha];
+  const mm = (pt: number) => Math.round(pt / (72 / 25.4));
+  const { trim, bleed } = caixasDoPdf(readFileSync(path.join(pastaJob, 'saida', 'cartaz.pdf')));
+  if (!trim) erros.push('o PDF não diz onde cortar (falta a TrimBox)');
+  else {
+    const [w, h] = [trim[2] - trim[0], trim[3] - trim[1]];
+    if (Math.abs(w - f.largura) > 1 || Math.abs(h - f.altura) > 1) erros.push(`o corte do PDF tem ${mm(w)}×${mm(h)} mm; ${f.nome} tem ${mm(f.largura)}×${mm(f.altura)}`);
+    if (!bleed) erros.push('o PDF não tem sangria (falta a BleedBox)');
+    else {
+      const lados = [trim[0] - bleed[0], trim[1] - bleed[1], bleed[2] - trim[2], bleed[3] - trim[3]];
+      if (lados.some((s) => Math.abs(s - SANGRIA_PT) > 0.5)) erros.push(`a sangria tem ${lados.map((s) => (s / (72 / 25.4)).toFixed(1)).join('/')} mm; são 3 mm de cada lado`);
+    }
+  }
+
+  const { caixas, fontes } = textosDoDocumento(path.join(pastaJob, 'editavel', 'cartaz.vectorcraft'), path.join(pastaJob, '.trabalho'));
+  const familia = regra.fonte.replace(/\s+/g, '').toLowerCase();
+  for (const fonte of fontes) if (!fonte.replace(/\s+/g, '').toLowerCase().startsWith(familia)) erros.push(`texto em "${fonte}"; a fonte da marca é "${regra.fonte}"`);
+  const m = MARGEM_SEGURA_PT - 1;
+  for (const b of caixas) {
+    if (b.x < m || b.y < m || b.x + b.width > f.largura - m || b.y + b.height > f.altura - m) {
+      erros.push(`um texto passa da margem de 15 mm (em ${mm(b.x)}, ${mm(b.y)} mm); a gráfica pode cortar`);
+    }
+  }
+  if (!caixas.length) erros.push('o cartaz saiu sem texto');
+
+  const img = lerPng(readFileSync(path.join(pastaJob, 'saida', 'cartaz.png')));
+  const s = img.largura / f.largura;
+  const [lx, ly, lw, lh] = caixaDoLogo(regra.folha);
+  const logo: Caixa = [Math.floor(lx * s) - 2, Math.floor(ly * s) - 2, Math.ceil((lx + lw) * s) + 2, Math.ceil((ly + lh) * s) + 2];
+  const paleta = regra.cores.map(hexParaRgb);
+  const aceita = (c: number[]) => paleta.some((p) => distancia(p, c) <= 16)
+    || paleta.some((a, i) => paleta.slice(i + 1).some((b) => distanciaAoSegmento(c, a, b) <= 14));
+  const cores = coresQueOcupam(img, [logo], 0.0005);
+  for (const { cor, fatia } of cores) if (!aceita(cor)) erros.push(`a cor ${rgbParaHex(cor)} ocupa ${(fatia * 100).toFixed(1)}% e não é da paleta`);
+  if (cores.length >= 2) {
+    const razao = contraste(rgbParaHex(cores[1].cor), rgbParaHex(cores[0].cor));
+    if (razao < 3) erros.push(`${rgbParaHex(cores[1].cor)} sobre ${rgbParaHex(cores[0].cor)} dá ${razao.toFixed(1)}:1; precisa de 3:1`);
+  }
+  return { erros: [...new Set(erros)], avisos: [] };
 }
 
 // ---------- som ----------

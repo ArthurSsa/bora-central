@@ -17,7 +17,7 @@ import path from 'node:path';
 import type { McpStdioServerConfig } from '@anthropic-ai/claude-agent-sdk';
 import { acharCli } from './config.ts';
 
-export const APPS = ['photocraft', 'effectcraft', 'lightcraft', 'filmcraft'] as const;
+export const APPS = ['photocraft', 'effectcraft', 'lightcraft', 'filmcraft', 'vectorcraft'] as const;
 export type App = (typeof APPS)[number];
 
 export function servidorMcp(app: App, pastaJob: string): McpStdioServerConfig {
@@ -37,6 +37,9 @@ export function servidorMcp(app: App, pastaJob: string): McpStdioServerConfig {
       // Sem --project: o job cria a sequência e salva em editavel/reel.fcproj.
       // O --data-dir na pasta do job guarda prévias e presets dele lá dentro.
       return { ...base, args: ['mcp', '--data-dir', path.join(pastaJob, '.filmcraft')] };
+    case 'vectorcraft':
+      // --headless: nunca se liga num VectorCraft aberto na tela deste PC.
+      return { ...base, args: ['mcp', '--headless', '--automation-read-root', pastaJob, '--automation-write-root', pastaJob] };
   }
 }
 

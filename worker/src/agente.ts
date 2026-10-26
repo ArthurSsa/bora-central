@@ -11,6 +11,7 @@ import type { Config } from './config.ts';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { desenharLegendas, exportarReel, lerSrt, somDoReel } from './reel.ts';
 import { montarCenaDoPedido, projetoDoMotion, renderizarDoPedido } from './motion.ts';
+import { cartazDoPedido } from './vetor.ts';
 import path from 'node:path';
 import type { Ajuste, Custos, Elemento } from './fila.ts';
 import type { Conjunto } from './marca.ts';
@@ -161,6 +162,28 @@ export const rodarAgente: Agente = async (p) => {
             renderMs += performance.now() - t;
             if (previa) await p.entregarParcial('saida/previa.mp4');
             return { content: [{ type: 'text', text: previa ? 'prévia pronta e entregue' : 'reel exportado' }] };
+          } catch (e) {
+            return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
+          }
+        },
+      ),
+      // O cartaz: montar e exportar no VectorCraft é mecânico; o que o agente
+      // decide é o texto (e o conjunto, num ajuste).
+      tool(
+        'cartaz_da_marca',
+        'Monta o cartaz para imprimir no VectorCraft, na folha do pedido (A4 ou A3), e salva saida/cartaz.pdf (3 mm de sangria e marcas de corte), saida/cartaz.png (1080 px) e os editáveis editavel/cartaz.vectorcraft e editavel/cartaz.ai. Fundo do conjunto, barra de destaque, título que encolhe até caber, apoio, assinatura e o logo (na versão de uma cor quando uma cor dele some no fundo).',
+        {
+          titulo: z.string().min(2).max(120).describe('O tema em até oito palavras.'),
+          apoio: z.string().max(140).optional().describe('Uma linha menor embaixo do título, ou nada.'),
+          conjunto: z.string().optional().describe('Nome do conjunto de cor; sem ele, o da peça.'),
+        },
+        async ({ titulo, apoio, conjunto }) => {
+          try {
+            const c = p.dados.conjuntos.find((x) => x.nome === conjunto) ?? p.dados.conjunto;
+            const t = performance.now();
+            cartazDoPedido(p, { titulo, apoio: apoio ?? null, conjunto: c });
+            renderMs += performance.now() - t;
+            return { content: [{ type: 'text', text: 'cartaz salvo: saida/cartaz.pdf, saida/cartaz.png, editavel/cartaz.vectorcraft, editavel/cartaz.ai' }] };
           } catch (e) {
             return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
           }
