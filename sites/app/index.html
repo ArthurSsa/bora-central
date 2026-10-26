@@ -324,6 +324,7 @@
     story: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M10 5h4"/></svg>',
     reel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2.5"/><path d="M10.5 9.5v5l4-2.5z" fill="currentColor"/></svg>',
     capa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M6 15l4-4 3 3 2-2 3 3"/></svg>',
+    cartaz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4" stroke-linecap="round"/></svg>',
     apresentacao: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M10 8.5v5l4-2.5z" fill="currentColor"/></svg>',
     calendario: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><rect x="7" y="13" width="3" height="3" rx="0.6" fill="currentColor" stroke="none"/></svg>',
     hoje: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/><circle cx="12" cy="12" r="10"/></svg>',
@@ -339,6 +340,7 @@
     { k:'story',        nome:'Story',                   sub:'Em pé, some em 24 horas',             icone:'story',       ativo:false },
     { k:'reel',         nome:'Reel ou vídeo curto',     sub:'Do vídeo que você gravou, ou uma abertura animada', icone:'reel', ativo:true },
     { k:'capa',         nome:'Capa ou thumbnail',       sub:'Três opções de capa pro seu vídeo',   icone:'capa',        ativo:true },
+    { k:'cartaz',       nome:'Cartaz para imprimir',    sub:'A4 ou A3, pronto pra gráfica',        icone:'cartaz',      ativo:true },
     { k:'apresentacao', nome:'Vídeo de apresentação',   sub:'Contando o que o seu negócio faz',    icone:'apresentacao', ativo:false },
   ];
   const NOME_TIPO = Object.fromEntries(TIPOS.map(t => [t.k, t.nome]));
@@ -361,11 +363,13 @@
   const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
   const OBJETIVOS = ['Atrair gente nova', 'Vender', 'Ensinar algo', 'Contar uma novidade'];
   const QTD_SLIDES = [3, 5, 7, 10];
+  const FOLHAS = [['a4', 'A4'], ['a3', 'A3']];
   const PERGUNTA = {
     'post-feed': { titulo:'O que o post precisa dizer?', ajuda:'Uma ou duas frases, do seu jeito. A Bora transforma em post com a sua marca.', exemplo:'Ex.: Abrimos turma nova no laboratório, inscrições até sexta.' },
     carrossel:   { titulo:'Sobre o que é o carrossel?', ajuda:'Conte as ideias que ele precisa passar, uma por frase. Cada ideia vira uma imagem.', exemplo:'Ex.: Não existe atalho pra liderar. Liderança se aprende fazendo. Organização vem antes de talento.' },
     capa:        { titulo:'Sobre o que é o vídeo?', ajuda:'Uma ou duas frases sobre o vídeo. A Bora faz três opções de capa pra você escolher.', exemplo:'Ex.: Como montei um time de produto sem saber programar.' },
     reel:        { titulo:'Mande o vídeo que você gravou', ajuda:'Em pé, com você falando, de até 1 minuto e meio. A Bora corta as pausas e as repetições, aproxima a câmera e põe legenda nas cores da sua marca.', exemplo:'Ex.: Turma nova do laboratório, inscrições até sexta.', campo:'Em uma frase, sobre o que é o vídeo?' },
+    cartaz:      { titulo:'O que o cartaz precisa dizer?', ajuda:'O título em poucas palavras; depois de dois pontos, a linha menor. É lido de longe, na parede: quanto mais curto, melhor.', exemplo:'Ex.: Aula aberta no sábado: traga um amigo.' },
     abertura:    { titulo:'O que a abertura vai dizer?', ajuda:'Um vídeo de 10 segundos com o seu tema entrando na tela, nas cores e na fonte da sua marca. Não precisa gravar nada.', exemplo:'Ex.: Turma nova do laboratório, inscrições abertas.' },
   };
   // O reel tem três jeitos de nascer: do vídeo gravado, de uma abertura
@@ -385,6 +389,7 @@
     'post-feed': () => ({ peca:'1 post para o feed do Instagram, em pé', botao:'Pedir post' }),
     carrossel:   (n) => ({ peca:`1 carrossel de ${n.slides} imagens para o feed, em pé`, botao:'Pedir carrossel' }),
     capa:        () => ({ peca:'3 opções de capa para vídeo do YouTube, deitada, e 2 sugestões de título pro vídeo', botao:'Pedir capas' }),
+    cartaz:      (n) => ({ peca:`1 cartaz ${n.folha === 'a3' ? 'A3' : 'A4'} para imprimir, em PDF pra gráfica, e uma imagem dele pro WhatsApp`, botao:'Pedir cartaz' }),
     reel:        (n) => n.formato === 'abertura'
       ? { peca:'1 abertura animada de 10 segundos, em pé, nas cores da sua marca', botao:'Pedir abertura' }
       : { peca:'1 reel em pé, sem as pausas e com legenda na sua marca', botao:'Pedir reel' },
@@ -392,7 +397,8 @@
   const TONS = ['Como sempre', 'Mais sério', 'Mais leve'];
   const ATALHOS = ['mais curto', 'outra cor da marca', 'mais sério', 'troca a foto'];
   // No vídeo, só o que a fábrica sabe mudar nele: a cor da legenda e a música.
-  const atalhosDe = (tipo) => tipo === 'reel' ? ['outra cor da marca', 'música mais baixa', 'sem música'] : ATALHOS;
+  const atalhosDe = (tipo) => tipo === 'reel' ? ['outra cor da marca', 'música mais baixa', 'sem música']
+    : tipo === 'cartaz' ? ['mais curto', 'outra cor da marca'] : ATALHOS;
   const ROTULO_ATALHO = { 'mais curto':'Mais curto', 'outra cor da marca':'Outra cor da marca', 'mais sério':'Mais sério', 'troca a foto':'Troca a foto',
     'música mais baixa':'Música mais baixa', 'sem música':'Sem música' };
   const MAX_AJUSTES = 5;
@@ -501,7 +507,7 @@
       if(!tipo){ ir('#/hoje'); return; }
       if(!state.novo || state.novo.tipo !== tipo.k){
         if(state.novo && state.novo.video && state.novo.video.xhr) state.novo.video.xhr.abort();
-        state.novo = { tipo:tipo.k, passo:1, texto:'', objetivo:null, tom:'Como sempre', data:'', slides:5, video:null, formato:'bruto' };
+        state.novo = { tipo:tipo.k, passo:1, texto:'', objetivo:null, tom:'Como sempre', data:'', slides:5, video:null, formato:'bruto', folha:'a4' };
       }
     }
     if(nome === 'pedido' && arg){
@@ -697,6 +703,7 @@
     if(n.objetivo) briefing.objetivo = n.objetivo;
     if(n.tom && n.tom !== 'Como sempre') briefing.tom = n.tom;
     if(n.tipo === 'carrossel') briefing.slides = n.slides;
+    if(n.tipo === 'cartaz') briefing.folha = n.folha;
     if(n.tipo === 'reel'){
       briefing.formato = n.formato;
       if(n.formato === 'bruto') briefing.anexo = n.video.caminho;
@@ -827,7 +834,7 @@
 
   /** "Criar isso": o tema da pauta vira um pedido já escrito, no formato escolhido. */
   function criarDaSugestao(s, tipo){
-    state.novo = { tipo, passo:1, texto:s.tema, objetivo:null, tom:'Como sempre', data:'', slides:5, video:null, formato:'bruto', origem:{ plano:s.plano_id, tema:s.tema } };
+    state.novo = { tipo, passo:1, texto:s.tema, objetivo:null, tom:'Como sempre', data:'', slides:5, video:null, formato:'bruto', folha:'a4', origem:{ plano:s.plano_id, tema:s.tema } };
     state.sugestaoAberta = null;
     ir('#/novo/' + tipo);
   }
@@ -1194,7 +1201,12 @@
           h('div', { class:'chips', role:'group', 'aria-label':'Quantas imagens' }, QTD_SLIDES.map(q =>
             h('button', { class:'chip', type:'button', 'aria-pressed': String(n.slides === q), onclick: () => { n.slides = q; render(); } }, String(q)))),
           h('p', { class:'fraco', style:{ fontSize:'0.88rem' } }, 'A primeira é a capa e a última é o convite. Se o assunto rende pouco, menos imagens ficam melhores.')),
-        grupo(n.tipo === 'capa' || n.tipo === 'reel' ? 'Pra que serve esse vídeo?' : 'Pra que serve esse post?', OBJETIVOS, n.objetivo, (v) => { n.objetivo = v; }, 'g-obj'),
+        n.tipo === 'cartaz' && h('fieldset', { class:'pilha', style:{ border:'none', padding:0, margin:0 } },
+          h('legend', { style:{ fontWeight:600, padding:0, marginBottom:'8px' } }, 'Qual tamanho?'),
+          h('div', { class:'chips', role:'group', 'aria-label':'Tamanho do cartaz' }, FOLHAS.map(([k, rot]) =>
+            h('button', { class:'chip', type:'button', 'aria-pressed': String(n.folha === k), onclick: () => { n.folha = k; render(); } }, rot))),
+          h('p', { class:'fraco', style:{ fontSize:'0.88rem' } }, 'A4 é a folha comum, de impressora. A3 é o dobro: pra parede, de longe.')),
+        grupo(n.tipo === 'capa' || n.tipo === 'reel' ? 'Pra que serve esse vídeo?' : n.tipo === 'cartaz' ? 'Pra que serve esse cartaz?' : 'Pra que serve esse post?', OBJETIVOS, n.objetivo, (v) => { n.objetivo = v; }, 'g-obj'),
         grupo('Que jeito ele tem?', TONS, n.tom, (v) => { n.tom = v || 'Como sempre'; }, 'g-tom'),
         h('div', { class:'campo' }, h('label', { for:'data' }, 'Quando vai ao ar? ', h('span', { class:'fraco', style:{ fontWeight:400 } }, '(se já souber)')), data),
         h('div', { class:'botoes' },
@@ -1263,7 +1275,7 @@
           : andamento.rodada === 'ajuste' ? 'Fazendo o ajuste'
           : formatoDe(p) === 'abertura' ? 'Fazendo a sua abertura'
           : formatoDe(p) === 'carrossel' ? 'Fazendo o vídeo do carrossel'
-          : { carrossel:'Fazendo o seu carrossel', capa:'Fazendo as suas capas', reel:'Fazendo o seu reel' }[p.tipo] || 'Fazendo o seu post'),
+          : { carrossel:'Fazendo o seu carrossel', capa:'Fazendo as suas capas', reel:'Fazendo o seu reel', cartaz:'Fazendo o seu cartaz' }[p.tipo] || 'Fazendo o seu post'),
         h('p', { class:'etapa', 'aria-live':'polite' }, etapa),
         h('div', { class:'barra', role:'progressbar', 'aria-valuemin':'0', 'aria-valuemax':'100', 'aria-valuenow':String(pct), 'aria-label':'Andamento' },
           h('i', { style:{ width: Math.max(pct, 4) + '%' } })),
@@ -1376,6 +1388,12 @@
         // O reel e o arquivo das legendas (pra quem posta no YouTube ou quer editar o texto).
         const srt = textoDe(vista, 'legendas.srt');
         const links = [[reel, 'Baixar o reel', 'btn pri cheio'], [srt, 'Baixar as legendas (.srt)', 'btn sec cheio']]
+          .filter(([s]) => s && state.urls[s.caminho])
+          .map(([s, rotulo, cls]) => h('a', { class:cls, href:state.urls[s.caminho], download:s.caminho.split('/').pop(), target:'_blank', rel:'noopener' }, rotulo));
+        if(links.length) blocos.push(h('div', { class:'pilha' }, links));
+      } else if(jaAprovado && p.tipo === 'cartaz'){
+        // O PDF vai pra gráfica (com sangria e marcas de corte); a imagem, pro WhatsApp.
+        const links = [[textoDe(vista, 'cartaz.pdf'), 'Baixar o PDF pra gráfica', 'btn pri cheio'], [textoDe(vista, 'cartaz.png'), 'Baixar a imagem pro WhatsApp', 'btn sec cheio']]
           .filter(([s]) => s && state.urls[s.caminho])
           .map(([s, rotulo, cls]) => h('a', { class:cls, href:state.urls[s.caminho], download:s.caminho.split('/').pop(), target:'_blank', rel:'noopener' }, rotulo));
         if(links.length) blocos.push(h('div', { class:'pilha' }, links));

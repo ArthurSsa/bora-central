@@ -22,6 +22,7 @@ import { montarCenaDoPedido, renderizarDoPedido } from './motion.ts';
 import { CUSTO_ZERO, FalhaDoAgente, salvarTexto, type Agente, type ParametrosAgente } from './agente.ts';
 import type { Ajuste } from './fila.ts';
 import type { Conjunto } from './marca.ts';
+import { cartazDoPedido, logoParaOFundo } from './vetor.ts';
 
 /** O título que o roteiro consegue tirar sem interpretar: as primeiras oito palavras, sem o que vem depois de ":". */
 export function tituloDoTexto(texto: string, maxPalavras = 8): string {
@@ -94,7 +95,8 @@ function legenda(p: ParametrosAgente): string {
 async function logo(x: Contexto, centro: [number, number], largura: number) {
   const l = x.p.dados.elementos.find((e) => e.tipo === 'logo' && e.largura);
   if (!l) return;
-  await x.passo('doc_place', { path: l.arquivo, scale: (largura / l.largura!) * 100, center: centro });
+  // Uma cor do logo some no fundo deste conjunto: vai a versão de uma cor, na tinta dele.
+  await x.passo('doc_place', { path: logoParaOFundo(l, x.c), scale: (largura / l.largura!) * 100, center: centro });
 }
 
 async function postDeTeste({ p, passo, c, maxPalavras }: Contexto) {
@@ -342,7 +344,17 @@ async function motionAteOFim(p: ParametrosAgente) {
   salvarTexto(p.pastaJob, p.dados.saidas, 'saida/legenda.txt', legenda(p));
 }
 
+/** O cartaz: o título sem o que vem depois de ":", e isso como a linha de apoio. */
+async function cartaz({ p, c, maxPalavras }: Contexto) {
+  await p.aoMudarEtapa({ etapa: 'montando o cartaz', progresso: 20 });
+  const depois = p.dados.textoDoCliente.split(':').slice(1).join(':').trim();
+  const apoio = depois && maxPalavras > 4 ? depois.split(/\s+/).slice(0, 12).join(' ').replace(/[.,;!?]+$/, '') : null;
+  cartazDoPedido(p, { titulo: tituloDoTexto(p.dados.textoDoCliente, maxPalavras), apoio, conjunto: c });
+  await p.aoMudarEtapa({ etapa: 'conferindo o cartaz', progresso: 80 });
+}
+
 const ROTEIROS: Record<string, (x: Contexto) => Promise<void>> = {
+  'cartaz-impressao': cartaz,
   'abertura-com-motion': aberturaComMotion,
   'carrossel-em-video': carrosselEmVideo,
   'post-feed-teste': postDeTeste,

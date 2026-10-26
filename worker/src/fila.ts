@@ -233,7 +233,11 @@ export async function juntarSaida(sb: SupabaseClient, cfg: Config, job: Job, sai
   ok(await sb.from('jobs').update({ saidas: [...atuais, saida] }).eq('id', job.id).eq('worker_id', cfg.workerId), 'entregar parcial');
 }
 
-export type Elemento ={ tipo: string; nome: string; arquivo: string; largura: number | null; altura: number | null };
+export type Elemento = {
+  tipo: string; nome: string; arquivo: string; largura: number | null; altura: number | null;
+  /** Logo vetorial, já em PNG: as cores dele e a versão de uma cor pra cada tinta dos conjuntos. */
+  cores?: string[]; mono?: Record<string, string>;
+};
 
 /**
  * A biblioteca de elementos do cliente (logo, selo, foto…), do balde que a

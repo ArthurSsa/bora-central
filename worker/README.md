@@ -136,6 +136,7 @@ também soma. `FABRICA_TETO_USD` corta a rodada que passar do teto.
 | LightCraft | `mcp --library J/biblioteca J/frames` | sem raiz; passo 6 |
 | FilmCraft | `mcp --project J/editavel/projeto.fcproj --data-dir J/.filmcraft` | recusa raízes; passo 5 |
 | SoundCraft | só o CLI: `script`, `convert` | o som dos vídeos (`src/som.ts`); etapa C |
+| VectorCraft | `mcp --headless` + as raízes; o roteiro usa `run` | logo vetorial e cartaz (`src/vetor.ts`); etapa D |
 
 O SoundCraft (0.13.1, portátil, em `.ferramentas/soundcraft/`) faz o som dos
 vídeos sem janela: trata a voz do reel (filtro de graves, de-esser,
@@ -145,6 +146,14 @@ música com licença que a equipe sobe na Marca (`marca_trilhas`, balde
 `trilhas`); nada gera música. A sessão sobe como `editavel/som.zip`, que abre
 no SoundCraft de qualquer PC. Os testes usam a música de demonstração do
 próprio SoundCraft, que ele sintetiza.
+
+O VectorCraft (0.17.0, portátil, em `.ferramentas/vectorcraft/`) faz duas
+coisas. O logo que a equipe sobe em vetor (SVG, PDF, AI, EPS) vira PNG de
+1200 px nas cores dele e numa versão de uma cor pra cada tinta dos conjuntos
+— quando uma cor do logo some no fundo, a peça usa a de uma cor. E o cartaz
+para imprimir (A4 ou A3): PDF com 3 mm de sangria, TrimBox, BleedBox e marcas
+de corte, PNG pro WhatsApp, editável em `.vectorcraft` e `.ai`. A conferência
+lê as caixas do PDF, a margem de 15 mm dos textos e as cores da imagem.
 
 `transcript.generate` (FilmCraft) e `develop.sync` (LightCraft), citados no
 prompt original, não aparecem na documentação atual dos repositórios — o mais

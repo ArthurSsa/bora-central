@@ -25,6 +25,7 @@ import { fontesInstaladas } from '../src/apps.ts';
 import type { ClienteParaMarca } from '../src/marca.ts';
 import { lerPng } from '../src/png.ts';
 import { audioDe } from '../src/som.ts';
+import { caixasDoPdf } from '../src/vetor.ts';
 import { loudnessIntegrado, sondar } from '../src/video.ts';
 import { temSoundCraft, trilhaDeTeste } from '../teste/trilha.ts';
 import { rodarRoteiro } from '../src/roteiro.ts';
@@ -158,11 +159,17 @@ before(async () => {
   // Porta fixa 3000: é um endereço que o Supabase aceita como destino do link
   // de acesso, e o teste do link do e-mail precisa voltar pra cá. Ocupada,
   // usa qualquer uma e esse teste pula.
+  // Sem endereço: escuta em todos (IPv6 e IPv4). Só assim a porta conta como
+  // ocupada quando outro programa (um "next dev", por exemplo) já está nela em
+  // IPv6 — escutando só em 127.0.0.1, o teste subia e o navegador, abrindo
+  // "localhost", caía no outro programa.
   await new Promise<void>((ok) => {
     servidor.once('error', () => servidor.listen(0, '127.0.0.1', ok));
-    servidor.listen(3000, '127.0.0.1', ok);
+    servidor.listen(3000, ok);
   });
-  origem = `http://localhost:${(servidor.address() as { port: number }).port}`;
+  const porta = (servidor.address() as { port: number }).port;
+  origem = porta === 3000 ? 'http://localhost:3000' : `http://127.0.0.1:${porta}`;
+  if (porta !== 3000) console.log('[e2e] a porta 3000 está ocupada por outro programa; o teste do link do e-mail vai pular');
 
   worker = spawn(process.execPath, ['--env-file=.env', 'src/worker.ts', '--roteiro'], {
     cwd: RAIZ_WORKER, env: { ...process.env, WORKER_ID: 'e2e-app-cliente', ESPERA_FILA_MS: '1000' }, stdio: ['ignore', 'pipe', 'pipe'],
@@ -276,12 +283,12 @@ const varrerContraste = (page: Page) => page.evaluate(() => {
   return falhas;
 });
 
-test('Hoje: a pergunta, seis cartões, quatro ativos, e nenhum cliente da Bora à vista', async () => {
+test('Hoje: a pergunta, sete cartões, cinco ativos, e nenhum cliente da Bora à vista', async () => {
   const page = await abrir();
   await page.getByRole('heading', { name: 'O que você quer criar hoje?' }).waitFor();
   await semErroNaTela(page);
-  assert.equal(await page.locator('.tipo').count(), 6);
-  assert.equal(await page.locator('.tipo[aria-disabled="true"]').count(), 2, 'post, carrossel, reel e capa ativos; o resto em breve');
+  assert.equal(await page.locator('.tipo').count(), 7);
+  assert.equal(await page.locator('.tipo[aria-disabled="true"]').count(), 2, 'post, carrossel, reel, capa e cartaz ativos; o resto em breve');
   assert.equal(await page.locator('.quem .nome').textContent(), 'Cliente de Teste');
   assert.equal(await page.locator('select').count(), 0, 'cliente de uma conta só não devia ver seletor');
   assert.ok(await semRolagemLateral(page));
@@ -444,7 +451,8 @@ test('pede um post pelo celular, acompanha, pede ajuste, vê a versão nova e ap
 /** Abre o pedido em 3 passos pra um tipo, escreve o texto e chega no resumo. */
 async function pedirAte3(page: Page, cartao: RegExp, texto: string, passo2?: (page: Page) => Promise<void>) {
   await page.getByRole('heading', { name: 'O que você quer criar hoje?' }).waitFor();
-  await page.getByRole('link', { name: cartao }).click();
+  // Só os cartões de tipo: a lista de pedidos embaixo também diz o nome do tipo.
+  await page.locator('a.tipo').filter({ hasText: cartao }).click();
   await page.locator('#texto').fill(texto);
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.getByRole('heading', { name: 'Algumas escolhas' }).waitFor();
@@ -1347,4 +1355,99 @@ test('Central, etapa C: trilha com licença na Marca, abertura com música, "sem
   }
   await semErroNaTela(page);
   await page.context().close();
+});
+
+// ---------- etapa D: o VectorCraft ----------
+//
+// O critério de pronto da etapa D: a equipe sobe o logo em vetor na Marca;
+// o cartaz A3 pedido pela Central sai com o PDF pra gráfica (corte e sangria
+// certos), a imagem e os editáveis, com o logo na versão de uma cor sobre o
+// fundo escuro; e o cliente pede um cartaz A4 pelo app e baixa o PDF.
+
+const LOGO_SVG_E2E = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">'
+  + '<rect x="0" y="10" width="80" height="80" rx="16" fill="#A4E830"/><circle cx="140" cy="50" r="40" fill="#1E2A3A"/></svg>';
+
+/** As caixas do PDF entregue num pedido, em milímetros. */
+async function cartazEntregue(pedidoId: string) {
+  const { data } = await admin.from('jobs').select('saidas').eq('pedido_id', pedidoId).eq('estado', 'pronto').order('criado_em', { ascending: false }).limit(1);
+  const saidas = data![0].saidas as Array<{ caminho: string }>;
+  const baixar = async (fim: string) => {
+    const s = saidas.find((x) => x.caminho.endsWith(fim));
+    assert.ok(s, `faltou ${fim} na entrega`);
+    return Buffer.from(await (await admin.storage.from('pedidos').download(s.caminho)).data!.arrayBuffer());
+  };
+  const { trim, bleed } = caixasDoPdf(await baixar('saida/cartaz.pdf'));
+  const mm = (b: number[] | null) => b && [Math.round((b[2] - b[0]) / (72 / 25.4)), Math.round((b[3] - b[1]) / (72 / 25.4))];
+  return { corte: mm(trim), sangria: mm(bleed), png: lerPng(await baixar('saida/cartaz.png')), nomes: saidas.map((s) => s.caminho.split('/').pop()) };
+}
+
+test('Central, etapa D: logo em vetor na Marca, cartaz A3 com PDF pra gráfica e logo de uma cor na tinta do conjunto, e o cliente pede um A4 pelo app', {
+  skip: !existsSync(acharCli('vectorcraft')) && 'falta o VectorCraft', timeout: 300_000,
+}, async () => {
+  // A fábrica usa o primeiro logo da lista: o PNG da etapa B sai antes.
+  await limparElementos();
+  const page = await abrirCentral('#/criar');
+  await page.getByRole('heading', { name: 'Criar', exact: true, level: 1 }).waitFor();
+  await page.getByRole('button', { name: 'Marca', exact: true }).click();
+  await page.locator('.bloco .visao button', { hasText: 'Cliente de Teste' }).click();
+  await page.getByText('O que entra nas peças', { exact: true }).waitFor();
+  await page.locator('.el-entrada').setInputFiles({ name: 'logo-vetor.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(LOGO_SVG_E2E) });
+  await page.locator('.el-item', { hasText: 'logo-vetor.svg' }).filter({ hasText: 'vetor' }).waitFor({ timeout: 30_000 });
+
+  // O cartaz A3, pela Nova peça.
+  const pedido = await pedirPelaCentral(page, /^Cartaz para imprimir/, 'Turma nova do laboratório: inscrições até sexta', async (p) => {
+    await p.locator('[aria-label="Tamanho do cartaz"] button', { hasText: 'A3' }).click();
+  });
+  const { data: criado } = await admin.from('pedidos').select('tipo, briefing').eq('id', pedido).single();
+  assert.equal(criado!.tipo, 'cartaz');
+  assert.equal((criado!.briefing as { folha: string }).folha, 'a3');
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 120_000 });
+  await page.waitForFunction(() => [...document.querySelectorAll('.cr-imagens img')].some((i) => (i as HTMLImageElement).naturalWidth === 1080));
+  const a3 = await cartazEntregue(pedido);
+  assert.deepEqual(a3.corte, [297, 420]);
+  assert.deepEqual(a3.sangria, [303, 426]);
+  assert.deepEqual([a3.png.largura, a3.png.altura], [1080, 1527]);
+  for (const n of ['cartaz.pdf', 'cartaz.png', 'cartaz.vectorcraft', 'cartaz.ai']) assert.ok(a3.nomes.includes(n), `faltou ${n}`);
+  // O logo, no conjunto padrão do cliente (a etapa B pode ter deixado o areia,
+  // claro): o verde-limão do original some nos dois fundos, então ele sai de
+  // uma cor só, na tinta do conjunto, sem o verde-limão.
+  const { data: cli0 } = await admin.from('clientes').select('marca').eq('id', CLIENTE).single();
+  const m0 = cli0!.marca as { conjuntoPadrao?: string; conjuntos: Array<{ k: string; tinta: string }> };
+  const tinta = (m0.conjuntos.find((j) => j.k === m0.conjuntoPadrao) ?? m0.conjuntos[0]).tinta;
+  const [tr, tg, tb] = [1, 3, 5].map((i) => parseInt(tinta.slice(i, i + 2), 16));
+  let naTinta = 0, limoes = 0;
+  for (let y = 1300; y < 1480; y++) for (let x = 760; x < 1030; x++) {
+    const i = (y * a3.png.largura + x) * 3;
+    const [r, g, b] = [a3.png.rgb[i], a3.png.rgb[i + 1], a3.png.rgb[i + 2]];
+    if (Math.abs(r - tr) < 10 && Math.abs(g - tg) < 10 && Math.abs(b - tb) < 10) naTinta++;
+    if (Math.abs(r - 0xa4) < 12 && Math.abs(g - 0xe8) < 12 && Math.abs(b - 0x30) < 12) limoes++;
+  }
+  assert.ok(naTinta > 4000, `${naTinta} px na tinta ${tinta} onde vai o logo`);
+  assert.equal(limoes, 0, 'o logo entrou nas cores originais num fundo onde uma delas some');
+  // O editável aparece com o app que abre cada um.
+  await page.getByRole('button', { name: 'Editar à mão' }).click();
+  await page.locator('.cr-edicao a', { hasText: 'cartaz.ai · abre no VectorCraft ou Illustrator' }).waitFor();
+  if (process.env.E2E_FOTOS) await page.screenshot({ path: path.join(process.env.E2E_FOTOS, 'central-cartaz.png'), fullPage: true });
+  await semErroNaTela(page);
+  await page.context().close();
+
+  // O cliente pede um cartaz A4 pelo app e baixa o PDF depois de aprovar.
+  const cli = await abrir();
+  await pedirAte3(cli, /Cartaz para imprimir/, 'Aula aberta no sábado: traga um amigo', async (p) => {
+    assert.equal(await p.locator('[aria-label="Tamanho do cartaz"] button[aria-pressed="true"]').textContent(), 'A4');
+  });
+  assert.match((await cli.locator('.resumo').textContent())!, /1 cartaz A4 para imprimir/);
+  await cli.getByRole('button', { name: 'Pedir cartaz' }).click();
+  await cli.waitForURL(/#\/pedido\//);
+  const doApp = cli.url().split('/').pop()!;
+  await cli.locator('.selo.para_aprovar').first().waitFor({ timeout: 120_000 });
+  const a4 = await cartazEntregue(doApp);
+  assert.deepEqual(a4.corte, [210, 297]);
+  assert.deepEqual(a4.sangria, [216, 303]);
+  await cli.getByRole('button', { name: 'Aprovar' }).click();
+  await cli.getByRole('link', { name: 'Baixar o PDF pra gráfica' }).waitFor();
+  await cli.getByRole('link', { name: 'Baixar a imagem pro WhatsApp' }).waitFor();
+  assert.ok(await semRolagemLateral(cli));
+  await semErroNaTela(cli);
+  await cli.context().close();
 });

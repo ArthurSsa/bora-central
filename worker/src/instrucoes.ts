@@ -53,6 +53,8 @@ export function montarPedido(skill: Skill, pedido: Pedido, marca: string, o: Opc
     linhas.push('', 'Elementos da marca nesta pasta (use só estes):');
     for (const e of o.elementos) {
       linhas.push(`- ${e.arquivo} — ${e.tipo}${e.nome ? ` "${e.nome}"` : ''}${e.largura ? `, ${e.largura}×${e.altura} px` : ''}`);
+      // O logo vetorial vem com versões de uma cor: são as que leem quando uma cor dele é a do fundo.
+      for (const [tinta, arq] of Object.entries(e.mono ?? {})) linhas.push(`  - ${arq} — o mesmo, todo em ${tinta}; use sobre fundo onde ${(e.cores ?? []).join(', ')} somem`);
     }
   } else {
     linhas.push('', 'Elementos da marca: nenhum cadastrado. Não ponha logo nem foto.');
