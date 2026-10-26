@@ -9,11 +9,12 @@ import { z } from 'zod';
 import { servidorMcp, prefixoFerramentas, ferramentasBloqueadas } from './apps.ts';
 import type { Config } from './config.ts';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { desenharLegendas, exportarReel, lerSrt } from './reel.ts';
+import { desenharLegendas, exportarReel, lerSrt, somDoReel } from './reel.ts';
 import { montarCenaDoPedido, projetoDoMotion, renderizarDoPedido } from './motion.ts';
 import path from 'node:path';
 import type { Ajuste, Custos, Elemento } from './fila.ts';
 import type { Conjunto } from './marca.ts';
+import type { NivelTrilha } from './som.ts';
 import type { SaidaEsperada, Skill } from './skills.ts';
 
 /**
@@ -58,6 +59,8 @@ export type DadosDaPeca = {
   /** As saídas deste pedido, já com {n} expandido. */
   saidas: SaidaEsperada[];
   elementos: Elemento[];
+  /** Vídeo: a trilha da marca em entrada/ (null é sem música) e o nível dela sob a fala. */
+  som: { trilha: string | null; nivel: NivelTrilha };
 };
 
 export type ParametrosAgente = {
@@ -147,12 +150,13 @@ export const rodarAgente: Agente = async (p) => {
       ),
       tool(
         'exportar_video',
-        'Exporta editavel/reel.fcproj (salve antes com file.save). Com previa: true, sai saida/previa.mp4 com os 15 primeiros segundos e o cliente já vê; sem, saida/reel.mp4 completo. Volume em -16 LUFS e 1080×1920 sempre.',
+        'Exporta editavel/reel.fcproj (salve antes com file.save). Antes de exportar, o som passa pelo SoundCraft: a fala ganha filtro de graves, de-esser e compressor, e a trilha da marca (quando o pedido tem) entra por baixo, abaixando onde há legenda — por isso exporte depois de saida/legendas.srt estar pronta. Com previa: true, sai saida/previa.mp4 com os 15 primeiros segundos e o cliente já vê; sem, saida/reel.mp4 completo. Volume em -16 LUFS e 1080×1920 sempre.',
         { previa: z.boolean() },
         async ({ previa }) => {
           try {
             const projeto = path.join(p.pastaJob, 'editavel', 'reel.fcproj');
             const t = performance.now();
+            somDoReel(p);
             exportarReel(projeto, path.join(p.pastaJob, 'saida', previa ? 'previa.mp4' : 'reel.mp4'), previa ? { previaSegundos: 15 } : {});
             renderMs += performance.now() - t;
             if (previa) await p.entregarParcial('saida/previa.mp4');
@@ -184,7 +188,7 @@ export const rodarAgente: Agente = async (p) => {
       ),
       tool(
         'renderizar_motion',
-        'Renderiza o projeto de motion em H.264 1080×1920, sem som. Com previa: true, saem os 3 primeiros segundos em meia resolução em saida/previa.mp4 e o cliente já vê; sem, o vídeo inteiro em saida/reel.mp4, com a tela do cliente mostrando quanto falta.',
+        'Renderiza o projeto de motion em H.264 1080×1920, com a trilha da marca que cena_da_marca já pôs (ou mudo, se o pedido é sem música). Com previa: true, saem os 3 primeiros segundos em meia resolução em saida/previa.mp4 e o cliente já vê; sem, o vídeo inteiro em saida/reel.mp4, com a tela do cliente mostrando quanto falta.',
         { previa: z.boolean() },
         async ({ previa }) => {
           try {

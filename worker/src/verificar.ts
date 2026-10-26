@@ -31,6 +31,7 @@ export const MIME: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.psd': 'image/vnd.adobe.photoshop',
   '.mp4': 'video/mp4',
+  '.zip': 'application/zip',
   '.mov': 'video/quicktime',
   '.fcproj': 'application/octet-stream',
   '.ecproj': 'application/json',

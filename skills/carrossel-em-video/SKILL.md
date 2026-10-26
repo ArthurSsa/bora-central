@@ -36,4 +36,9 @@ O que já está pronto quando você começa: as imagens aprovadas, na ordem, em
 4. `avisar_etapa` "escrevendo a legenda", 90, e a legenda do post como diz a
    parte "copy-e-hashtags", sobre o assunto do carrossel.
 
-Sem som: ainda não há trilha com licença.
+O som: quando a marca tem trilha (subida pela equipe, com o direito de uso
+anotado), `cena_da_marca` já mixa ela no SoundCraft no tamanho da cena, em
+-16 LUFS e sumindo no último segundo e meio, e põe na composição; o render
+sai com ela. Pedido "sem música" sai mudo. Não importe outro áudio: só a
+trilha da marca tem licença. O editável do som (`editavel/som.zip`) sobe
+sozinho.

@@ -6,20 +6,21 @@
 //   node src/worker.ts            fica escutando a fila
 //   node src/worker.ts --uma-vez  espera um job, faz e sai (teste)
 //   node src/worker.ts --roteiro  sem o Claude: o passo a passo fixo de src/roteiro.ts
-import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as esperar } from 'node:timers/promises';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { fontesInstaladas, pesoMaisPerto } from './apps.ts';
-import { conferirMarca, conferirMotion, conferirTextos, conferirVideo, type Caixa } from './conferencia.ts';
+import { conferirMarca, conferirMotion, conferirSom, conferirTextos, conferirVideo, type Caixa } from './conferencia.ts';
 import { projetoDoMotion, SEGUNDOS_ABERTURA, SEGUNDOS_POR_SLIDE } from './motion.ts';
-import { exportarAudioFinal } from './reel.ts';
+import { exportarAudioFinal, lerSrt } from './reel.ts';
+import { somDaRodada, trechosDeFala, trilhaDaEntrada } from './som.ts';
 import { listar, sondar, transcrever } from './video.ts';
 import { lerConfig, type Config } from './config.ts';
 import { rodarAgente, FalhaDoAgente, CUSTO_ZERO, type Agente, type Etapa, type ResultadoAgente } from './agente.ts';
 import {
   conectar, pegarJob, renovarLease, anotar, evento, carregarContexto, subir, concluir, devolverOuFalhar,
-  historicoDeAjustes, baixarEditaveisBase, baixarElementos, baixarAnexo, baixarSlides, baixarDaBora, juntarSaida, ehJobPerdido, sinalDeVida, soltarOsMeus,
+  historicoDeAjustes, baixarEditaveisBase, baixarElementos, baixarAnexo, baixarSlides, baixarDaBora, baixarTrilha, juntarSaida, ehJobPerdido, sinalDeVida, soltarOsMeus,
   type Ajuste, type ArquivoDeEntrada, type Elemento, type Job, type Pedido,
 } from './fila.ts';
 import { montarSistema, montarPedido } from './instrucoes.ts';
@@ -128,6 +129,7 @@ export async function produzir(a: {
       semEmoji: /emoji/i.test(m.evitar ?? ''),
       saidas,
       elementos,
+      som: somDaRodada(trilhaDaEntrada(pastaJob), ajustes),
     },
     abortar: a.abortar,
     aoMudarEtapa: a.aoMudarEtapa,
@@ -167,10 +169,22 @@ export async function produzir(a: {
             : { segundos: SEGUNDOS_ABERTURA, momentos: [3.5, SEGUNDOS_ABERTURA - 0.1] }),
         })
       : { erros: [], avisos: [] };
-  const erros = [...daMarca.erros, ...dosTextos.erros, ...doVideo.erros];
+  // O som só se confere quando a fábrica mixou (a entrega da equipe chega pronta).
+  const legendas = path.join(pastaJob, 'saida', 'legendas.srt');
+  const doSom = existsSync(path.join(pastaJob, 'editavel', 'som', 'som.scraft'))
+    ? conferirSom(pastaJob, {
+        trilha: Boolean(trilhaDaEntrada(pastaJob)),
+        medirVideo: a.skill.apps.includes('effectcraft') ? 'saida/reel.mp4' : null,
+        falas: bruto && existsSync(legendas) ? trechosDeFala(lerSrt(readFileSync(legendas, 'utf8'))) : [],
+      })
+    : { erros: [], avisos: [] };
+  const erros = [...daMarca.erros, ...dosTextos.erros, ...doVideo.erros, ...doSom.erros];
   if (erros.length) {
     throw new FalhaDoAgente(`reprovado na conferência de marca: ${erros.slice(0, 6).join('; ')}`, resultado.custos);
   }
+  // O editável do som não é saída prometida da skill (a equipe não precisa
+  // mandar um na correção à mão), mas sobe sempre que a fábrica fez.
+  if (existsSync(path.join(pastaJob, 'editavel', 'som.zip'))) conferidas.push(conferirSaida(pastaJob, { caminho: 'editavel/som.zip' }));
   return { pastaJob, conferidas, resultado, fonte, avisos: [...daMarca.avisos, ...dosTextos.avisos, ...doVideo.avisos] };
 }
 
@@ -224,6 +238,10 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     const anexo = skill.entrada === 'video' ? await baixarAnexo(sb, pedido)
       : skill.entrada === 'slides' ? await baixarSlides(sb, pedido) : [];
     const daEquipe = daBora ? await baixarDaBora(sb, job) : [];
+    // Vídeo feito pela fábrica: a trilha da marca (a do pedido, ou a padrão).
+    const trilha = skill.tipos.includes('reel') && !daBora ? await baixarTrilha(sb, pedido, job.cliente_id) : { arquivos: [], nome: null, aviso: null };
+    if (trilha.aviso) await evento(sb, job, trilha.aviso, { nivel: 'aviso' });
+    if (trilha.nome) log(`trilha: ${trilha.nome}`);
 
     let etapaAtual = '';
     const p = await produzir({
@@ -239,7 +257,7 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
       cfg, job, skill, skills, pedido, cliente, instaladas, abortar, ajustes, elementos,
       agente: daBora ? agenteDaBora : agente,
       semPreparo: daBora,
-      arquivos: [...anteriores, ...arquivos, ...anexo, ...daEquipe],
+      arquivos: [...anteriores, ...arquivos, ...anexo, ...daEquipe, ...trilha.arquivos],
       // O render de motion manda a mesma etapa a cada dois segundos, com quanto
       // falta: o histórico do cliente ganha uma linha só por etapa.
       aoMudarEtapa: async ({ etapa, progresso, restamSegundos }) => {

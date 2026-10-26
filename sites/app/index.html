@@ -391,9 +391,10 @@
   };
   const TONS = ['Como sempre', 'Mais sério', 'Mais leve'];
   const ATALHOS = ['mais curto', 'outra cor da marca', 'mais sério', 'troca a foto'];
-  // No vídeo, só o que a fábrica sabe mudar nele: a cor da legenda.
-  const atalhosDe = (tipo) => tipo === 'reel' ? ['outra cor da marca'] : ATALHOS;
-  const ROTULO_ATALHO = { 'mais curto':'Mais curto', 'outra cor da marca':'Outra cor da marca', 'mais sério':'Mais sério', 'troca a foto':'Troca a foto' };
+  // No vídeo, só o que a fábrica sabe mudar nele: a cor da legenda e a música.
+  const atalhosDe = (tipo) => tipo === 'reel' ? ['outra cor da marca', 'música mais baixa', 'sem música'] : ATALHOS;
+  const ROTULO_ATALHO = { 'mais curto':'Mais curto', 'outra cor da marca':'Outra cor da marca', 'mais sério':'Mais sério', 'troca a foto':'Troca a foto',
+    'música mais baixa':'Música mais baixa', 'sem música':'Sem música' };
   const MAX_AJUSTES = 5;
 
   const state = {

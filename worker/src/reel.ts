@@ -11,13 +11,15 @@
 //   - a exportação, sempre pelo CLI: pelo MCP ela vira um job que não anda
 //     enquanto o servidor espera o próximo pedido.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { servidorMcp } from './apps.ts';
 import { acharCli } from './config.ts';
+import type { ParametrosAgente } from './agente.ts';
 import type { Conjunto } from './marca.ts';
 import { abrirMcp } from './mcp-cru.ts';
-import type { Palavra } from './video.ts';
+import { mixarSom, prepararTrilha, trechosDeFala, zipar, type Mixagem } from './som.ts';
+import { lerWav, type Palavra } from './video.ts';
 
 // ---------- o que cortar ----------
 
@@ -154,6 +156,76 @@ export function exportarAudioFinal(projeto: string, saida: string) {
   execFileSync(acharCli('filmcraft'), ['--project', projeto, 'export', saida, '--format', 'wav', '--settings',
     JSON.stringify({ audio: { sample_rate: 48000, channels: 2, bits: 16, codec: 'pcm' }, effects: { loudness: { enabled: true, target_lufs: -16, true_peak_dbtp: -1 } } })],
   { stdio: 'ignore', timeout: 10 * 60_000 });
+}
+
+// ---------- o som ----------
+
+const FAIXA_DO_SOM = 'Som da Bora';
+
+/** Roda comandos do FilmCraft num projeto salvo, um por linha, e devolve o resultado de cada um. */
+function rodarNoProjeto(projeto: string, comandos: Array<{ id: string; params: Record<string, unknown> }>, pasta: string): unknown[] {
+  const arq = path.join(pasta, `filmcraft-${Date.now()}.jsonl`);
+  writeFileSync(arq, comandos.map((c) => JSON.stringify(c)).join('\n') + '\n');
+  const saida = execFileSync(acharCli('filmcraft'), ['--project', projeto, 'run', arq], { encoding: 'utf8', timeout: 10 * 60_000, stdio: ['ignore', 'pipe', 'pipe'] });
+  const linhas = saida.split(/\r?\n/).filter((l) => l.startsWith('{')).map((l) => JSON.parse(l) as { id: string; ok: boolean; result?: unknown; error?: unknown });
+  const falhou = linhas.find((l) => !l.ok);
+  if (falhou) throw new Error(`FilmCraft: ${falhou.id} falhou: ${JSON.stringify(falhou.error ?? falhou)}`);
+  return linhas.map((l) => l.result);
+}
+
+/**
+ * O som do reel, no SoundCraft: a fala do projeto já cortado sai em WAV, passa
+ * pela voz (e pela trilha da marca, quando o pedido tem), e a mixagem volta
+ * pro projeto numa faixa própria, com a fala original calada. Dá pra rodar de
+ * novo — a mixagem anterior sai antes. A exportação continua normalizando em
+ * -16 LUFS; a mixagem já chega lá.
+ */
+export function somDoReel(p: ParametrosAgente): Mixagem {
+  const projeto = path.join(p.pastaJob, 'editavel', 'reel.fcproj');
+  const pasta = path.join(p.pastaJob, 'editavel', 'som');
+  const trabalho = path.join(p.pastaJob, '.trabalho');
+  mkdirSync(trabalho, { recursive: true });
+  rmSync(pasta, { recursive: true, force: true });
+  mkdirSync(pasta, { recursive: true });
+
+  // 1. Desfaz uma mixagem anterior: a fala original volta a tocar.
+  const seq = JSON.parse(execFileSync(acharCli('filmcraft'), ['--project', projeto, 'inspect', 'sequence'], { encoding: 'utf8', timeout: 60_000 })) as { audio: Array<{ id: number; name: string; muted: boolean }> };
+  const desfazer = [
+    ...seq.audio.filter((t) => t.name === FAIXA_DO_SOM).map((t) => ({ id: 'sequence.deleteTracks', params: { audio: t.id } })),
+    ...seq.audio.filter((t) => t.name !== FAIXA_DO_SOM && t.muted).map((t) => ({ id: 'timeline.setTrack', params: { track: t.id, muted: false } })),
+  ];
+  if (desfazer.length) rodarNoProjeto(projeto, [...desfazer, { id: 'file.save', params: {} }], trabalho);
+
+  // 2. A fala do reel já cortado, como está no projeto.
+  const voz = path.join(pasta, 'voz.wav');
+  execFileSync(acharCli('filmcraft'), ['--project', projeto, 'export', voz, '--format', 'wav', '--settings',
+    JSON.stringify({ audio: { sample_rate: 48000, channels: 1, bits: 16, codec: 'pcm' } })], { stdio: 'ignore', timeout: 10 * 60_000 });
+  const duracao = lerWav(readFileSync(voz)).canais[0].length / 48000;
+
+  // 3. A mixagem: as legendas dizem onde há fala.
+  const srt = path.join(p.pastaJob, 'saida', 'legendas.srt');
+  const falas = existsSync(srt) ? trechosDeFala(lerSrt(readFileSync(srt, 'utf8'))) : [];
+  const original = p.dados.som.trilha;
+  const trilha = original ? prepararTrilha(original, path.join(pasta, 'trilha.wav'), duracao) : null;
+  const m = mixarSom({ pasta, duracao, voz, trilha, falas, nivel: p.dados.som.nivel });
+
+  // 4. De volta pro projeto: importa, cala a fala original, põe a mixagem numa faixa nova.
+  const [importado] = rodarNoProjeto(projeto, [{ id: 'file.import', params: { paths: [m.mix] } }, { id: 'file.save', params: {} }], trabalho) as Array<{ items: number[] }>;
+  const item = importado.items[0];
+  const atual = JSON.parse(execFileSync(acharCli('filmcraft'), ['--project', projeto, 'inspect', 'sequence'], { encoding: 'utf8', timeout: 60_000 })) as { audio: Array<{ id: number }> };
+  const resultados = rodarNoProjeto(projeto, [
+    ...atual.audio.map((t) => ({ id: 'timeline.setTrack', params: { track: t.id, muted: true } })),
+    { id: 'sequence.addTracks', params: { video: 0, audio: 1 } },
+    { id: 'file.save', params: {} },
+  ], trabalho);
+  const nova = resultados[resultados.length - 2] as { audio: number[] };
+  rodarNoProjeto(projeto, [
+    { id: 'timeline.setTrack', params: { track: nova.audio[0], name: FAIXA_DO_SOM } },
+    { id: 'timeline.place', params: { item, track: nova.audio[0], seconds: 0, video: false } },
+    { id: 'file.save', params: {} },
+  ], trabalho);
+  zipar(pasta, path.join(p.pastaJob, 'editavel', 'som.zip'));
+  return m;
 }
 
 /** A transcrição guardada pelo worker na pasta do job, antes do agente começar. */

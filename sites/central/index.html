@@ -298,6 +298,10 @@
   .lote-linha select{ width:auto; flex:none; }
   .lote-linha.feito .lote-tema{ color:var(--cinza); }
   .lote-falhas{ margin-bottom:18px; max-width:760px; }
+  .tr-form{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:10px 0 4px; max-width:760px; }
+  .tr-form input[type=text]{ flex:1 1 200px; min-width:0; width:auto; }
+  .tr-escolhido{ flex:1 1 100%; font-size:0.84rem; color:var(--fraco); }
+  .tr-player{ height:32px; max-width:240px; }
   .el-mini{ width:44px; height:44px; flex:none; object-fit:contain; border-radius:8px; border:1px solid var(--linha);
     background:repeating-conic-gradient(var(--linha) 0 25%, var(--sup) 0 50%) 0 0 / 12px 12px; }
   @media (max-width:560px){ .lote-linha{ flex-wrap:wrap; } .lote-linha select{ width:100%; } }
@@ -618,11 +622,11 @@
     font-family:var(--dado); font-size:0.58rem; letter-spacing:0.1em;
     text-transform:uppercase; color:var(--fraco);
   }
-  .campo-p input, .campo-p select, .painel textarea{
+  .campo-p input, .campo-p select, .painel textarea, .tr-form input[type=text]{
     width:100%; background:var(--sup2); border:1px solid var(--linha); border-radius:9px;
     padding:9px 11px; font-family:var(--corpo); font-size:0.9rem; color:var(--tinta);
   }
-  .campo-p input:focus, .campo-p select:focus, .painel textarea:focus{ border-color:var(--laranja); background:var(--sup); }
+  .campo-p input:focus, .campo-p select:focus, .painel textarea:focus, .tr-form input[type=text]:focus{ border-color:var(--laranja); background:var(--sup); }
   .painel textarea{ margin-top:6px; resize:vertical; line-height:1.5; }
   .titulo-p{ font-family:var(--display) !important; font-weight:600 !important; font-size:1rem !important; }
   .duplo{ display:flex; gap:8px; align-items:center; }
@@ -4372,11 +4376,11 @@
   const ESTADOS_PEDIDO = { rascunho:'Rascunho', produzindo:'Fazendo', para_aprovar:'Para aprovar', aprovado:'Aprovado',
     agendado:'Agendado', publicado:'Publicado', cancelado:'Cancelado' };
   const COR_ESTADO = { produzindo:'andamento', para_aprovar:'espera', aprovado:'ok', agendado:'ok', publicado:'ok', cancelado:'neutro' };
-  // No vídeo, a fábrica sem o Claude só sabe trocar a cor da legenda.
-  const ATALHOS_CRIAR = tipo => tipo === 'reel' ? [['outra cor da marca','Outra cor da marca']]
+  // No vídeo, a fábrica sem o Claude troca a cor da legenda e mexe na música.
+  const ATALHOS_CRIAR = tipo => tipo === 'reel' ? [['outra cor da marca','Outra cor da marca'], ['música mais baixa','Música mais baixa'], ['sem música','Sem música']]
     : [['mais curto','Mais curto'], ['outra cor da marca','Outra cor da marca'], ['mais sério','Mais sério'], ['troca a foto','Troca a foto']];
   // Qual app da ArtCraft abre cada editável.
-  const APP_DO_ARQUIVO = { psd:'PhotoCraft', fcproj:'FilmCraft', ecproj:'EffectCraft' };
+  const APP_DO_ARQUIVO = { psd:'PhotoCraft', fcproj:'FilmCraft', ecproj:'EffectCraft', zip:'SoundCraft (descompacte)' };
   const COLUNAS_PEDIDO = 'id, cliente_id, tipo, titulo, briefing, estado, publicar_em, ajustes, job_aprovado, escolha, aprovado_em, '
     + 'assumido_por, assumido_em, pela_equipe, criado_em, atualizado_em, '
     + 'jobs!jobs_pedido_id_fkey(id, rodada, skill, estado, etapa, progresso, restam_segundos, saidas, erro, tentativas, max_tentativas, criado_em, atualizado_em)';
@@ -4527,7 +4531,7 @@
 
   function formNovaPeca(){
     const c = C();
-    if(!c.novo) c.novo = { cliente:'', tipo:'post', texto:'', slides:5, objetivo:null, tom:null, data:'', video:null, deCarrossel:'' };
+    if(!c.novo) c.novo = { cliente:'', tipo:'post', texto:'', slides:5, objetivo:null, tom:null, data:'', video:null, deCarrossel:'', trilha:'' };
     const n = c.novo;
     const t = TIPOS_CRIAR.find(x => x.k === n.tipo);
     const b = el('div',{class:'bloco'});
@@ -4543,7 +4547,7 @@
     const sel = el('select',{id:'cr-cliente'});
     sel.appendChild(el('option',{value:''}, 'Escolha o cliente'));
     state.clientes.forEach(x => { const o = el('option',{value:x.id}); o.textContent = x.nome; if(x.id === n.cliente) o.selected = true; sel.appendChild(o); });
-    sel.addEventListener('change', ()=>{ n.cliente = sel.value; n.deCarrossel = ''; render(); });
+    sel.addEventListener('change', ()=>{ n.cliente = sel.value; n.deCarrossel = ''; n.trilha = ''; render(); });
     campo('Pra quem', sel).querySelector('label').setAttribute('for', 'cr-cliente');
 
     const tipos = el('div',{class:'cr-tipos', role:'group', 'aria-label':'O que fazer'});
@@ -4567,6 +4571,12 @@
         if(p && !n.texto) n.texto = (p.briefing && p.briefing.texto) || p.titulo || ''; render(); });
       campo('Qual carrossel', s, 'As imagens aprovadas entram na ordem, sobre o fundo da marca.');
       if(!C().carregado) carregarPedidos().then(render);
+    }
+
+    if(t.midia === 'vídeo' && n.cliente){
+      const w = campo('Música', escolhaDeMusica(n.cliente, n.trilha || '', v => { n.trilha = v; }, 'cr-musica'),
+        n.tipo === 'reel' ? 'Fica por baixo da fala e abaixa sozinha onde a pessoa fala.' : 'Do começo ao fim, sumindo no último segundo.');
+      w.querySelector('label').setAttribute('for', 'cr-musica');
     }
 
     const area = el('textarea',{rows:'3', maxlength:'800', id:'cr-texto',
@@ -4663,6 +4673,7 @@
     if(t.formato) briefing.formato = t.formato;
     if(t.formato === 'bruto') briefing.anexo = n.video.caminho;
     if(t.formato === 'carrossel') briefing.de_pedido = n.deCarrossel;
+    if(t.tipo === 'reel' && n.trilha) briefing.trilha = n.trilha;
     c.pedindo = true; render();
     const { data, error } = await sb.rpc('criar_pedido', { p_cliente: n.cliente, p_tipo: t.tipo, p_briefing: briefing,
       p_publicar_em: n.data ? new Date(n.data + 'T12:00:00').toISOString() : null });
@@ -4747,13 +4758,13 @@
         const ck = el('input',{type:'checkbox', id});
         ck.checked = !!l.marcados[t.tema];
         ck.disabled = !!l.pedindo;
-        ck.addEventListener('change', ()=>{ l.marcados[t.tema] = ck.checked; contar(); });
+        ck.addEventListener('change', ()=>{ l.marcados[t.tema] = ck.checked; render(); });
         const tx = el('label',{class:'lote-tema', for:id}); tx.textContent = t.tema;
         const fs = el('select',{'aria-label':'Formato'});
         fs.disabled = !!l.pedindo;
         FORMATOS_LOTE.forEach(k => { const tc = TIPOS_CRIAR.find(x => x.k === k);
           const o = el('option',{value:k}); o.textContent = tc.nome; if(l.formatos[t.tema] === k) o.selected = true; fs.appendChild(o); });
-        fs.addEventListener('change', ()=>{ l.formatos[t.tema] = fs.value; });
+        fs.addEventListener('change', ()=>{ l.formatos[t.tema] = fs.value; render(); });
         linha.appendChild(ck); linha.appendChild(tx); linha.appendChild(fs);
       }
       lista.appendChild(linha);
@@ -4765,6 +4776,15 @@
       f.appendChild(el('p',{style:'margin:0 0 6px'}, '<b>Estes não foram:</b>'));
       l.falhas.forEach(x => { const p = el('p',{class:'erro', style:'margin:2px 0'}); p.textContent = x.tema + ' — ' + x.erro; f.appendChild(p); });
       b.appendChild(f);
+    }
+
+    // A música das aberturas do mês: uma escolha só pra todas.
+    if(l.temas.some(t => !t.pedido_id && l.marcados[t.tema] && l.formatos[t.tema] === 'abertura')){
+      const w = el('div',{class:'cr-campo'});
+      const r = el('label',{for:'lote-musica'}); r.textContent = 'Música das aberturas';
+      w.appendChild(r);
+      w.appendChild(escolhaDeMusica(l.cliente, l.trilha || '', v => { l.trilha = v; }, 'lote-musica'));
+      b.appendChild(w);
     }
 
     const rodape = el('div',{class:'cr-acoes'});
@@ -4796,6 +4816,7 @@
       const briefing = { texto: t.tema };
       if(tc.tipo === 'carrossel') briefing.slides = 5;
       if(tc.formato) briefing.formato = tc.formato;
+      if(tc.tipo === 'reel' && l.trilha) briefing.trilha = l.trilha;
       const { error } = await sb.rpc('criar_pedido', { p_cliente: l.cliente, p_tipo: tc.tipo, p_briefing: briefing,
         p_origem_plano: t.plano_id, p_origem_tema: t.tema });
       if(error){
@@ -7196,6 +7217,145 @@
       });
   }
 
+  // ---------- trilhas da marca ----------
+  // A música que entra nos vídeos: a abertura e o carrossel em vídeo saem com
+  // ela, e no reel ela fica por baixo da fala, abaixando onde há legenda. Só
+  // música que o cliente tem direito de usar — cada uma diz de onde vem a
+  // licença. Nada aqui gera música: sem trilha, o vídeo sai sem.
+  const EXT_TRILHA = { mp3:'audio/mpeg', wav:'audio/wav', flac:'audio/flac', aif:'audio/aiff', aiff:'audio/aiff', ogg:'audio/ogg' };
+  const trilhasLidas = () => state.trilhas || (state.trilhas = {});
+  const trilhasDe = id => trilhasLidas()[id];   // undefined: ainda não leu
+  const lendoTrilhas = {};
+  function carregarTrilhas(clienteId){
+    if(lendoTrilhas[clienteId]) return lendoTrilhas[clienteId];
+    return lendoTrilhas[clienteId] = (async () => {
+      const { data, error } = await sb.from('marca_trilhas').select('*').eq('cliente_id', clienteId).order('criado_em');
+      if(error){ toast('Não deu pra ler as trilhas: ' + error.message); trilhasLidas()[clienteId] = []; return; }
+      trilhasLidas()[clienteId] = data || [];
+    })().finally(() => { delete lendoTrilhas[clienteId]; });
+  }
+  const mmss = s => s == null ? '' : Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
+
+  function duracaoDoAudio(f){
+    return new Promise(ok => {
+      const url = URL.createObjectURL(f);
+      const a = new Audio();
+      const fim = v => { URL.revokeObjectURL(url); ok(v); };
+      a.preload = 'metadata';
+      a.onloadedmetadata = () => fim(isFinite(a.duration) ? Math.round(a.duration * 10) / 10 : null);
+      a.onerror = () => fim(null);
+      a.src = url;
+    });
+  }
+
+  function blocoTrilhas(c, box){
+    box.appendChild(el('p',{class:'rot laranja', style:'margin-top:26px'},'Trilhas dos vídeos'));
+    box.appendChild(el('p',{class:'dica', style:'margin:6px 0 10px'},
+      'A música que entra na abertura, no carrossel em vídeo e por baixo da fala do reel — abaixando onde a pessoa fala. '
+      + 'Só música que o cliente tem direito de usar: anote de onde vem a licença. A padrão entra quando o pedido não escolhe; '
+      + 'sem trilha, o vídeo sai sem música.'));
+    const lista = el('div',{class:'idv-arqs tr-lista'});
+    const lidas = trilhasDe(c.id);
+    if(!lidas){ lista.appendChild(el('p',{class:'muted'},'Lendo as trilhas…')); carregarTrilhas(c.id).then(()=>{ if(lista.isConnected) render(); }); }
+    else if(!lidas.length) lista.appendChild(el('p',{class:'dica', style:'margin:0 0 10px'},'Nenhuma trilha ainda.'));
+    else lidas.forEach(t => lista.appendChild(linhaDaTrilha(c, t)));
+    box.appendChild(lista);
+
+    const form = el('div',{class:'tr-form'});
+    const arq = el('input',{type:'file', class:'tr-arquivo', style:'display:none', accept:'.mp3,.wav,.flac,.aif,.aiff,.ogg', 'aria-label':'Arquivo da trilha'});
+    const escolher = el('button',{class:'btn ghost small', type:'button', onclick:()=>arq.click()}, 'Escolher a música');
+    const escolhido = el('span',{class:'tr-escolhido'}); escolhido.textContent = 'MP3, WAV, FLAC, AIFF ou OGG, até 30 MB.';
+    const nome = el('input',{type:'text', class:'tr-nome', maxlength:'120', placeholder:'Nome (ex.: Violão calmo)', 'aria-label':'Nome da trilha'});
+    const licenca = el('input',{type:'text', class:'tr-licenca', maxlength:'300', placeholder:'De onde vem o direito de uso (ex.: Artlist, licença 4821)', 'aria-label':'Licença da trilha'});
+    arq.addEventListener('change', ()=>{
+      const f = arq.files && arq.files[0];
+      if(!f) return;
+      escolhido.textContent = f.name + ' · ' + peso(f.size);
+      if(!nome.value.trim()) nome.value = f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').slice(0, 120);
+    });
+    const botao = el('button',{class:'btn small', type:'button'}, 'Subir trilha');
+    botao.addEventListener('click', async ()=>{
+      const f = arq.files && arq.files[0];
+      if(!f){ toast('Escolha o arquivo da música.'); return; }
+      const ext = extDe(f.name);
+      if(!EXT_TRILHA[ext]){ toast('Aqui entra MP3, WAV, FLAC, AIFF ou OGG.'); return; }
+      if(f.size > 30 * 1048576){ toast('Passa de 30 MB. Mande em MP3.'); return; }
+      if(licenca.value.trim().length < 3){ toast('Diga de onde vem o direito de usar esta música.'); licenca.focus(); return; }
+      botao.disabled = true; botao.textContent = 'Subindo ' + peso(f.size) + '…';
+      const pronto = () => { botao.disabled = false; botao.textContent = 'Subir trilha'; };
+      const segundos = await duracaoDoAudio(f);
+      const caminho = c.id + '/' + Date.now() + '-' + f.name.replace(/[^\w.\-]+/g,'-').slice(-80);
+      const up = await sb.storage.from('trilhas').upload(caminho, f, { contentType:EXT_TRILHA[ext], upsert:false });
+      if(up.error){ pronto(); toast('Não subiu: ' + up.error.message); return; }
+      const primeira = !(trilhasDe(c.id) || []).length;
+      const { data, error } = await sb.from('marca_trilhas').insert({ cliente_id:c.id, nome:nome.value.trim() || f.name, licenca:licenca.value.trim(),
+        caminho, bytes:f.size, mime:EXT_TRILHA[ext], segundos, padrao:primeira }).select().single();
+      pronto();
+      if(error){ await sb.storage.from('trilhas').remove([caminho]); toast('Não deu: ' + error.message); return; }
+      trilhasLidas()[c.id] = [...(trilhasDe(c.id) || []), data];
+      toast(primeira ? 'Guardada, e é a padrão dele.' : 'Guardada.');
+      render();
+    });
+    [escolher, escolhido, arq, nome, licenca, botao].forEach(n => form.appendChild(n));
+    box.appendChild(form);
+  }
+
+  function linhaDaTrilha(c, t){
+    const l = el('div',{class:'idv-arq tr-item'});
+    const tag = el('span',{class:'tag'}); tag.textContent = t.padrao ? 'Padrão' : 'Trilha';
+    const nm = el('span',{class:'nm'}); nm.textContent = t.nome;
+    const lic = el('span',{class:'pq'}); lic.textContent = (t.segundos ? mmss(t.segundos) + ' · ' : '') + 'licença: ' + t.licenca;
+    [tag, nm, lic].forEach(n => l.appendChild(n));
+    l.appendChild(el('button',{class:'btn ghost small', type:'button', onclick:async (e)=>{
+      // O balde é fechado: o link pra ouvir é assinado na hora.
+      const botao = e.currentTarget;
+      const { data, error } = await sb.storage.from('trilhas').createSignedUrl(t.caminho, 600);
+      if(error){ toast('Não consegui abrir: ' + error.message); return; }
+      const a = el('audio',{controls:'', src:data.signedUrl, class:'tr-player'});
+      botao.replaceWith(a); a.play().catch(()=>{});
+    }}, 'Ouvir'));
+    if(!t.padrao) l.appendChild(el('button',{class:'btn ghost small', type:'button', onclick:async ()=>{
+      // Uma padrão por cliente: a de antes sai primeiro.
+      const a = await sb.from('marca_trilhas').update({ padrao:false }).eq('cliente_id', c.id).eq('padrao', true);
+      const b = a.error ? a : await sb.from('marca_trilhas').update({ padrao:true }).eq('id', t.id);
+      if(b.error){ toast('Não deu: ' + b.error.message); return; }
+      trilhasLidas()[c.id] = (trilhasDe(c.id) || []).map(x => Object.assign({}, x, { padrao: x.id === t.id }));
+      toast('Agora é a padrão.'); render();
+    }}, 'Usar como padrão'));
+    l.appendChild(el('button',{class:'lixo', 'aria-label':'Apagar ' + t.nome, onclick:async ()=>{
+      if(!confirm('Apagar "' + t.nome + '"? Pedido que escolheu esta trilha sai sem música.')) return;
+      const r = await sb.from('marca_trilhas').delete().eq('id', t.id);
+      if(r.error){ toast('Não deu: ' + r.error.message); return; }
+      await sb.storage.from('trilhas').remove([t.caminho]);
+      trilhasLidas()[c.id] = (trilhasDe(c.id) || []).filter(x => x.id !== t.id);
+      toast('Apagada.'); render();
+    }},'×'));
+    return l;
+  }
+
+  /**
+   * A escolha de música de um pedido de vídeo: a padrão da marca, uma
+   * trilha dela, ou sem música. Devolve o campo pronto (ou uma dica, se o
+   * cliente não tem trilha). valor: '' é a padrão, 'nenhuma' é sem música.
+   */
+  function escolhaDeMusica(clienteId, valor, aoMudar, id){
+    const ts = trilhasDe(clienteId);
+    if(!ts){ carregarTrilhas(clienteId).then(render); return el('p',{class:'muted'},'Lendo as trilhas…'); }
+    if(!ts.length){
+      const d = el('p',{class:'dica', style:'margin:0'});
+      d.textContent = 'Este cliente ainda não tem trilha na Marca: o vídeo sai sem música.';
+      return d;
+    }
+    const padrao = ts.find(t => t.padrao);
+    const s = el('select',{id, 'aria-label':'Música'});
+    const opcao = (v, rot) => { const o = el('option',{value:v}); o.textContent = rot; if(v === valor) o.selected = true; s.appendChild(o); };
+    opcao('', padrao ? 'A padrão da marca (' + padrao.nome + ')' : 'A padrão da marca (nenhuma escolhida: sem música)');
+    ts.filter(t => !t.padrao).forEach(t => opcao(t.id, t.nome));
+    opcao('nenhuma', 'Sem música');
+    s.addEventListener('change', ()=>aoMudar(s.value));
+    return s;
+  }
+
   function blocoIdentidade(c, aoMudar){
     const box = el('div',{class:'bloco', style:'margin-top:18px'});
     box.appendChild(el('p',{class:'rot'},'Identidade visual'));
@@ -7345,6 +7505,7 @@
       });
 
     blocoElementos(c, box);
+    blocoTrilhas(c, box);
 
     // ---- 2. a paleta ----
 

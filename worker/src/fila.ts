@@ -204,6 +204,28 @@ export async function baixarAnexo(sb: SupabaseClient, pedido: Pedido): Promise<A
   return [{ nome: `bruto${ext}`, conteudo: Buffer.from(await data.arrayBuffer()) }];
 }
 
+/**
+ * A trilha do pedido de vídeo, como entrada/trilha.<ext>: a escolhida no
+ * pedido (briefing.trilha), ou a padrão da marca quando o pedido não diz;
+ * "nenhuma" é sem música. Trilha apagada depois do pedido vira sem música,
+ * com aviso — o vídeo não espera por ela.
+ */
+export async function baixarTrilha(sb: SupabaseClient, pedido: Pedido, clienteId: string): Promise<{ arquivos: ArquivoDeEntrada[]; nome: string | null; aviso: string | null }> {
+  const escolha = pedido.briefing?.trilha;
+  if (escolha === 'nenhuma') return { arquivos: [], nome: null, aviso: null };
+  const consulta = sb.from('marca_trilhas').select('nome, caminho').eq('cliente_id', clienteId);
+  const { data, error } = typeof escolha === 'string' && escolha
+    ? await consulta.eq('id', escolha).limit(1)
+    : await consulta.eq('padrao', true).limit(1);
+  if (error) throw new Error(`ler a trilha: ${error.message}`);
+  const t = data?.[0];
+  if (!t) return { arquivos: [], nome: null, aviso: typeof escolha === 'string' && escolha ? 'a trilha escolhida não existe mais; o vídeo saiu sem música' : null };
+  const { data: arq, error: e } = await sb.storage.from('trilhas').download(t.caminho);
+  if (e) return { arquivos: [], nome: null, aviso: `a trilha "${t.nome}" não baixou (${e.message}); o vídeo saiu sem música` };
+  const ext = (t.caminho.match(/\.[a-z0-9]+$/i)?.[0] ?? '.mp3').toLowerCase();
+  return { arquivos: [{ nome: `trilha${ext}`, conteudo: Buffer.from(await arq.arrayBuffer()) }], nome: t.nome, aviso: null };
+}
+
 /** Junta uma saída às que o job já tem, sem esperar o fim — é assim que a prévia chega antes. */
 export async function juntarSaida(sb: SupabaseClient, cfg: Config, job: Job, saida: object) {
   const { data } = await sb.from('jobs').select('saidas').eq('id', job.id).single();
