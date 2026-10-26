@@ -26,6 +26,7 @@ import type { ClienteParaMarca } from '../src/marca.ts';
 import { lerPng } from '../src/png.ts';
 import { audioDe } from '../src/som.ts';
 import { caixasDoPdf } from '../src/vetor.ts';
+import { validarPdfX4 } from '../src/diagramacao.ts';
 import { loudnessIntegrado, sondar } from '../src/video.ts';
 import { temSoundCraft, trilhaDeTeste } from '../teste/trilha.ts';
 import { rodarRoteiro } from '../src/roteiro.ts';
@@ -283,12 +284,12 @@ const varrerContraste = (page: Page) => page.evaluate(() => {
   return falhas;
 });
 
-test('Hoje: a pergunta, sete cartões, cinco ativos, e nenhum cliente da Bora à vista', async () => {
+test('Hoje: a pergunta, oito cartões, seis ativos, e nenhum cliente da Bora à vista', async () => {
   const page = await abrir();
   await page.getByRole('heading', { name: 'O que você quer criar hoje?' }).waitFor();
   await semErroNaTela(page);
-  assert.equal(await page.locator('.tipo').count(), 7);
-  assert.equal(await page.locator('.tipo[aria-disabled="true"]').count(), 2, 'post, carrossel, reel, capa e cartaz ativos; o resto em breve');
+  assert.equal(await page.locator('.tipo').count(), 8);
+  assert.equal(await page.locator('.tipo[aria-disabled="true"]').count(), 2, 'post, carrossel, reel, capa, cartaz e guia ativos; o resto em breve');
   assert.equal(await page.locator('.quem .nome').textContent(), 'Cliente de Teste');
   assert.equal(await page.locator('select').count(), 0, 'cliente de uma conta só não devia ver seletor');
   assert.ok(await semRolagemLateral(page));
@@ -1447,6 +1448,80 @@ test('Central, etapa D: logo em vetor na Marca, cartaz A3 com PDF pra gráfica e
   await cli.getByRole('button', { name: 'Aprovar' }).click();
   await cli.getByRole('link', { name: 'Baixar o PDF pra gráfica' }).waitFor();
   await cli.getByRole('link', { name: 'Baixar a imagem pro WhatsApp' }).waitFor();
+  assert.ok(await semRolagemLateral(cli));
+  await semErroNaTela(cli);
+  await cli.context().close();
+});
+
+// ---------- etapa E: o DesignCraft ----------
+//
+// O critério de pronto da etapa E: pela Central, um guia de 8 páginas e um
+// folheto dobrável saem na marca e passam na conferência (o folheto, PDF/X-4
+// válido); e o cliente pede um guia pelo app, aprova e baixa o PDF.
+
+const PEDIDO_GUIA_E2E = 'Cinco erros de quem começa a treinar. Começar pesado demais na primeira semana. Pular o aquecimento. '
+  + 'Treinar todo dia sem descanso. Copiar o treino de quem treina há anos. Desistir quando o resultado demora. Não beber água durante o treino.';
+
+/** Os arquivos da última rodada pronta de um pedido. */
+async function entregaDe(pedidoId: string) {
+  const { data } = await admin.from('jobs').select('saidas').eq('pedido_id', pedidoId).eq('estado', 'pronto').order('criado_em', { ascending: false }).limit(1);
+  return (data![0].saidas as Array<{ caminho: string }>).map((s) => s.caminho);
+}
+
+test('Central, etapa E: guia de 8 páginas e folheto dobrável pela Central, e o cliente pede um guia pelo app', {
+  skip: !existsSync(acharCli('designcraft')) && 'falta o DesignCraft', timeout: 300_000,
+}, async () => {
+  const page = await abrirCentral('#/criar');
+
+  // O guia: o contador de ideias segura o botão até o pedido ter uma ideia por página.
+  await page.getByRole('heading', { name: 'Criar', exact: true, level: 1 }).waitFor();
+  await page.getByRole('button', { name: 'Nova peça', exact: true }).click();
+  await page.locator('#cr-cliente').selectOption(CLIENTE);
+  await page.locator('.cr-tipo', { hasText: /^Guia em PDF/ }).click();
+  await page.locator('#cr-texto').fill('Cinco erros de quem começa. Começar pesado demais. Pular o aquecimento.');
+  await page.locator('#cr-ideias', { hasText: 'Depois do título: 2 de 6 ideias — faltam 4.' }).waitFor();
+  assert.ok(await page.getByRole('button', { name: 'Pedir à fábrica' }).isDisabled());
+  await page.locator('#cr-texto').fill(PEDIDO_GUIA_E2E);
+  await page.locator('#cr-ideias', { hasText: 'Depois do título: 6 de 6 ideias.' }).waitFor();
+  await page.getByRole('button', { name: 'Pedir à fábrica' }).click();
+  await page.waitForURL(/#\/p\//);
+  const guia = page.url().split('/').pop()!;
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 120_000 });
+  const doGuia = await entregaDe(guia);
+  for (const n of ['saida/guia.pdf', 'editavel/guia.designcraft', 'editavel/guia.idml']) assert.ok(doGuia.some((c) => c.endsWith(n)), `faltou ${n}`);
+  assert.equal(doGuia.filter((c) => /saida\/pagina-\d+\.png$/.test(c)).length, 8);
+  await page.waitForFunction(() => [...document.querySelectorAll('.cr-imagens img')].filter((i) => (i as HTMLImageElement).naturalWidth === 1080).length >= 1);
+  if (process.env.E2E_FOTOS) await page.screenshot({ path: path.join(process.env.E2E_FOTOS, 'central-guia.png'), fullPage: true });
+
+  // O folheto: PDF/X-4 de gráfica, frente e verso.
+  await page.getByRole('button', { name: '← Peças' }).click();
+  const folheto = await pedirPelaCentral(page, /^Folheto dobrável/, PEDIDO_GUIA_E2E);
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 120_000 });
+  const doFolheto = await entregaDe(folheto);
+  assert.equal(doFolheto.filter((c) => /saida\/pagina-\d+\.png$/.test(c)).length, 2);
+  const pdfFolheto = doFolheto.find((c) => c.endsWith('saida/folheto.pdf'))!;
+  const pasta = mkdtempSync(path.join(tmpdir(), 'folheto-e2e-'));
+  writeFileSync(path.join(pasta, 'folheto.pdf'), Buffer.from(await (await admin.storage.from('pedidos').download(pdfFolheto)).data!.arrayBuffer()));
+  assert.deepEqual(validarPdfX4(path.join(pasta, 'folheto.pdf')), { valido: true, problemas: [] });
+  await page.getByRole('button', { name: 'Editar à mão' }).click();
+  await page.locator('.cr-edicao a', { hasText: 'folheto.idml · abre no DesignCraft ou InDesign' }).waitFor();
+  await semErroNaTela(page);
+  await page.context().close();
+
+  // O cliente: com quatro ideias, só o guia de 6 páginas; pede, aprova e baixa o PDF.
+  const cli = await abrir();
+  await pedirAte3(cli, /Guia em PDF/, 'Quatro lembretes pro treino. Dormir bem na véspera. Comer antes de treinar. Beber água no intervalo. Alongar no fim.', async (p) => {
+    assert.ok(await p.locator('[aria-label="Páginas do guia"] button', { hasText: '8' }).isDisabled(), '8 páginas sem ideias bastantes');
+    assert.equal(await p.locator('[aria-label="Páginas do guia"] button[aria-pressed="true"]').textContent(), '6');
+  });
+  assert.match((await cli.locator('.resumo').textContent())!, /1 guia em PDF de 6 páginas/);
+  await cli.getByRole('button', { name: 'Pedir guia' }).click();
+  await cli.waitForURL(/#\/pedido\//);
+  const doApp = cli.url().split('/').pop()!;
+  await cli.locator('.selo.para_aprovar').first().waitFor({ timeout: 120_000 });
+  assert.equal((await entregaDe(doApp)).filter((c) => /saida\/pagina-\d+\.png$/.test(c)).length, 6);
+  await cli.getByRole('button', { name: 'Aprovar' }).click();
+  await cli.getByRole('link', { name: 'Baixar o guia (PDF)' }).waitFor();
   assert.ok(await semRolagemLateral(cli));
   await semErroNaTela(cli);
   await cli.context().close();

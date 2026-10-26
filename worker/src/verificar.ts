@@ -35,6 +35,8 @@ export const MIME: Record<string, string> = {
   '.pdf': 'application/pdf',
   '.ai': 'application/postscript',
   '.vectorcraft': 'application/json',
+  '.designcraft': 'application/octet-stream',
+  '.idml': 'application/vnd.adobe.indesign-idml-package',
   '.mov': 'video/quicktime',
   '.fcproj': 'application/octet-stream',
   '.ecproj': 'application/json',
