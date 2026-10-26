@@ -291,6 +291,16 @@
   .cr-tipo span{ font-size:0.78rem; color:var(--fraco); }
   .cr-tipo[aria-pressed="true"]{ border-color:var(--laranja-forte); box-shadow:0 0 0 1px var(--laranja-forte) inset; }
   .cr-acoes{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .lote-lista{ display:grid; gap:8px; margin-bottom:18px; max-width:760px; }
+  .lote-linha{ display:flex; align-items:center; gap:12px; background:var(--sup); border:1px solid var(--linha); border-radius:12px; padding:10px 14px; }
+  .lote-linha input[type=checkbox]{ width:18px; height:18px; flex:none; }
+  .lote-tema{ flex:1; min-width:0; }
+  .lote-linha select{ width:auto; flex:none; }
+  .lote-linha.feito .lote-tema{ color:var(--cinza); }
+  .lote-falhas{ margin-bottom:18px; max-width:760px; }
+  .el-mini{ width:44px; height:44px; flex:none; object-fit:contain; border-radius:8px; border:1px solid var(--linha);
+    background:repeating-conic-gradient(var(--linha) 0 25%, var(--sup) 0 50%) 0 0 / 12px 12px; }
+  @media (max-width:560px){ .lote-linha{ flex-wrap:wrap; } .lote-linha select{ width:100%; } }
   .cr-briefing{ margin:12px 0 0; font-style:italic; color:var(--fraco); max-width:70ch; }
   .cr-etapa{ font-family:var(--display); font-weight:600; font-size:1.05rem; margin:0 0 10px; }
   .cr-imagens{ display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; }
@@ -1341,6 +1351,104 @@
        o botão de sair, sim. */
     .topbar .who span{ display:none; }
   }
+
+  /* Plano do mês */
+  .plano-topo{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:6px; }
+  .plano-topo input[type=month]{ min-width:170px; }
+
+  /* O selo separa o que está escrito nas respostas do que precisa de alguém
+     pra confirmar. Misturar os dois é como um diagnóstico vira chute. */
+  .achado{ display:grid; gap:5px; padding:12px 0; border-top:1px solid var(--linha2); }
+  .achado:first-of-type{ border-top:none; }
+  .achado p{ margin:0; font-size:0.9rem; line-height:1.5; }
+  .achado .selo{
+    justify-self:start; padding:2px 8px; border-radius:6px;
+    font-family:var(--dado); font-size:0.6rem; letter-spacing:0.07em; text-transform:uppercase;
+  }
+  .achado.vejo .selo{ background:var(--tinta); color:var(--papel); }
+  .achado.pergunte .selo{ background:var(--es-f); color:var(--tinta); border:1px solid var(--es); }
+  .achado .de{ font-size:0.76rem; color:var(--fraco); font-family:var(--dado); }
+
+  .pilar{ padding:12px 0; border-top:1px solid var(--linha2); }
+  .pilar:first-of-type{ border-top:none; }
+  .pilar b{ font-family:var(--display); font-size:0.98rem; }
+  .pilar p{ margin:4px 0 0; font-size:0.87rem; line-height:1.5; color:var(--fraco); }
+  .pilar.sem{ opacity:0.5; }
+  .pilar .de{ font-family:var(--dado); font-size:0.74rem; }
+
+  .campo-plano{
+    width:100%; font-family:var(--corpo); font-size:0.94rem; line-height:1.55;
+    padding:13px 15px; border-radius:10px; border:1px solid var(--linha);
+    background:var(--sup); color:var(--tinta); resize:vertical;
+  }
+  .campo-plano:focus{ border-color:var(--laranja); outline:none; }
+
+  /* ---------- identidade visual do cliente ---------- */
+  /* A caixa de mandar o manual. Ela é grande de propósito: é a única parte do
+     Estúdio onde entra um arquivo que veio de fora, e onde o texto do que se
+     espera precisa caber inteiro. Caixa pequena com letra miúda é como se
+     manda o arquivo errado. */
+  .idv-solta{
+    border:1.5px dashed var(--linha); border-radius:10px; background:var(--sup2);
+    padding:18px; margin-top:12px; transition:border-color .15s ease, background .15s ease;
+  }
+  .idv-solta.sobre{ border-color:var(--laranja); background:var(--laranja-fraco); }
+  .idv-espera{ margin:0 0 14px; font-size:0.82rem; line-height:1.55; color:var(--fraco); }
+  .idv-espera b{ color:var(--tinta); }
+  .idv-espera ul{ margin:8px 0 0; padding-left:18px; }
+  .idv-espera li{ margin-top:4px; }
+  .idv-arqs{ display:grid; gap:8px; margin-top:14px; }
+  .idv-arq{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    border:1px solid var(--linha2); border-radius:10px; background:var(--sup);
+    padding:9px 12px; font-size:0.82rem;
+  }
+  .idv-arq .nm{ flex:1 1 180px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .idv-arq .pq{ color:var(--fraco); font-size:0.74rem; }
+
+  /* Uma linha da paleta: a bolinha da cor, o nome que o manual dá a ela, e
+     pra que o manual manda usar. As três coisas juntas, porque cor sem o uso
+     é só um hexadecimal — e hexadecimal solto é exatamente o que faz alguém
+     usar o roxo de posicionamento numa peça de rua. */
+  .pal-linha{
+    display:grid; grid-template-columns:44px minmax(0,1fr) minmax(0,1.6fr) 32px;
+    gap:8px; align-items:center; margin-top:8px;
+  }
+  .pal-linha input[type=color]{ width:44px; height:34px; padding:2px; }
+  .pal-linha input[type=text]{
+    width:100%; border:1px solid var(--linha); border-radius:10px; background:var(--sup2);
+    padding:8px 10px; font:inherit; font-size:0.82rem; color:var(--tinta);
+  }
+  .pal-linha input[type=text]:focus{ border-color:var(--laranja); background:var(--sup); }
+  .lixo{
+    border:1px solid var(--linha); border-radius:10px; background:var(--sup);
+    color:var(--fraco); width:32px; height:32px; line-height:1; font-size:1rem;
+  }
+  .lixo:hover{ border-color:var(--al); color:var(--al); }
+
+  .conj-grade{ display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px; margin-top:12px; }
+  .conj-cartao{ border:1px solid var(--linha); border-radius:10px; background:var(--sup); overflow:hidden; }
+  .conj-amostra{ padding:16px 14px; min-height:86px; display:grid; gap:6px; align-content:center; }
+  .conj-amostra .t{ font-family:var(--display); font-weight:700; font-size:0.94rem; line-height:1.2; }
+  .conj-amostra .a{ font-size:0.76rem; opacity:.92; }
+  .conj-amostra .f{ height:6px; width:52px; border-radius:100px; }
+  .conj-corpo{ padding:12px; display:grid; gap:8px; }
+  .conj-corpo input[type=text]{
+    width:100%; border:1px solid var(--linha); border-radius:10px; background:var(--sup2);
+    padding:8px 10px; font:inherit; font-size:0.82rem; color:var(--tinta);
+  }
+  .conj-cores{ display:flex; gap:8px; flex-wrap:wrap; }
+  .conj-cor{ display:grid; gap:3px; justify-items:center; }
+  .conj-cor span{ font-size:0.66rem; color:var(--fraco); letter-spacing:.04em; text-transform:uppercase; }
+  .conj-cor input[type=color]{ width:42px; height:30px; padding:2px; }
+  .conj-pe{ display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+
+  @media (max-width:680px){
+    .pal-linha{ grid-template-columns:44px minmax(0,1fr) 32px; }
+    .pal-linha input[type=text].uso{ grid-column:1 / -1; }
+  }
+
+
 </style>
 </head>
 <body>
@@ -1398,6 +1506,9 @@
     ['respostas','Respostas', 'O que eles escreveram no formulário',
       'A matéria-prima de todo o resto. Baseline, metas e conteúdo saem daqui — quando tiver dúvida do que fazer, releia isto.',
       'Chega sozinho quando alguém envia o formulário'],
+    ['plano','Plano do mês', 'O que ele deve fazer neste mês, e por quê',
+      'Lê as respostas dele, aponta o que está escrito e o que falta, e vira um plano de ação com a pauta do mês. A pauta vira peças pela fábrica, em Criar.',
+      'Gerar no começo de cada mês'],
     ['acessos','Acessos', 'Quais contas já estão na nossa mão',
       'É o que mais trava onboarding de agência, e trava por um motivo bobo: ninguém sabe quem detém o quê. Costuma estar com um sobrinho, um ex-funcionário ou a agência anterior.',
       'Preencher no primeiro dia, junto com o contrato'],
@@ -1505,7 +1616,7 @@
   const state = {
     user:null, membro:false, carregando:true,
     clientes:[], inbox:[], vista:{ tipo:'agora' }, aba:'respostas',
-    detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[], pagina:null, correcoes:[], notas:[] },
+    detalhe:{ onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[], pagina:null, correcoes:[], notas:[], plano:null },
     erro:null, modoLogin:'link', linkEnviadoPara:null, editandoPV:false,
     gaveta:false, voltarPara:null,
     oportunidades:[], buscaLista:'', colando:false, ordemLista:{ campo:'nome', desc:false },
@@ -1591,7 +1702,7 @@
       state.aba = (opts.aba && ABAS.some(a => a[0] === opts.aba)) ? opts.aba : (state.aba || 'respostas');
       if(trocouCliente){
         state.editandoPV = false;
-        state.detalhe = { onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[], pagina:null, correcoes:[], notas:[] };
+        state.detalhe = { onboarding:null, metas:[], baselines:[], marcos:[], conformidade:[], horas:[], acessos:[], pagina:null, correcoes:[], notas:[], plano:null };
         render();
         carregarDetalhe(vista.id).then(render);
         return;
@@ -1693,6 +1804,7 @@
     d.pagina = (pg.data && pg.data[0]) || null;
     d.correcoes = cr.data || [];
     d.notas = nt.data || [];
+    await carregarPlano(clienteId);
   }
 
   async function inserir(tabela, linha){
@@ -2935,7 +3047,7 @@
       if(dentro(c.fim_contrato)) fim.push({ data:c.fim_contrato, oq:'Fim do contrato — ' + c.nome,
         de:'contrato', ir:()=>abrirCliente(c.id, 'respostas') });
       if(dentro(c.primeiro_valor_data)) fim.push({ data:c.primeiro_valor_data,
-        oq:'Primeiro valor prometido — ' + c.nome, de:'promessa', ir:()=>abrirCliente(c.id, 'plano') });
+        oq:'Primeiro valor prometido — ' + c.nome, de:'promessa', ir:()=>abrirCliente(c.id, 'respostas') });
     });
 
     (state.tudo.marcos || []).forEach(m=>{
@@ -2943,7 +3055,7 @@
       if(!dentro(m.data_prevista) || m.data_cumprida) return;
       const c = cliente(m.cliente_id);
       fim.push({ data:m.data_prevista, oq:m.titulo + (c ? ' — ' + c.nome : ''), de:'plano',
-        ir:()=> c && abrirCliente(c.id, 'plano') });
+        ir:()=> c && abrirCliente(c.id, 'marcos') });
     });
 
     if(clienteId === undefined){
@@ -4353,7 +4465,7 @@
       + 'você acompanha, pede ajuste, edita à mão no app quando precisar e aprova.'));
     cabeca.appendChild(avisoDaFabrica());
     const abas = el('div',{class:'visao', style:'margin-top:18px'});
-    [['pecas','Peças'],['nova','Nova peça'],['marca','Marca']].forEach(([k, rot])=>{
+    [['pecas','Peças'],['nova','Nova peça'],['lote','Produzir o mês'],['marca','Marca']].forEach(([k, rot])=>{
       abas.appendChild(el('button',{'aria-selected':String(c.aba === k), onclick:()=>{ c.aba = k; render(); }}, rot));
     });
     cabeca.appendChild(abas);
@@ -4361,6 +4473,7 @@
 
     if(c.aba === 'marca'){ if(!state.estudio) state.estudio = {}; m.appendChild(telaMarca()); return m; }
     if(c.aba === 'nova'){ m.appendChild(formNovaPeca()); return m; }
+    if(c.aba === 'lote'){ m.appendChild(telaLote()); return m; }
     if(!c.carregado){ m.appendChild(el('div',{class:'bloco'}, '<p class="muted">Carregando…</p>')); carregarPedidos().then(render); return m; }
     m.appendChild(listaDePecas());
     return m;
@@ -4558,6 +4671,151 @@
     c.novo = null; c.aba = 'pecas';
     await carregarPedidos();
     ir({tipo:'pedido', id:data});
+  }
+
+  // ---------- produzir o mês ----------
+  // A pauta do Plano do mês vira pedidos de uma vez: um tema por linha, cada
+  // um no formato que a equipe escolher, pela mesma fila e pela mesma fábrica.
+  // O pedido guarda de que tema veio; tema que já virou pedido não sai de novo.
+
+  // Só o que sai do texto do tema: o reel do vídeo gravado e o carrossel em
+  // vídeo precisam de material, e esses se pedem em "Nova peça".
+  const FORMATOS_LOTE = ['post', 'carrossel', 'capa', 'abertura'];
+  // Um palpite pelo texto do tema; a equipe troca na lista antes de mandar.
+  const formatoSugerido = tema => /carross/i.test(tema) ? 'carrossel' : /\bcapa\b/i.test(tema) ? 'capa'
+    : /\b(reels?|v[ií]deo)\b/i.test(tema) ? 'abertura' : 'post';
+
+  async function carregarLote(){
+    const l = C().lote, cliente = l.cliente;
+    l.carregando = true;
+    const { data, error } = await sb.rpc('sugestoes_do_mes', { p_cliente: cliente });
+    l.carregando = false;
+    if(C().lote !== l) return;
+    if(error){ l.erro = error.message; return; }
+    l.temas = data || [];
+    l.temas.forEach(t => {
+      if(l.marcados[t.tema] == null) l.marcados[t.tema] = !t.pedido_id;
+      if(!l.formatos[t.tema]) l.formatos[t.tema] = formatoSugerido(t.tema);
+    });
+  }
+
+  function telaLote(){
+    const c = C();
+    if(!c.lote) c.lote = { cliente:'' };
+    const l = c.lote;
+    l.marcados = l.marcados || {}; l.formatos = l.formatos || {};
+    const b = el('div',{class:'bloco'});
+    const intro = el('p',{class:'dica', style:'margin-top:0'});
+    intro.textContent = 'A pauta do Plano do mês vira peças de uma vez: marque os temas, escolha o formato de cada um e mande pra fábrica. '
+      + 'Cada peça sai na marca do cliente e aparece em Peças.';
+    b.appendChild(intro);
+
+    const w = el('div',{class:'cr-campo'});
+    const rot = el('label',{for:'lote-cliente'}); rot.textContent = 'Pra quem';
+    const sel = el('select',{id:'lote-cliente'});
+    sel.appendChild(el('option',{value:''}, 'Escolha o cliente'));
+    state.clientes.forEach(x => { const o = el('option',{value:x.id}); o.textContent = x.nome; if(x.id === l.cliente) o.selected = true; sel.appendChild(o); });
+    sel.addEventListener('change', ()=>{ c.lote = { cliente:sel.value }; render(); });
+    w.appendChild(rot); w.appendChild(sel);
+    b.appendChild(w);
+    if(!l.cliente) return b;
+
+    if(l.erro){ const e = el('p',{class:'erro'}); e.textContent = 'Não deu pra ler a pauta: ' + l.erro; b.appendChild(e); return b; }
+    if(!l.temas){
+      if(!l.carregando) carregarLote().then(render);
+      b.appendChild(el('p',{class:'muted'}, 'Lendo a pauta…'));
+      return b;
+    }
+    const abrirPlano = () => abrirCliente(l.cliente, 'plano');
+    if(!l.temas.length){
+      const v = el('div',{class:'vazio'});
+      v.appendChild(el('p',{style:'margin:0 0 10px'}, 'Este cliente ainda não tem pauta neste mês. A pauta se escreve no Plano do mês, na ficha dele — um tema por linha.'));
+      v.appendChild(el('button',{class:'btn small', onclick:abrirPlano}, 'Abrir o Plano do mês'));
+      b.appendChild(v);
+      return b;
+    }
+
+    const lista = el('div',{class:'lote-lista', role:'group', 'aria-label':'Temas da pauta'});
+    l.temas.forEach(t => {
+      const linha = el('div',{class:'lote-linha' + (t.pedido_id ? ' feito' : '')});
+      const id = 'lote-tema-' + t.ordem;
+      if(t.pedido_id){
+        const tx = el('span',{class:'lote-tema'}); tx.textContent = t.tema;
+        linha.appendChild(tx);
+        linha.appendChild(el('button',{class:'btn ghost small', onclick:()=>ir({tipo:'pedido', id:t.pedido_id})}, 'Já virou pedido →'));
+      } else {
+        const ck = el('input',{type:'checkbox', id});
+        ck.checked = !!l.marcados[t.tema];
+        ck.disabled = !!l.pedindo;
+        ck.addEventListener('change', ()=>{ l.marcados[t.tema] = ck.checked; contar(); });
+        const tx = el('label',{class:'lote-tema', for:id}); tx.textContent = t.tema;
+        const fs = el('select',{'aria-label':'Formato'});
+        fs.disabled = !!l.pedindo;
+        FORMATOS_LOTE.forEach(k => { const tc = TIPOS_CRIAR.find(x => x.k === k);
+          const o = el('option',{value:k}); o.textContent = tc.nome; if(l.formatos[t.tema] === k) o.selected = true; fs.appendChild(o); });
+        fs.addEventListener('change', ()=>{ l.formatos[t.tema] = fs.value; });
+        linha.appendChild(ck); linha.appendChild(tx); linha.appendChild(fs);
+      }
+      lista.appendChild(linha);
+    });
+    b.appendChild(lista);
+
+    if(l.falhas && l.falhas.length){
+      const f = el('div',{class:'lote-falhas', role:'alert'});
+      f.appendChild(el('p',{style:'margin:0 0 6px'}, '<b>Estes não foram:</b>'));
+      l.falhas.forEach(x => { const p = el('p',{class:'erro', style:'margin:2px 0'}); p.textContent = x.tema + ' — ' + x.erro; f.appendChild(p); });
+      b.appendChild(f);
+    }
+
+    const rodape = el('div',{class:'cr-acoes'});
+    const botao = el('button',{class:'btn', onclick:pedirLote});
+    const escolhidos = () => l.temas.filter(t => !t.pedido_id && l.marcados[t.tema]);
+    function contar(){
+      const n = escolhidos().length;
+      botao.textContent = l.pedindo ? 'Pedindo… ' + l.feitos + ' de ' + l.total
+        : n === 1 ? 'Pedir 1 peça à fábrica' : 'Pedir ' + n + ' peças à fábrica';
+      botao.disabled = !!l.pedindo || !n;
+    }
+    contar();
+    rodape.appendChild(botao);
+    rodape.appendChild(el('button',{class:'btn ghost small', onclick:abrirPlano}, 'Mudar a pauta'));
+    b.appendChild(rodape);
+    return b;
+  }
+
+  // Um pedido por vez, na ordem da pauta: se a fila encher no meio, o que já
+  // foi fica feito e o resto espera, marcado, pra mandar depois.
+  async function pedirLote(){
+    const c = C(), l = c.lote;
+    const temas = l.temas.filter(t => !t.pedido_id && l.marcados[t.tema]);
+    if(!temas.length || l.pedindo) return;
+    Object.assign(l, { pedindo:true, falhas:[], feitos:0, total:temas.length });
+    render();
+    for(const t of temas){
+      const tc = TIPOS_CRIAR.find(x => x.k === l.formatos[t.tema]);
+      const briefing = { texto: t.tema };
+      if(tc.tipo === 'carrossel') briefing.slides = 5;
+      if(tc.formato) briefing.formato = tc.formato;
+      const { error } = await sb.rpc('criar_pedido', { p_cliente: l.cliente, p_tipo: tc.tipo, p_briefing: briefing,
+        p_origem_plano: t.plano_id, p_origem_tema: t.tema });
+      if(error){
+        l.falhas.push({ tema:t.tema, erro:error.message });
+        if(error.code === '53400') break;
+        continue;
+      }
+      l.feitos++;
+      if(C().lote === l) render();
+    }
+    l.pedindo = false;
+    const feitos = l.feitos;
+    await carregarPedidos();
+    if(feitos) toast(feitos === 1 ? '1 peça foi pra fábrica.' : feitos + ' peças foram pra fábrica.');
+    if(!l.falhas.length){
+      c.lote = null; c.aba = 'pecas'; c.cliente = l.cliente; c.filtro = 'todos';
+    } else {
+      l.temas = null;
+    }
+    render();
   }
 
   // ---------- o pedido aberto ----------
@@ -5048,14 +5306,6 @@
     ['9:16','Story',   1080, 1920, 'Story e reels'],
   ];
   const medidas = f => FORMATOS_PECA.find(x => x[0] === f) || FORMATOS_PECA[0];
-
-  const PRESETS_PECA = [
-    ['papel',  'Papel',  'Fundo claro neutro, texto escuro'],
-    ['tinta',  'Tinta',  'Fundo escuro neutro, texto claro'],
-    ['nevoa',  'Névoa',  'Claro, mas tingido com a cor do cliente — parece dele sem gritar'],
-    ['breu',   'Breu',   'Escuro tingido com a cor do cliente'],
-    ['cliente','Cor cheia', 'A cor do cliente ocupando o fundo inteiro'],
-  ];
 
   // ---------- cor ----------
 
@@ -5825,6 +6075,867 @@
 
   // ---------- a marca, por cliente ----------
 
+  // Mesma estrutura do formulário "Conhecendo Você(s) e Seu Trabalho".
+  // Existe aqui para o painel mostrar cada resposta com a pergunta que a gerou.
+  // Espelho do formulário "Conhecendo Você(s) e Seu Trabalho", que tem duas
+  // trilhas desde 21/09. Existe aqui para o painel mostrar cada resposta com a
+  // pergunta que a gerou — e as perguntas mudam conforme quem respondeu.
+  //
+  // As chaves compartilhadas têm o MESMO nome nas duas trilhas: é por elas que
+  // a marca, as sugestões e o pedido pra IA funcionam sem saber de trilha.
+  const FUTURO = [
+    ['visao_futuro','Se pudesse escolher, como seria o trabalho de vocês daqui a 2 anos?'],
+    ['sonho_maior','Existe algum sonho maior por trás desse trabalho, além do dinheiro?'],
+    ['ajuda_esperada','O que você(s) imagina que a gente poderia ajudar a alcançar?'],
+    ['referencia_inspiracao','Tem alguma referência (pessoa, marca, estilo) que inspira você(s) profissionalmente?'],
+    ['espaco_livre','Tem mais alguma coisa que você(s) queira contar sobre você(s) ou o trabalho de vocês?'],
+  ];
+
+  const SECOES_POR_TRILHA = {
+    solo: [
+      { titulo:'Sobre você(s)', perguntas:[
+        ['nome_pref','Como você(s) prefere ser chamado(a)?'],
+        ['tempo_trabalho','Há quanto tempo você(s) faz esse trabalho?'],
+        ['motivo_comeco','O que fez você(s) começar nisso?'],
+        ['gosta_mais','O que você(s) mais gosta no que faz?'],
+        ['pesa_cansa','O que mais pesa ou cansa no dia a dia de vocês?'],
+        ['descricao_outros','Como as pessoas que conhecem você(s) bem descreveriam o jeito de vocês trabalhar?'],
+      ]},
+      { titulo:'Sobre o trabalho de vocês', perguntas:[
+        ['o_que_faz','Em poucas palavras, o que você(s) faz ou oferece?'],
+        ['cliente_ideal','Como é o cliente ideal de vocês?'],
+        ['faz_procurar','O que geralmente faz alguém procurar você(s)?'],
+        ['diferencial','O que diferencia você(s) de outras pessoas que fazem algo parecido?'],
+        ['como_encontram','Como as pessoas encontram você(s) hoje?'],
+        ['entrega_orgulho','Qual foi um resultado ou entrega que deixou você(s) mais orgulhoso(a)?'],
+        ['elogio_frequente','Existe algo que as pessoas sempre elogiam no trabalho de vocês?'],
+      ]},
+      { titulo:'Sobre público e valores', perguntas:[
+        ['preco_atual','Quanto você(s) cobra hoje pelo que faz?'],
+        ['forma_precificacao','Como você(s) decide o preço de um produto ou serviço?'],
+        ['ticket_medio','Qual costuma ser o ticket médio dos clientes de vocês?'],
+        ['forma_pagamento','Existe alguma forma de pagamento ou parcelamento que você(s) oferece hoje?'],
+        ['percepcao_preco','Na percepção de vocês, o preço cobrado é justo, está abaixo ou acima do mercado?'],
+        ['cliente_mais_lucro','Que tipo de cliente costuma pagar mais ou dar mais lucro pra você(s)?'],
+      ]},
+      { titulo:'Olhando pra frente', perguntas: FUTURO },
+    ],
+    empresa: [
+      { titulo:'Sobre a empresa', perguntas:[
+        ['nome_pref','Como a empresa se chama, e como vocês preferem ser chamados no dia a dia?'],
+        ['tempo_trabalho','Há quanto tempo a empresa existe, e quantas pessoas são hoje?'],
+        ['motivo_comeco','O que fez vocês começarem? Que problema estava na frente de vocês?'],
+        ['gosta_mais','Do que o time mais se orgulha no que vocês construíram até aqui?'],
+        ['pesa_cansa','O que mais trava ou consome tempo hoje na operação de vocês?'],
+        ['descricao_outros','Como um cliente que já trabalhou com vocês descreveria o jeito de vocês trabalhar?'],
+      ]},
+      { titulo:'O que vocês vendem', perguntas:[
+        ['o_que_faz','Em poucas palavras, o que a empresa faz ou oferece?'],
+        ['cliente_ideal','Como é o cliente ideal de vocês? (setor, tamanho, maturidade)'],
+        ['faz_procurar','O que costuma estar acontecendo na empresa do cliente quando ela procura vocês?'],
+        ['diferencial','O que vocês fazem que um concorrente não consegue copiar em seis meses?'],
+        ['como_encontram','Como os clientes chegam até vocês hoje?'],
+        ['entrega_orgulho','Qual entrega deixou vocês mais orgulhosos? Com número, se tiver.'],
+        ['elogio_frequente','O que os clientes sempre elogiam depois que o projeto entra em operação?'],
+      ]},
+      { titulo:'Como a venda acontece', perguntas:[
+        ['quem_decide','Do outro lado, quem decide a compra? E quem mais precisa dizer sim antes?'],
+        ['ciclo_venda','Quanto tempo costuma passar entre o primeiro contato e a assinatura?'],
+        ['objecao_comum','Qual é a objeção que aparece quase sempre? E o que vocês respondem?'],
+        ['prova_tecnica','Como vocês provam que funciona antes de o cliente comprar?'],
+        ['alternativa_cliente','Se o cliente não comprar de vocês, o que ele faz?'],
+        ['canal_venda','A venda é direta, por edital/licitação, por parceiro, ou uma mistura?'],
+        ['porta_voz','Quem da empresa pode aparecer, falar em vídeo ou assinar um texto técnico?'],
+      ]},
+      { titulo:'Preço e contrato', perguntas:[
+        ['preco_atual','Qual é o modelo de cobrança?'],
+        ['forma_precificacao','Como vocês chegam no preço de uma proposta?'],
+        ['ticket_medio','Qual é o ticket médio de um contrato de vocês?'],
+        ['forma_pagamento','Como é o pagamento na prática? (prazo, nota, empenho)'],
+        ['percepcao_preco','Na percepção de vocês, o preço está justo, abaixo ou acima do mercado?'],
+        ['cliente_mais_lucro','Que tipo de contrato dá mais lucro ou menos dor de cabeça pra vocês?'],
+      ]},
+      { titulo:'Olhando pra frente', perguntas: FUTURO },
+    ],
+  };
+
+  // Qual trilha uma resposta seguiu. Respostas antigas não têm o campo e são
+  // todas da trilha solo, que era a única que existia.
+  const trilhaDa = r => (r && (r.trilha || (r.respostas && r.respostas.trilha))) === 'empresa'
+    ? 'empresa' : 'solo';
+
+  // O termômetro do cartão mede uma coisa só: dá pra fazer peça boa pra este
+  // cliente hoje? Os cinco itens são exatamente o que o Estúdio lê — tom e
+  // frases saem do formulário, a cor manda na paleta, o arroba desenha a
+  // simulação do feed, e o registro entra na assinatura obrigatória. Um
+  // termômetro que mede outra coisa é enfeite.
+  function prontoPraProduzir(c){
+    const m = c.marca || {};
+    const itens = [
+      ['o formulário', state.respostas.some(r => r.cliente_id === c.id)],
+      ['o tom da marca', !!String(m.tom || '').trim()],
+      ['a cor', !!c.cor],
+      ['o arroba', !!String(c.instagram || '').trim()],
+    ];
+    // A assinatura com registro só é exigência de quem tem conselho. Empresa de
+    // tecnologia não tem CREF nem CRO, e cobrar isso dela deixava o medidor
+    // preso em 4/5 pra sempre — medidor que nunca fecha é medidor que a pessoa
+    // aprende a ignorar, e aí ele para de servir pro que foi feito.
+    if(conselhoDe(c)) itens.push(['a assinatura', !!String(c.registro_profissional || '').trim()]);
+    return {
+      prontas: itens.filter(x => x[1]).length,
+      total: itens.length,
+      falta: itens.filter(x => !x[1]).map(x => x[0]),
+    };
+  }
+
+  // Cada pacote diz a norma que aplica, quando foi conferida e por quem. A data
+  // é obrigatória e aparece na tela: regra desatualizada é pior que regra
+  // nenhuma, porque cria confiança falsa.
+  const PACOTES_REGRA = [
+    {
+      id:'odonto', nome:'Odontologia', conselho:'CRO',
+      casa:['odonto','dentist','dental','ortodont','implantod','endodont','periodont','harmoniza[çc][ãa]o orofacial'],
+      conferido_em:'2026-09-16', revisado_por:null,
+      normas:[
+        ['Código de Ética Odontológica — Res. CFO-118/2012, com a redação dada pela Res. CFO-271/2025',
+         'https://website.cfo.org.br/codigos/'],
+        ['Res. CFO-196/2019 — selfies e imagens de diagnóstico e conclusão',
+         'https://sistemas.cfo.org.br/visualizar/atos/RESOLU%C3%87%C3%83O/SEC/2019/196'],
+        ['Res. CFO-230/2020, art. 2º — procedimentos não odontológicos',
+         'https://sistemas.cfo.org.br/visualizar/atos/RESOLU%C3%87%C3%83O/SEC/2020/230'],
+        ['Lei 5.081/1966, art. 7º', 'https://www.planalto.gov.br/ccivil_03/leis/l5081.htm'],
+      ],
+      nota:'Cuidado com duas armadilhas. A Res. CFO-271/2025 tirou "desconto" do art. 20, VIII '
+        + 'em cumprimento a decisão do CADE — mas o art. 44, I e o art. 7º "g" da Lei 5.081/66 '
+        + 'continuam vigentes, e resolução não revoga lei federal: preço e desconto seguem sendo '
+        + 'risco. E o PDF do Código de Ética publicado no site do CFO ainda traz a redação antiga.',
+      regras:[
+        { id:'od-preco', nivel:'grave', re:/(R\$\s*\d|\b\d+\s*reais\b|a\s+partir\s+de\s+R?\$)/i,
+          oq:'divulga preço',
+          norma:'CEO art. 44, I e Lei 5.081/1966, art. 7º, "g"',
+          porq:'A lei veda anunciar preços e modalidades de pagamento que signifiquem competição desleal. '
+            + 'O CADE derrubou a restrição a descontos, mas não tocou nesses dois dispositivos.' },
+        { id:'od-parcela', nivel:'grave', re:/(\b\d+\s*x\s*(de|sem\s+juros)|parcel(a|ado|amos|amento)|sem\s+juros|\bboleto\b|\bpix\b)/i,
+          oq:'divulga forma de pagamento',
+          norma:'CEO art. 44, I e Lei 5.081/1966, art. 7º, "g"',
+          porq:'Modalidade de pagamento entra na mesma vedação do preço.' },
+        { id:'od-gratis', nivel:'grave', re:/(\bgr[áa]tis\b|gratuit[oa]|sem\s+compromisso|avalia[çc][ãa]o\s+gratuita|primeira\s+consulta\s+gr)/i,
+          oq:'oferece serviço ou avaliação gratuita',
+          norma:'CEO art. 20, I e IX',
+          porq:'Vedado oferecer serviços gratuitos a quem possa remunerá-los, e divulgar consultas ou diagnósticos gratuitos.' },
+        { id:'od-sorteio', nivel:'grave', re:/(\bsorteio\b|\bsorteand|\bconcurso\b|\bbrinde\b|\bpr[êe]mio\b|vale[\s-]?presente|gift\s?card)/i,
+          oq:'usa sorteio, concurso, brinde ou prêmio',
+          norma:'CEO art. 20, II e VIII (redação da Res. CFO-271/2025) e art. 44, X',
+          porq:'A Res. 271/2025 incluiu "sorteios" expressamente na vedação do art. 20, VIII.' },
+        { id:'od-indica', nivel:'grave', re:/(indique\s+(um\s+)?amig|indica[çc][ãa]o\s+premiada|ganhe\b.{0,24}indica|em\s+troca\s+de)/i,
+          oq:'oferece vantagem por indicação',
+          norma:'CEO art. 20, III e art. 44, IX',
+          porq:'Vedado dar gratificação por encaminhamento de paciente e promover troca de favores.' },
+        { id:'od-popular', nivel:'grave', re:/((odontologia|cl[íi]nica|dentista|consult[óo]rio|pre[çc]o|valor)\s+popular|popular\s+(em|na|no)\b)/i,
+          oq:'usa a expressão "popular"',
+          norma:'CEO art. 44, VII',
+          porq:'O artigo cita a expressão "popular" nominalmente como caracterização de concorrência desleal.' },
+        { id:'od-durante', nivel:'grave', re:/(bastidor|durante\s+o\s+procedimento|time[\s-]?lapse|\bao\s+vivo\s+da\s+cadeira)/i,
+          oq:'mostra o transcurso do procedimento',
+          norma:'Res. CFO-196/2019, art. 3º',
+          porq:'A divulgação de imagem ou vídeo do transcurso do procedimento é proibida fora de publicação científica.' },
+        { id:'od-naoodonto', nivel:'grave',
+          re:/(micropigmenta[çc][ãa]o|maquiagem\s+definitiva|design\s+de\s+sobrancelha|remo[çc][ãa]o\s+de\s+tatuagem|rejuvenescimento\s+de\s+(colo|m[ãa]os)|calv[íi]cie)/i,
+          oq:'anuncia procedimento não odontológico',
+          norma:'Res. CFO-230/2020, art. 2º',
+          porq:'A resolução lista esses procedimentos como alheios à formação em Odontologia.' },
+        { id:'od-falapreco', nivel:'indicio', re:/\b(pre[çc]o|valor\s+do\s+tratamento|quanto\s+custa|investimento)\b/i,
+          oq:'fala em preço sem anunciar valor',
+          norma:'CEO art. 44, I e Lei 5.081/1966, art. 7º, "g"',
+          condicao:'Explicar como se forma o custo de um tratamento é conteúdo. Anunciar valor, desconto ou '
+            + 'forma de pagamento é o que a norma veda. A diferença está em haver ou não um número e uma oferta.',
+          porq:'Aqui a máquina só viu a palavra; quem decide se virou anúncio de preço é você.' },
+        { id:'od-exclusivo', nivel:'aviso', re:/\b(t[ée]cnica|tecnologia|aparelho|equipamento)\b.{0,30}\b(exclusiv|[úu]nic|in[ée]dit|pioneir|revolucion)/i,
+          oq:'anuncia técnica ou equipamento como exclusivo',
+          norma:'CEO art. 44, III',
+          porq:'Só se pode anunciar técnica comprovada cientificamente e equipamento com registro validado.' },
+        // --- indícios
+        { id:'od-antesdepois', nivel:'indicio', re:/(antes\s+e\s+depois|#antesedepois|\bantes\b.{0,18}\bdepois\b)/i,
+          oq:'usa antes e depois',
+          norma:'Res. CFO-196/2019, arts. 2º, 3º e 4º',
+          condicao:'Só é lícito com todas estas: imagem do diagnóstico e da CONCLUSÃO (nunca do durante); '
+            + 'publicada pelo próprio dentista que executou; com TCLE assinado antes; com nome e número de inscrição na peça; '
+            + 'e sem promessa de resultado, sensacionalismo ou autopromoção.',
+          porq:'Publicar fora dessas condições é infração de MANIFESTA GRAVIDADE pelo art. 5º da mesma resolução, '
+            + 'o que pula a gradação de penas e pode ir direto a pena severa.' },
+        { id:'od-selfie', nivel:'indicio', re:/(selfie|\bcom\s+a\s+paciente\b|\bcom\s+o\s+paciente\b)/i,
+          oq:'mostra paciente na peça',
+          norma:'Res. CFO-196/2019, art. 1º e § 1º',
+          condicao:'Precisa de TCLE prévio, e a imagem não pode permitir identificar equipamentos, instrumentais, '
+            + 'materiais ou tecidos biológicos.',
+          porq:'A selfie com paciente é permitida, mas o § 1º proíbe o que aparece atrás dela.' },
+        { id:'od-depoimento', nivel:'indicio', re:/(depoimento|\bavalia[çc][ãa]o\s+d[eo]\s+paciente|\breview\b|\bdeu\s+super\s+certo\b)/i,
+          oq:'usa depoimento de paciente',
+          norma:'Lei 5.081/1966, art. 7º, "f" e CEO art. 44, VI',
+          condicao:'A lei veda "divulgar benefícios recebidos de clientes". Relato educativo sem apelo comercial é '
+            + 'outra coisa; depoimento elogioso em peça de venda tende a ser infração.',
+          porq:'A diferença está no propósito da peça, que nenhum programa julga.' },
+        { id:'od-especialista', nivel:'indicio', re:/\b(especialistas?\s+em|sou\s+especialista|especializad[oa]s?\s+em)\b/i,
+          oq:'anuncia especialidade',
+          norma:'CEO arts. 24 e 44, II',
+          condicao:'Só pode quem tem a especialidade inscrita no CRO da jurisdição — o certificado do curso não basta. '
+            + 'E a Lei 5.081/66, art. 7º, "c" limita a duas especialidades.',
+          porq:'A ferramenta não tem como conferir o registro; quem confere é você.' },
+      ],
+      confirme:[
+        'Existe TCLE assinado do paciente (ou do representante legal) autorizando ESTA publicação, antes de publicar?',
+        'O TCLE cobre este canal específico (Instagram, site, anúncio pago)?',
+        'Quem publica é o próprio dentista que executou o procedimento? (caso clínico de terceiro é vedado — Res. 196/2019, art. 4º)',
+        'A foto "depois" é da conclusão do tratamento, e não de uma etapa intermediária?',
+        'A especialidade anunciada está inscrita no CRO da jurisdição?',
+        'O responsável técnico foi informado por escrito sobre a peça? (CEO art. 33)',
+        'A peça soa como esclarecimento ao público, ou como captação comercial?',
+      ],
+    },
+
+    {
+      id:'edfisica', nome:'Educação física', conselho:'CREF',
+      casa:['educa[çc][ãa]o f[íi]sica','personal','treinador','academia','pilates','crossfit','treino funcional'],
+      conferido_em:'2026-09-16', revisado_por:null,
+      normas:[
+        ['Resolução CONFEF nº 508/2023 — Código de Ética dos Profissionais de Educação Física', ''],
+      ],
+      nota:'A 508/2023 substituiu a 307/2015. Boa parte do que circula na internet ainda cita a 307 — '
+        + 'se alguém trouxer análise baseada nela, está desatualizada.',
+      regras:[
+        { id:'ef-semtecnica', nivel:'grave',
+          re:/(queim\w+|elimin\w+|secar?|perde?r?)\s+(a\s+)?gordura\s+localizada/i,
+          oq:'afirma queima de gordura localizada',
+          norma:'CONFEF 508/2023, art. 5º, XVII',
+          porq:'É afirmação sem base técnica defensável, e o artigo veda conteúdo tecnicamente infundado '
+            + 'que possa trazer dano ao beneficiário e à profissão.' },
+        { id:'ef-aviltamento', nivel:'aviso', re:/(\bmais\s+barato\b|\bmenor\s+pre[çc]o\b|metade\s+do\s+pre[çc]o|\bpromo[çc][ãa]o\b)/i,
+          oq:'usa preço como argumento contra concorrente',
+          norma:'CONFEF 508/2023, art. 10, § 2º',
+          porq:'Vedado disputar serviços mediante aviltamento de honorários ou concorrência desleal.' },
+        { id:'ef-depoimento', nivel:'indicio', re:/(antes\s+e\s+depois|#antesedepois|depoimento|\baluno\s+relata\b)/i,
+          oq:'usa antes e depois ou depoimento de aluno',
+          norma:'CONFEF 508/2023, art. 5º, XVII, e CDC',
+          condicao:'O Código não tem artigo que proíba o formato. Fica lícito com autorização de imagem, '
+            + 'contexto honesto, e sem nenhuma promessa de prazo, número ou garantia junto.',
+          porq:'A pesquisa do Bloco C é explícita: o que viola com folga é "emagreça 10kg em 30 dias", não o formato em si.' },
+      ],
+      confirme:[
+        'Existe autorização de imagem assinada do aluno que aparece na peça?',
+        'O registro no CREF está ativo na jurisdição onde a peça circula?',
+        'O que é afirmado tem base técnica que você conseguiria defender por escrito ao conselho?',
+      ],
+    },
+
+    {
+      id:'direito', nome:'Advocacia', conselho:'OAB',
+      casa:['advoc','advogad','direito','jur[íi]dic','escrit[óo]rio de advocacia'],
+      conferido_em:'2026-09-16', revisado_por:null,
+      normas:[
+        ['Provimento CFOAB nº 205/2021 — publicidade e marketing jurídico',
+         'https://www.oab.org.br/leisnormas/legislacao/provimentos/205-2021'],
+        ['Código de Ética e Disciplina da OAB — Resolução CFOAB 02/2015',
+         'https://www.oab.org.br/leisnormas/legislacao/resolucoes/02-2015'],
+        ['Lei 8.906/1994 — Estatuto da Advocacia', 'https://www.planalto.gov.br/ccivil_03/leis/l8906.htm'],
+      ],
+      nota:'O Provimento 205/2021 continua vigente (conferido em 16/09/2026). A OAB anunciou em 08/12/2025 '
+        + 'que a atualização está em "fase final", descrita por ela como ajuste e não reforma — mas nada foi '
+        + 'publicado. Quando sair, estas regras precisam ser reconferidas artigo por artigo.',
+      regras:[
+        { id:'oab-cta', nivel:'grave',
+          re:/(contrate\s+(nossos?|meus?)|me\s+contrate|procure\s+seus\s+direitos\s+aqui|foi\s+lesad|clique\s+e\s+processe|n[ãa]o\s+perca\s+seu\s+direito|acione\s+agora)/i,
+          oq:'chama para contratação ou para litigar',
+          norma:'Provimento 205/2021, art. 3º, § 1º; Cartilha do Comitê Regulador do Marketing Jurídico (CFOAB, 2024)',
+          porq:'A cartilha oficial do CFOAB lista essas expressões nominalmente como vedadas. '
+            + 'O clique precisa levar a conteúdo informativo, sem induzir ao acionamento.' },
+        { id:'oab-gratis', nivel:'grave',
+          re:/(consulta\s+gr[áa]tis|consulta\s+gratuita|an[áa]lise\s+gr[áa]tis|avalia[çc][ãa]o\s+gratuita|s[óo]\s+pague\s+se\s+ganhar|sem\s+ganho.{0,12}sem\s+honor[áa]rio)/i,
+          oq:'oferece gratuidade ou êxito condicionado',
+          norma:'Provimento 205/2021, art. 3º, I; CED art. 30, § 3º',
+          porq:'Vedada referência a gratuidade como forma de captação. A advocacia pro bono não pode servir de publicidade.' },
+        { id:'oab-preco', nivel:'grave', re:/(R\$\s*\d|\bhonor[áa]rios?\s+a\s+partir|\bdesconto\b|\bpromo[çc][ãa]o\b|parcel(a|amos|ado))/i,
+          oq:'divulga valor, desconto ou forma de pagamento',
+          norma:'Provimento 205/2021, art. 3º, I',
+          porq:'Vedada referência, direta ou indireta, a valores, forma de pagamento, gratuidade ou desconto como forma de captação.' },
+        { id:'oab-resultado', nivel:'grave',
+          re:/(garantia\s+de\s+[êe]xito|ganho\s+garantido|\bvamos\s+ganhar\b|voc[êe]\s+vai\s+receber|especialistas?\s+em\s+ganhar)/i,
+          oq:'promete resultado ou êxito',
+          norma:'Provimento 205/2021, art. 6º e parágrafo único',
+          porq:'Vedada a menção a promessa de resultados em qualquer publicidade.' },
+        { id:'oab-caso', nivel:'grave',
+          re:/(mais\s+uma\s+vit[óo]ria|ganhamos\s+(a|mais)|senten[çc]a\s+favor[áa]vel|decis[ãa]o\s+favor[áa]vel|\b[êe]xito\s+no\s+processo)/i,
+          oq:'divulga resultado de processo',
+          norma:'Provimento 205/2021, art. 4º, § 2º e art. 5º, § 3º',
+          porq:'Vedada a menção a decisões e resultados obtidos em procedimentos que patrocina. '
+            + 'A única exceção é manifestação espontânea em caso já coberto pela mídia.' },
+        { id:'oab-ostenta', nivel:'grave',
+          re:/(maior\s+escrit[óo]rio|\b\d+\s+advogad[oa]s\b|\b\d+\s+filiais\b|nossa\s+sede|jatinho|carro\s+de\s+luxo)/i,
+          oq:'ostenta estrutura ou bens',
+          norma:'Provimento 205/2021, art. 6º, caput e parágrafo único',
+          porq:'Vedada informação sobre dimensões, qualidades ou estrutura física do escritório, e ostentação de bens.' },
+        { id:'oab-clientes', nivel:'grave', re:/(nossos\s+clientes\s+incluem|atendemos\s+a\s+empresa|carteira\s+de\s+clientes)/i,
+          oq:'divulga clientes',
+          norma:'CED art. 42, IV',
+          porq:'Vedado divulgar listas de clientes e demandas.' },
+        // --- indícios
+        { id:'oab-especialista', nivel:'indicio', re:/\b(especialistas?\s+em|especializad[oa]s?\s+em|expert\s+em)\b/i,
+          oq:'anuncia especialidade',
+          norma:'Provimento 205/2021, art. 3º, III; Lei 8.906/94, art. 3º-A, parágrafo único',
+          condicao:'"Especialista" não é palavra proibida. É lícita se houver título certificado ou notória '
+            + 'especialização no sentido do art. 3º-A. O que reprova é o uso sem lastro.',
+          porq:'A ferramenta não confere diploma; quem confere é você, e a OAB pode exigir a prova.' },
+        { id:'oab-impulsiona', nivel:'indicio', re:/(impulsion|patrocinad|an[úu]ncio\s+pago|google\s+ads|meta\s+ads)/i,
+          oq:'é anúncio pago',
+          norma:'Provimento 205/2021, arts. 4º e 5º; Anexo Único',
+          condicao:'Anúncio pago é PERMITIDO. Fica ilícito se o criativo ofertar serviço em vez de informar, '
+            + 'ou se o meio for vedado pelo art. 40 do CED (rádio, cinema, TV, outdoor). No Google Ads, '
+            + 'só responsivo a busca do usuário, e nada de anúncio ostensivo em plataforma de vídeo.',
+          porq:'É a regra mais mal compreendida do mercado jurídico: muita gente acha que impulsionar é proibido, '
+            + 'e quem impulsiona costuma errar no texto do criativo.' },
+        { id:'oab-caixinha', nivel:'indicio', re:/(caixinha\s+de\s+perguntas|tire\s+suas\s+d[úu]vidas|responda?ndo\s+d[úu]vidas)/i,
+          oq:'responde consultas do público',
+          norma:'CED art. 42, I',
+          condicao:'Propagar conteúdo jurídico é permitido. Responder consulta COM HABITUALIDADE nos meios de '
+            + 'comunicação é vedado. A fronteira é a frequência e o grau de individualização da resposta.',
+          porq:'É o formato que mais cresce em rede social e o que mais se aproxima da vedação.' },
+        { id:'oab-disparo', nivel:'indicio', re:/(mala\s+direta|disparo\s+em\s+massa|lista\s+de\s+transmiss[ãa]o|newsletter)/i,
+          oq:'envia comunicação em massa',
+          norma:'CED art. 40, VI e art. 46, parágrafo único; Anexo Único do Prov. 205/2021',
+          condicao:'Só é lícito para clientes, pessoas do relacionamento, ou quem autorizou antes — e sem oferecer serviço. '
+            + 'Disparo para lista fria é mala direta, e é vedado.',
+          porq:'A origem da lista é o que decide, e ela não está no texto da peça.' },
+      ],
+      confirme:[
+        'A peça traz nome do advogado ou da sociedade e o número de inscrição na OAB?',
+        'Se cita título ("Dr.", mestre, pós-graduado), você consegue comprovar à OAB se for solicitado?',
+        'Se é anúncio pago: o criativo informa, em vez de ofertar serviço?',
+        'Se menciona um caso: ele já era público na imprensa e a manifestação foi espontânea? (o sigilo é de ordem pública — autorização do cliente NÃO libera)',
+        'O tom da peça é sóbrio e discreto, ou soa como captação?',
+      ],
+    },
+  ];
+
+  const PACOTE_GENERICO = {
+    id:'generico', nome:'Sem conselho profissional', conselho:null,
+    conferido_em:'2026-09-16', revisado_por:null, normas:[], regras:[], confirme:[],
+  };
+
+  function pacoteDe(cliente){
+    const v = String((cliente && cliente.vertical) || '').toLowerCase();
+    if(!v) return PACOTE_GENERICO;
+    return PACOTES_REGRA.find(p => p.casa.some(c => new RegExp(c, 'i').test(v))) || PACOTE_GENERICO;
+  }
+  const conselhoDe = c => (pacoteDe(c).conselho || null);
+
+  const conjuntosDe = c => (marcaDe(c).conjuntos || []).filter(j => j && j.k);
+  // A peça leva uma CÓPIA do conjunto, não o apelido dele. É de propósito, e é
+  // a mesma decisão que já valia pra cor e pro preset: um carrossel aprovado em
+  // setembro não pode mudar de cara sozinho porque alguém mexeu no manual em
+  // outubro. Quem quiser a versão nova aperta "Voltar ao padrão".
+  function conjuntoPadraoDe(c){
+    const k = marcaDe(c).conjuntoPadrao;
+    const j = k && conjuntosDe(c).find(x => x.k === k);
+    return j ? JSON.parse(JSON.stringify(j)) : null;
+  }
+  // A pergunta que gerou a resposta. Procura na trilha certa primeiro e cai na
+  // outra: uma chave compartilhada tem texto diferente em cada trilha, e mostrar
+  // "há quanto tempo VOCÊ faz esse trabalho" na ficha de uma empresa é o tipo de
+  // detalhe que faz o painel parecer que não sabe com quem está falando.
+  const PERGUNTA = (chave, trilha) => {
+    const ordem = trilha === 'empresa'
+      ? ['empresa','solo'] : ['solo','empresa'];
+    for(const t of ordem){
+      let achou = '';
+      SECOES_POR_TRILHA[t].forEach(s => s.perguntas.forEach(([k, p]) => { if(k === chave) achou = p; }));
+      if(achou) return achou;
+    }
+    return '';
+  };
+
+  // Os pilares saem das respostas, não de um modelo de marketing: cada um é
+  // uma pergunta do formulário que, respondida, dá assunto pro mês inteiro.
+  const PILARES = [
+    { k:'problema', nome:'O problema que faz procurar', de:['faz_procurar'],
+      porque:'É o que a pessoa está vivendo quando digita o nome de vocês. Abre gancho sem precisar inventar.' },
+    { k:'prova', nome:'Prova do que já aconteceu', de:['entrega_orgulho','elogio_frequente'],
+      porque:'Resultado contado com detalhe é a única prova social que não depende de depoimento.' },
+    { k:'diferenca', nome:'O que só vocês fazem', de:['diferencial'],
+      porque:'Sem isso o conteúdo serve igual pra vocês e pro concorrente.' },
+    { k:'bastidor', nome:'Quem faz, e como', de:['motivo_comeco','gosta_mais','pesa_cansa'],
+      porque:'Bastidor é o que faz seguir uma marca em vez de só consumir o que ela publica.' },
+    { k:'objecao', nome:'A objeção, respondida antes da reunião', de:['objecao_comum','alternativa_cliente'],
+      so:'empresa',
+      porque:'Em venda B2B o conteúdo raramente fecha; o que ele faz é chegar na reunião com a objeção já derrubada.' },
+    { k:'comofunciona', nome:'Como vocês provam que funciona', de:['prova_tecnica'],
+      so:'empresa',
+      porque:'Comprador técnico não compra promessa: compra demonstração, piloto ou dado.' },
+  ];
+
+  const PALAVRAS_GENERICAS = ['qualidade','atendimento','compromisso','excelência','excelencia',
+    'dedicação','dedicacao','profissionalismo','melhor preço','melhor preco','seriedade'];
+
+  const temDigito = t => /\d/.test(String(t || ''));
+  const palavras = t => String(t || '').trim().split(/\s+/).filter(Boolean).length;
+
+  function diagnosticoDe(cliente){
+    const sub = (state.respostas || []).filter(x => x.cliente_id === (cliente && cliente.id))
+      .sort((a,b)=> String(b.recebido_em).localeCompare(String(a.recebido_em)))[0];
+    const r = (sub && sub.respostas) || {};
+    const trilha = sub ? trilhaDa(r) : ((cliente && cliente.tipo_cliente) === 'empresa' ? 'empresa' : 'solo');
+    const secoes = SECOES_POR_TRILHA[trilha];
+    const cheia = k => String(r[k] || '').trim();
+
+    // --- o que foi respondido, por seção
+    const porSecao = secoes.map(sec=>{
+      const n = sec.perguntas.filter(([k]) => cheia(k)).length;
+      return { titulo:sec.titulo, respondidas:n, total:sec.perguntas.length };
+    });
+    const total = porSecao.reduce((a,x)=> a + x.total, 0);
+    const respondidas = porSecao.reduce((a,x)=> a + x.respondidas, 0);
+
+    const vazias = [];
+    secoes.forEach(sec => sec.perguntas.forEach(([k, q])=>{
+      if(!cheia(k)) vazias.push({ chave:k, pergunta:q, secao:sec.titulo });
+    }));
+
+    // --- achados, separados por quanto a máquina pode afirmar
+    //   vejo    — está escrito ali, dá pra apontar com o dedo
+    //   pergunte — o texto sugere, mas quem conclui é uma pessoa
+    const achados = [];
+    // Todo achado diz de onde saiu. Quando não sai de uma pergunta específica —
+    // é o caso do tamanho do formulário — a origem vem escrita à mão, porque
+    // achado sem origem é achado com o qual ninguém consegue discordar.
+    const vejo = (texto, de, origem) => achados.push({ nivel:'vejo', texto, de, origem });
+    const pergunte = (texto, de, origem) => achados.push({ nivel:'pergunte', texto, de, origem });
+
+    if(sub && respondidas < total * 0.6){
+      vejo('Só ' + respondidas + ' de ' + total + ' perguntas foram respondidas. '
+        + 'O que vem abaixo é o que dá pra concluir com isso — e não é muito.',
+        [], 'o formulário inteiro');
+    }
+
+    const canal = cheia('como_encontram');
+    if(canal){
+      const sohIndicacao = /indica|boca a boca|amig|conhecid|networking/i.test(canal)
+        && !/instagram|google|site|anúncio|anuncio|linkedin|youtube|busca|tráfego|trafego/i.test(canal);
+      if(sohIndicacao) vejo('Os clientes chegam por indicação, e nenhum canal próprio aparece na resposta. '
+        + 'Conteúdo aqui não gera demanda nova de imediato: ele faz quem foi indicado confirmar a escolha '
+        + 'antes de falar com vocês.', ['como_encontram']);
+    }
+
+    const prova = cheia('entrega_orgulho');
+    if(prova && !temDigito(prova))
+      pergunte('A entrega de que mais se orgulham está contada sem nenhum número. '
+        + 'Número é o que separa prova de elogio — vale perguntar quantos, em quanto tempo, de quanto pra quanto.',
+        ['entrega_orgulho']);
+
+    const dif = cheia('diferencial');
+    if(dif){
+      const generico = PALAVRAS_GENERICAS.some(w => dif.toLowerCase().includes(w));
+      if(generico || palavras(dif) < 8)
+        pergunte('O diferencial declarado é curto ou usa palavra que todo concorrente também usa. '
+          + 'Serve de conteúdo só depois de virar uma frase que o concorrente não conseguiria assinar.',
+          ['diferencial']);
+    }
+
+    if(trilha === 'empresa'){
+      const decide = cheia('quem_decide');
+      if(decide && /\b(e|mas|porém|porem|,)\b/i.test(decide) && palavras(decide) >= 6)
+        vejo('Quem usa e quem assina não são a mesma pessoa, segundo a resposta de vocês. '
+          + 'São dois públicos, e uma peça que fala com os dois ao mesmo tempo não fala com nenhum.',
+          ['quem_decide']);
+
+      const ciclo = cheia('ciclo_venda');
+      if(/m[êe]s|mes(es)?|ano|semestre|trimestre/i.test(ciclo))
+        vejo('O ciclo de venda é contado em meses. Nenhuma peça publicada este mês fecha contrato este mês — '
+          + 'o que ela faz é encurtar o ciclo de quem já está conversando.', ['ciclo_venda']);
+
+      const obj = cheia('objecao_comum');
+      if(obj) vejo('Existe uma objeção que aparece quase sempre, e ela está escrita. '
+        + 'É a peça de maior retorno do mês: responder antes da reunião economiza a reunião inteira.',
+        ['objecao_comum']);
+
+      if(!cheia('porta_voz'))
+        vejo('Ninguém está definido pra aparecer ou assinar texto técnico. '
+          + 'Conteúdo técnico sem rosto perde metade da autoridade, e é o rosto que faz o comprador confiar.',
+          ['porta_voz']);
+
+      if(/edital|licita/i.test(cheia('canal_venda')))
+        vejo('Parte da venda passa por edital ou licitação. Conteúdo não ganha edital, mas quem avalia '
+          + 'pesquisa o fornecedor — e o que ele acha é o que existe publicado.', ['canal_venda']);
+    }
+
+    // --- material que dá pra citar literalmente
+    const frases = sugestoesDe(cliente).slice(0, 8);
+
+    // --- pilares com e sem material
+    const pilares = PILARES.filter(pi => !pi.so || pi.so === trilha).map(pi=>{
+      const fontes = pi.de.filter(k => cheia(k));
+      return { k:pi.k, nome:pi.nome, porque:pi.porque, fontes,
+        tem: fontes.length > 0,
+        falta: pi.de.filter(k => !cheia(k)).map(k => PERGUNTA(k, trilha)) };
+    });
+
+    return { trilha, sub, respostas:r, porSecao, total, respondidas, vazias,
+      achados, frases, pilares, pronto: cliente ? prontoPraProduzir(cliente) : null };
+  }
+
+  // A pauta sugerida. É uma DISTRIBUIÇÃO, não uma fórmula validada: reparte as
+  // peças do mês entre os pilares que têm material, dando mais peso ao problema
+  // (que é o que abre gancho) e garantindo pelo menos uma de prova. Quem mexe
+  // nisso depois é a pessoa, e a tela diz isso com todas as letras.
+  function pautaSugerida(diag, quantas){
+    const comMaterial = diag.pilares.filter(x => x.tem);
+    if(!comMaterial.length) return [];
+    const peso = { problema:3, objecao:2, prova:2, diferenca:2, comofunciona:2, bastidor:1 };
+    // Reparte em rodadas, e não em blocos: enfileirar o peso de cada pilar de
+    // uma vez dava "1. problema, 2. problema, 3. problema, 4. prova" — que lido
+    // no mês vira três semanas falando da mesma coisa, e lido na tela parece
+    // defeito. Uma rodada por vez alterna os pilares e mantém a proporção.
+    const resta = new Map(comMaterial.map(pi => [pi.k, peso[pi.k] || 1]));
+    const fora = [];
+    while(fora.length < quantas){
+      let deuAlgum = false;
+      for(const pi of comMaterial){
+        if(fora.length >= quantas) break;
+        if(resta.get(pi.k) > 0){ fora.push(pi); resta.set(pi.k, resta.get(pi.k) - 1); deuAlgum = true; }
+      }
+      // Acabou o peso de todos e ainda falta peça: recarrega e roda de novo.
+      if(!deuAlgum) comMaterial.forEach(pi => resta.set(pi.k, peso[pi.k] || 1));
+    }
+    return fora;
+  }
+
+  function promptDoPlano(cliente, diag){
+    const L = [];
+    const cheia = k => String(diag.respostas[k] || '').trim();
+    L.push('Você é estrategista de conteúdo. Vou te dar o que um cliente respondeu num');
+    L.push('formulário e o que já foi lido dessas respostas. Sua tarefa é escrever o PLANO DE');
+    L.push('AÇÃO DO MÊS pra ele.');
+    L.push('');
+    L.push('Responda em português do Brasil. Sem introdução, sem elogio e sem comentário sobre');
+    L.push('a tarefa. Vá direto pro plano.');
+    L.push('');
+    L.push('REGRA QUE NÃO PODE SER QUEBRADA: não invente fato sobre o cliente. Se uma');
+    L.push('recomendação depende de algo que não está nas respostas, escreva a PERGUNTA que');
+    L.push('precisa ser feita em vez de supor a resposta.');
+    L.push('');
+    L.push('## O CLIENTE');
+    L.push('Nome: ' + (cliente.nome || '—') + (cliente.vertical ? ' — ' + cliente.vertical : ''));
+    L.push('Tipo: ' + (diag.trilha === 'empresa'
+      ? 'empresa, venda B2B com mais de um decisor' : 'profissional que trabalha por conta'));
+    L.push('');
+    L.push('## O QUE ELE RESPONDEU');
+    SECOES_POR_TRILHA[diag.trilha].forEach(sec=>{
+      const linhas = sec.perguntas.filter(([k]) => cheia(k));
+      if(!linhas.length) return;
+      L.push('');
+      L.push('### ' + sec.titulo);
+      linhas.forEach(([k, q]) => L.push('- ' + q + '\n  ' + cheia(k).replace(/\n+/g, ' ')));
+    });
+    L.push('');
+    if(diag.vazias.length){
+      L.push('## O QUE ELE NÃO RESPONDEU');
+      L.push('Não preencha isto por conta: use pra saber o que ainda precisa ser perguntado.');
+      diag.vazias.slice(0, 12).forEach(v => L.push('- ' + v.pergunta));
+      L.push('');
+    }
+    if(diag.achados.length){
+      L.push('## O QUE JÁ FOI LIDO DAS RESPOSTAS');
+      diag.achados.forEach(a => L.push('- ' + (a.nivel === 'vejo' ? '[está escrito] ' : '[a confirmar] ') + a.texto));
+      L.push('');
+    }
+    L.push('## FORMATO DA RESPOSTA (exatamente assim, sem nada além disso)');
+    L.push('');
+    L.push('ONDE ELE ESTÁ:');
+    L.push('Três a cinco linhas, sem adjetivo, dizendo o que dá pra afirmar sobre a situação');
+    L.push('dele hoje. Cada afirmação tem que caber numa resposta que ele deu.');
+    L.push('');
+    L.push('O QUE FAZER ESTE MÊS:');
+    L.push('De três a cinco ações, cada uma numa linha começando por verbo. Ação que não dá');
+    L.push('pra marcar como feita até o fim do mês não entra.');
+    L.push('');
+    L.push('O QUE PERGUNTAR PRA ELE:');
+    L.push('As perguntas que precisam ser respondidas antes de decidir o resto. Se não houver,');
+    L.push('escreva "nenhuma".');
+    L.push('');
+    L.push('PAUTA:');
+    L.push('Um tema por linha, de 6 a 10 temas, cada um do tamanho de um título de post.');
+    L.push('Sem numeração e sem marcador — só o tema, uma linha cada.');
+    return L.join('\n');
+  }
+
+  function lerPlano(texto){
+    const t = String(texto || '').replace(/\r/g, '');
+    const semAcento = x => x.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+    const rotulos = ['ONDE ELE ESTÁ','O QUE FAZER ESTE MÊS','O QUE PERGUNTAR PRA ELE','PAUTA'];
+    const alvo = semAcento(t);
+    const pos = rotulos.map(r => ({ r, i: alvo.indexOf(semAcento(r) + ':') })).filter(x => x.i >= 0);
+    if(!pos.length) return null;
+    const fora = {};
+    pos.forEach(x=>{
+      const fim = pos.reduce((f, y) => (y.i > x.i && y.i < f) ? y.i : f, t.length);
+      fora[x.r] = t.slice(x.i, fim).replace(/^[^:]*:\s*/, '').trim();
+    });
+    return {
+      plano: rotulos.slice(0, 3).filter(r => fora[r])
+        .map(r => r + ':\n' + fora[r]).join('\n\n'),
+      pauta: (fora['PAUTA'] || '').split('\n')
+        .map(x => x.replace(/^\s*[-•\d.)]+\s*/, '').trim()).filter(Boolean).join('\n'),
+    };
+  }
+
+  // O que dá pra ler das respostas, os pilares e o pedido pra IA: só existe
+  // com formulário. O plano em si, não — esse a equipe escreve de qualquer jeito.
+  function leituraDoPlano(c, diag, mes){
+    const w = el('div');
+    // --- 1. o que a máquina leu
+    const lido = el('div',{class:'bloco-conf'});
+    lido.appendChild(el('p',{class:'rot'},'O que dá pra ler das respostas'));
+    lido.appendChild(el('p',{class:'dica', style:'margin:6px 0 16px'},
+      'Isto não é opinião nem estratégia: é o que está escrito nas respostas dele, e o que está faltando. '
+      + 'Cada linha diz de qual pergunta saiu, pra você poder discordar.'));
+
+    const placar = el('div',{class:'capa-fila', style:'margin-bottom:18px'});
+    const cif = (g, p2, r2) => { const x = el('div');
+      x.innerHTML = '<span class="cifra">' + esc(g) + (p2 ? '<em>' + esc(p2) + '</em>' : '')
+        + '</span><p class="rot">' + esc(r2) + '</p>'; return x; };
+    placar.appendChild(cif(diag.respondidas, '/' + diag.total, 'Respondidas'));
+    placar.appendChild(cif(diag.pilares.filter(x => x.tem).length, '/' + diag.pilares.length, 'Pilares com material'));
+    placar.appendChild(cif(diag.frases.length, '', 'Frases pra citar'));
+    lido.appendChild(placar);
+
+    if(diag.achados.length){
+      diag.achados.forEach(a=>{
+        const l = el('div',{class:'achado ' + a.nivel});
+        l.appendChild(el('span',{class:'selo'}, a.nivel === 'vejo' ? 'está escrito' : 'a confirmar'));
+        l.appendChild(el('p',{}, esc(a.texto)));
+        l.appendChild(el('p',{class:'de'}, 'de: ' + (a.origem
+          || (a.de || []).map(k => PERGUNTA(k, diag.trilha)).join(' · ')
+          || 'o formulário inteiro')));
+        lido.appendChild(l);
+      });
+    } else {
+      lido.appendChild(el('p',{class:'dica', style:'margin:0'},
+        'Nada saltou das respostas — o que é bom sinal, ou sinal de que respondeu pouco.'));
+    }
+
+    // seções fracas
+    const fracas = diag.porSecao.filter(x => x.respondidas < x.total);
+    if(fracas.length){
+      lido.appendChild(el('p',{class:'rot', style:'margin:22px 0 8px'},'Onde o formulário ficou raso'));
+      fracas.forEach(f=>{
+        lido.appendChild(el('p',{class:'dica', style:'margin:0 0 4px'},
+          f.titulo + ' — ' + f.respondidas + ' de ' + f.total));
+      });
+    }
+    w.appendChild(lido);
+
+    // --- 2. pilares
+    const pil = el('div',{class:'bloco-conf'});
+    pil.appendChild(el('p',{class:'rot'},'Sobre o que dá pra falar'));
+    pil.appendChild(el('p',{class:'dica', style:'margin:6px 0 16px'},
+      'Cada pilar é uma pergunta do formulário que, respondida, dá assunto pro mês inteiro. '
+      + 'Os apagados são os que ele ainda não respondeu.'));
+    diag.pilares.forEach(x=>{
+      const l = el('div',{class:'pilar' + (x.tem ? '' : ' sem')});
+      l.appendChild(el('b',{}, esc(x.nome)));
+      l.appendChild(el('p',{}, esc(x.porque)));
+      if(!x.tem) l.appendChild(el('p',{class:'de'},
+        'sem material: ' + x.falta.join(' · ')));
+      pil.appendChild(l);
+    });
+    w.appendChild(pil);
+
+    // --- 3. pedir o plano pra uma IA
+    const ped = el('div',{class:'bloco-conf prompt-ia'});
+    ped.appendChild(el('p',{class:'rot'},'Pedir o plano pra uma IA'));
+    ped.appendChild(el('p',{class:'dica', style:'margin:6px 0 14px'},
+      'O que está acima é leitura. O julgamento — o que priorizar, com que ângulo — '
+      + 'vem daqui: o pedido leva as respostas, o que falta e o que já foi lido, e proíbe '
+      + 'a IA de inventar fato sobre ele.'));
+    const acoes = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap'});
+    acoes.appendChild(el('button',{class:'btn', onclick:async()=>{
+      const txt = promptDoPlano(c, diag);
+      try { await navigator.clipboard.writeText(txt); toast('Pedido copiado — ' + txt.length + ' caracteres.'); }
+      catch(e){ toast('O navegador não deixou copiar. Abra "ver o pedido" e copie à mão.'); }
+    }},'Copiar o pedido'));
+    ped.appendChild(acoes);
+    const ver = el('details',{class:'expl'});
+    ver.appendChild(el('summary',{},'ver o pedido'));
+    const pre = el('pre',{class:'prompt-cru'});
+    ver.addEventListener('toggle', ()=>{ if(ver.open) pre.textContent = promptDoPlano(c, diag); });
+    ver.appendChild(pre);
+    ped.appendChild(ver);
+
+    const colar = el('div',{class:'colar-resposta', style:'margin-top:16px'});
+    const ta = el('textarea',{rows:'4', placeholder:'Cole aqui o que a IA respondeu, no formato que o pedido pediu.'});
+    colar.appendChild(ta);
+    colar.appendChild(el('button',{class:'btn small', onclick:async()=>{
+      const lido2 = lerPlano(ta.value);
+      if(!lido2){ toast('Não reconheci o formato. Confira se veio como o pedido pediu.'); return; }
+      await salvarPlano(c, mes, diag, lido2.plano, lido2.pauta);
+      ta.value = '';
+    }},'Preencher com a resposta'));
+    ped.appendChild(colar);
+    w.appendChild(ped);
+    return w;
+  }
+
+  function abaPlano(c){
+    const box = el('div');
+    const diag = diagnosticoDe(c);
+    const P = state.planoAberto || {};
+    const mes = P.mes || primeiroDoMes(hojeIso());
+
+    // --- cabeça: o mês e o estado
+    const topo = el('div',{class:'plano-topo'});
+    const selMes = el('input',{type:'month', value:String(mes).slice(0,7),
+      'aria-label':'Mês do plano'});
+    selMes.addEventListener('change', ()=>{
+      state.planoAberto = { mes: (selMes.value || String(mes).slice(0,7)) + '-01' };
+      carregarPlano(c.id).then(render);
+    });
+    topo.appendChild(el('p',{class:'rot', style:'margin:0'},'Mês'));
+    topo.appendChild(selMes);
+    box.appendChild(topo);
+
+    if(!diag.sub){
+      const v = el('div',{class:'vazio', style:'margin-top:18px'});
+      v.appendChild(el('strong',{},'Sem formulário, não há o que ler'));
+      v.appendChild(el('span',{},'A leitura do plano sai das respostas dele. Ligue uma resposta a este cliente '
+        + 'na caixa de entrada, ou mande o formulário. O plano e a pauta dá pra escrever à mão aqui embaixo.'));
+      box.appendChild(v);
+    } else {
+      box.appendChild(leituraDoPlano(c, diag, mes));
+    }
+
+    // --- 4. o plano em si
+    // Antes de ler o plano guardado, o campo vazio apagaria o que já existe.
+    if(state.detalhe.planoDe !== c.id + '|' + mes){
+      box.appendChild(el('p',{class:'muted', style:'margin-top:18px'},'Lendo o plano do mês…'));
+      return box;
+    }
+    const atual = state.detalhe.plano;
+    const pl = el('div',{class:'bloco-conf'});
+    pl.appendChild(el('p',{class:'rot'},'O plano deste mês'));
+    const taPlano = el('textarea',{rows:'10', class:'campo-plano', 'aria-label':'O plano deste mês',
+      placeholder:'Escreva aqui, ou cole a resposta da IA acima. Isto é o que você vai seguir no mês.'});
+    taPlano.value = (atual && atual.plano) || '';
+    pl.appendChild(taPlano);
+
+    pl.appendChild(el('p',{class:'rot', style:'margin:22px 0 8px'},'Pauta do mês'));
+    pl.appendChild(el('p',{class:'dica', style:'margin:0 0 10px'},
+      'Um tema por linha. Em Criar → Produzir o mês, cada linha vira uma peça.'));
+    const taPauta = el('textarea',{rows:'8', class:'campo-plano', 'aria-label':'Pauta do mês',
+      placeholder:'Um tema por linha.'});
+    taPauta.value = (atual && atual.pauta) || '';
+    pl.appendChild(taPauta);
+
+    const sug = pautaSugerida(diag, 8);
+    if(sug.length && !String(taPauta.value).trim()){
+      const cx = el('div',{style:'margin-top:12px'});
+      cx.appendChild(el('p',{class:'dica', style:'margin:0 0 8px'},
+        'Sem pauta ainda. Uma distribuição possível entre os pilares que têm material — '
+        + 'é um ponto de partida pra mexer, não uma fórmula:'));
+      const lista = el('div',{class:'chips'});
+      sug.forEach((x, i)=> lista.appendChild(el('span',{class:'chip-p'}, (i+1) + '. ' + x.nome)));
+      cx.appendChild(lista);
+      pl.appendChild(cx);
+    }
+
+    const pe = el('div',{class:'pe-editor'});
+    pe.appendChild(el('button',{class:'btn', onclick:async()=>{
+      await salvarPlano(c, mes, diag, taPlano.value, taPauta.value);
+    }},'Guardar o plano'));
+    // A pauta vira peças de uma vez: o plano é guardado e a tela de produzir
+    // o mês abre com este cliente, um tema por linha, cada um no seu formato.
+    pe.appendChild(el('button',{class:'btn ghost small', onclick:async()=>{
+      if(!String(taPauta.value || '').trim()){ toast('Escreva a pauta primeiro — um tema por linha.'); return; }
+      // A fábrica produz a pauta do mês corrente; a do mês que vem espera ele chegar.
+      if(mes !== primeiroDoMes(hojeIso())){ toast('Só a pauta deste mês vira peças. Guarde esta e produza quando o mês chegar.'); return; }
+      if(!(await salvarPlano(c, mes, diag, taPlano.value, taPauta.value))) return;
+      const cr = C(); cr.aba = 'lote'; cr.lote = { cliente:c.id };
+      ir({tipo:'criar'});
+    }},'Produzir o mês'));
+    pe.appendChild(el('span',{style:'flex:1'}));
+    pe.appendChild(el('button',{class:'btn ghost small', onclick:()=>{
+      baixarPlano(c, mes, diag, taPlano.value, taPauta.value);
+    }},'Baixar versão pro cliente'));
+    pl.appendChild(pe);
+    box.appendChild(pl);
+
+    return box;
+  }
+
+  const primeiroDoMes = iso2 => String(iso2).slice(0, 7) + '-01';
+
+  async function carregarPlano(clienteId){
+    const mes = (state.planoAberto && state.planoAberto.mes) || primeiroDoMes(hojeIso());
+    const { data } = await sb.from('planos').select('*')
+      .eq('cliente_id', clienteId).eq('mes', mes).limit(1);
+    state.detalhe.plano = (data && data[0]) || null;
+    state.detalhe.planoDe = clienteId + '|' + mes;
+  }
+
+  async function salvarPlano(c, mes, diag, plano, pauta){
+    // O diagnóstico vai junto, congelado: um plano escrito contra respostas que
+    // mudaram depois vira um texto que não bate com nada, e ninguém sabe dizer
+    // por quê. Guardar a leitura do dia é o que deixa a conversa possível.
+    const linha = { cliente_id:c.id, mes,
+      diagnostico: { trilha:diag.trilha, respondidas:diag.respondidas, total:diag.total,
+        achados:diag.achados, pilares:diag.pilares.map(x=>({ k:x.k, nome:x.nome, tem:x.tem })) },
+      plano: String(plano || '').trim() || null,
+      pauta: String(pauta || '').trim() || null };
+    // Um plano por cliente e mês: guardar é sempre o mesmo registro, mesmo que
+    // a leitura dele ainda não tenha chegado nesta tela.
+    const { error } = await sb.from('planos').upsert(linha, { onConflict:'cliente_id,mes' });
+    if(error){ toast('Não deu: ' + error.message); return false; }
+    toast('Plano guardado.');
+    await carregarPlano(c.id);
+    render();
+    return true;
+  }
+
+  // A versão pro cliente. Sai sem o bastidor: sem "o formulário ficou raso",
+  // sem o que a máquina leu, sem pauta em rascunho. O que ele recebe é o que
+  // foi decidido, não como se chegou lá.
+  function baixarPlano(c, mes, diag, plano, pauta){
+    const texto = String(plano || '').trim();
+    if(!texto){ toast('Escreva o plano antes de baixar.'); return; }
+    const nomeMes = new Date(mes + 'T00:00:00')
+      .toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+    const temas = String(pauta || '').split('\n').map(x=>x.trim()).filter(Boolean);
+    const L = [];
+    L.push('# Plano de ' + nomeMes);
+    L.push('');
+    L.push(c.nome);
+    L.push('');
+    L.push('---');
+    L.push('');
+    L.push(texto);
+    if(temas.length){
+      L.push('');
+      L.push('## O que vai ao ar');
+      L.push('');
+      temas.forEach((t, i)=> L.push((i+1) + '. ' + t));
+    }
+    L.push('');
+    L.push('---');
+    L.push('');
+    L.push('Feito em ' + new Date().toLocaleDateString('pt-BR') + '.');
+    const nome = 'plano-' + String(mes).slice(0,7) + '-'
+      + (c.nome || 'cliente').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+        .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40) + '.md';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([L.join('\n')], { type:'text/markdown;charset=utf-8' }));
+    a.download = nome;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(a.href), 2000);
+    toast('Baixado: ' + nome);
+  }
+
   function telaMarca(){
     const E = state.estudio;
     const box = el('div',{class:'bloco'});
@@ -5861,12 +6972,13 @@
     const cv = el('canvas',{class:'previa-cv'});
     previa.appendChild(cv);
     previa.appendChild(el('p',{class:'dica', style:'margin:10px 0 0;text-align:center'},
-      'Como uma capa dele vai sair'));
+      'Um esboço das cores e do texto. A peça de verdade sai da fábrica, em Criar.'));
     function pintarExemplo(){
       const mm = marcaDe(c);
       const sug = sugestoesDe(c)[0];
       const deck = { formato:mm.formato, preset:mm.preset, cor:c.cor || '#FF5E00', cor2:mm.cor2,
         alinha:mm.alinha, margem:mm.margem, numerar:mm.numerar !== false, faixa:mm.faixa !== false,
+        conjunto: conjuntoPadraoDe(c),
         assinatura:assinaturaDe(c) || (c.nome_preferido || c.nome),
         slides:[{}, {}, {}] };
       desenharSlide(cv, { tipo:'capa',
@@ -5924,14 +7036,13 @@
     campoP('Cor principal', cor, 'A cor da marca dele. Também aparece na ficha do cliente.');
     const cor2 = el('input',{type:'color', value:m.cor2 || c.cor || '#FF5E00', class:'cor-peca'});
     cor2.addEventListener('change', ()=>grava({ cor2:cor2.value }));
-    campoP('Cor da faixa', cor2, 'A faixinha do topo pode ser de outra cor. Deixe igual à principal se preferir.');
-    escolher('Visual padrão', 'preset', PRESETS_PECA.map(x=>[x[0], x[1]]));
-    escolher('Formato padrão', 'formato', FORMATOS_PECA.map(x=>[x[0], x[1]]));
+    campoP('Cor da faixa', cor2, 'A cor da faixa e do destaque quando o conjunto não diz outra. Deixe igual à principal se preferir.');
+    // Só o que a fábrica lê da marca. Visual, formato e faixa padrão eram do
+    // editor de navegador, que saiu: nenhuma peça os usava mais.
     escolher('Alinhamento', 'alinha', [['esq','À esquerda'],['centro','Centralizado']],
       'À esquerda lê mais rápido; centralizado pesa mais na capa.');
     escolher('Respiro', 'margem', [['folgada','Folgado'],['compacta','Compacto']],
       'Folgado sobra ar em volta; compacto cabe mais texto.');
-    ligar('Faixa no topo', 'faixa');
     ligar('Numeração', 'numerar', 'O "01/05" no canto. Só aparece quando o carrossel tem mais de um slide.');
 
     lado.appendChild(el('p',{class:'rot laranja', style:'margin-top:26px'},'Como ele fala'));
@@ -5951,8 +7062,508 @@
       const atual = String(marcaDe(c).tom || '').trim();
       if(await grava({ tom: atual ? atual + ' ' + s.frase : s.frase })) render();
     }));
+
+    box.appendChild(blocoIdentidade(c, pintarExemplo));
     return box;
   }
+
+  const TIPOS_ARQUIVO = [
+    ['manual', 'Manual da marca'],
+    ['logo',   'Logo'],
+    ['fonte',  'Fonte'],
+    ['foto',   'Foto oficial'],
+    ['outro',  'Outro'],
+  ];
+
+  // O navegador manda fonte com tipo vazio ou com um tipo antigo que o balde
+  // recusa. O balde tem lista de tipos permitidos de propósito — é o que
+  // impede alguém de guardar um executável ali — então quem corrige é aqui,
+  // pela extensão, e não a lista lá.
+  const MIME_POR_EXT = {
+    pdf:'application/pdf', png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg',
+    svg:'image/svg+xml', webp:'image/webp', ttf:'font/ttf', otf:'font/otf',
+    woff:'font/woff', woff2:'font/woff2', zip:'application/zip',
+  };
+  const extDe = nome => String(nome || '').split('.').pop().toLowerCase();
+  const mimeDe = f => MIME_POR_EXT[extDe(f.name)] || f.type || 'application/octet-stream';
+  const peso = b => !b ? '' : b < 1048576 ? Math.max(1, Math.round(b/1024)) + ' KB'
+    : (b/1048576).toFixed(b < 10485760 ? 1 : 0) + ' MB';
+
+  // O que a fábrica põe na peça de verdade: o logo no canto, o selo, a foto
+  // oficial. Balde à parte do manual — a fábrica baixa só estes, e precisa do
+  // tamanho de cada um pra pôr o logo com 140 px sem adivinhar a escala; o
+  // tamanho se mede aqui, na hora de subir. A fábrica usa o primeiro logo.
+  const TIPOS_ELEMENTO = [['logo','Logo'], ['selo','Selo'], ['foto','Foto']];
+  const MIMES_ELEMENTO = ['image/png', 'image/jpeg', 'image/webp'];
+
+  function medirImagem(f){
+    return new Promise((ok, falha) => {
+      const url = URL.createObjectURL(f);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); ok([img.naturalWidth, img.naturalHeight]); };
+      img.onerror = () => { URL.revokeObjectURL(url); falha(new Error('não abriu como imagem')); };
+      img.src = url;
+    });
+  }
+
+  function blocoElementos(c, box){
+    box.appendChild(el('p',{class:'rot laranja', style:'margin-top:26px'},'O que entra nas peças'));
+    box.appendChild(el('p',{class:'dica', style:'margin:6px 0 10px'},
+      'O logo, o selo e as fotos oficiais que a fábrica põe nas peças deste cliente. Logo em PNG com fundo transparente. '
+      + 'Sem logo aqui, a peça sai sem logo: a fábrica não desenha nem inventa um.'));
+    let tipo = 'logo';
+    const tipos = el('div',{class:'chips', style:'margin-bottom:10px', role:'group', 'aria-label':'O que é a imagem'});
+    TIPOS_ELEMENTO.forEach(([k, nome]) => tipos.appendChild(el('button',{class:'chip-p', type:'button', 'aria-pressed':String(k === tipo),
+      onclick:()=>{ tipo = k; tipos.querySelectorAll('.chip-p').forEach((b, i) => b.setAttribute('aria-pressed', String(TIPOS_ELEMENTO[i][0] === k))); }}, nome)));
+    box.appendChild(tipos);
+    const entrada = el('input',{type:'file', class:'el-entrada', style:'display:none', accept:'.png,.jpg,.jpeg,.webp'});
+    const botao = el('button',{class:'btn small', type:'button', onclick:()=>entrada.click()}, 'Subir imagem');
+    box.appendChild(botao); box.appendChild(entrada);
+    const lista = el('div',{class:'idv-arqs el-lista'});
+    box.appendChild(lista);
+
+    // A tela de Criar se redesenha sozinha (sinal da fábrica, eventos da fila)
+    // e cada redesenho recria este bloco. A lista e os links ficam no estado,
+    // por cliente: o redesenho pinta na hora o que já se sabe.
+    const E = state.estudio;
+    const cache = E.elementos || (E.elementos = {});
+    const urls = E.urlsElementos || (E.urlsElementos = {});
+    const subidos = E.elementosSubidos || (E.elementosSubidos = new Set());
+    const itens = () => cache[c.id] || [];
+    entrada.addEventListener('change', ()=>{ const f = entrada.files && entrada.files[0]; entrada.value = ''; if(f) subir(f); });
+    async function subir(f){
+      const mime = mimeDe(f);
+      if(!MIMES_ELEMENTO.includes(mime)){ toast('Aqui entra PNG, JPEG ou WebP.'); return; }
+      if(f.size > 20 * 1048576){ toast('Passa de 20 MB. Exporte menor.'); return; }
+      let medida;
+      try { medida = await medirImagem(f); } catch(e){ toast('Não deu pra abrir: ' + e.message); return; }
+      botao.disabled = true; botao.textContent = 'Subindo ' + peso(f.size) + '…';
+      const pronto = () => { botao.disabled = false; botao.textContent = 'Subir imagem'; };
+      const caminho = c.id + '/' + Date.now() + '-' + f.name.replace(/[^\w.\-]+/g,'-').slice(-80);
+      const up = await sb.storage.from('elementos').upload(caminho, f, { contentType:mime, upsert:false });
+      if(up.error){ pronto(); toast('Não subiu: ' + up.error.message); return; }
+      const { data, error } = await sb.from('marca_elementos').insert({ cliente_id:c.id, tipo, caminho, nome:f.name,
+        bytes:f.size, mime, largura:medida[0], altura:medida[1] }).select().single();
+      pronto();
+      if(error){ await sb.storage.from('elementos').remove([caminho]); toast('Não deu: ' + error.message); return; }
+      subidos.add(data.id);
+      cache[c.id] = [...itens(), data];
+      toast('Guardado. Entra nas próximas peças.');
+      // A tela pode ter se redesenhado durante o envio: quem mostra é o bloco que está nela agora.
+      render();
+    }
+
+    async function pintar(){
+      if(!itens().length){
+        lista.innerHTML = '';
+        const p = el('p',{class:'dica', style:'margin-top:12px'}); p.textContent = 'Nenhuma imagem ainda para ' + (c.nome_preferido || c.nome) + '.';
+        lista.appendChild(p);
+        return;
+      }
+      const faltam = itens().map(x => x.caminho).filter(k => !urls[k]);
+      if(faltam.length){
+        const { data } = await sb.storage.from('elementos').createSignedUrls(faltam, 3600);
+        for(const d of data || []) if(d.signedUrl) urls[d.path] = d.signedUrl;
+      }
+      lista.innerHTML = '';
+      itens().forEach(a => {
+        const l = el('div',{class:'idv-arq el-item'});
+        l.appendChild(urls[a.caminho] ? el('img',{class:'el-mini', src:urls[a.caminho], alt:''}) : el('span',{class:'el-mini'}));
+        const tag = el('span',{class:'tag'}); tag.textContent = (TIPOS_ELEMENTO.find(t => t[0] === a.tipo) || [a.tipo, a.tipo])[1];
+        const nm = el('span',{class:'nm'}); nm.textContent = a.nome;
+        const pq = el('span',{class:'pq'}); pq.textContent = (a.largura && a.altura ? a.largura + '×' + a.altura + ' · ' : '') + peso(a.bytes);
+        [tag, nm, pq].forEach(n => l.appendChild(n));
+        l.appendChild(el('button',{class:'lixo', 'aria-label':'Apagar ' + a.nome, onclick:async()=>{
+          if(!confirm('Apagar "' + a.nome + '"? As próximas peças saem sem ele.')) return;
+          const r = await sb.from('marca_elementos').delete().eq('id', a.id);
+          if(r.error){ toast('Não deu: ' + r.error.message); return; }
+          await sb.storage.from('elementos').remove([a.caminho]);
+          cache[c.id] = itens().filter(x => x.id !== a.id);
+          toast('Apagado.'); render();
+        }},'×'));
+        lista.appendChild(l);
+      });
+    }
+    pintar();
+    // A mesma ordem em que a fábrica lê: o primeiro logo é o que vai pra peça.
+    // Uma leitura que saiu antes de um envio terminar não apaga o que subiu.
+    sb.from('marca_elementos').select('*').eq('cliente_id', c.id).order('criado_em')
+      .then(({ data, error }) => {
+        if(error) return;
+        const lidos = new Set((data || []).map(x => x.id));
+        cache[c.id] = [...(data || []), ...itens().filter(x => subidos.has(x.id) && !lidos.has(x.id))];
+        if(lista.isConnected) pintar();
+      });
+  }
+
+  function blocoIdentidade(c, aoMudar){
+    const box = el('div',{class:'bloco', style:'margin-top:18px'});
+    box.appendChild(el('p',{class:'rot'},'Identidade visual'));
+    box.appendChild(el('p',{class:'intro', style:'margin:6px 0 4px'},
+      'O manual dele, traduzido pro que a peça usa. Preenchido uma vez, vale pra todas as peças: '
+      + 'é o que faz “mudar rápido” ser mudar rápido, e não refazer tudo.'));
+
+    const m0 = marcaDe(c);
+    const grava = async campos => {
+      if(await salvarMarca(c, campos)){ toast('Salvo.'); if(aoMudar) aoMudar(); return true; }
+      return false;
+    };
+
+    // ---- 1. o arquivo ----
+
+    box.appendChild(el('p',{class:'rot laranja', style:'margin-top:22px'},'O arquivo da identidade'));
+
+    const solta = el('div',{class:'idv-solta'});
+    const espera = el('div',{class:'idv-espera'});
+    espera.innerHTML =
+      '<b>O que mandar aqui</b>'
+      + '<ul>'
+      + '<li>O <b>manual / identidade visual</b> em PDF — o arquivo do Canva exportado serve.</li>'
+      + '<li>O <b>logo</b> em PNG com fundo transparente, ou em SVG.</li>'
+      + '<li>A <b>fonte</b> da marca em .otf ou .ttf, se vocês tiverem o direito de uso dela.</li>'
+      + '<li>As <b>fotos oficiais</b> que se repetem: retrato, bastidor, o que sempre volta.</li>'
+      + '</ul>'
+      + '<p style="margin:12px 0 0"><b>O que a Central faz com ele:</b> guarda como referência, e só. '
+      + 'Ninguém lê o PDF nem adivinha regra nenhuma de dentro dele. '
+      + 'O que a fábrica <b>aplica</b> nas peças é o que estiver preenchido logo abaixo — as imagens de '
+      + '“O que entra nas peças”, a paleta, os conjuntos, a tipografia e os obrigatórios. O arquivo serve '
+      + 'pra preencher isso uma vez e pra conferir depois, quando alguém perguntar de onde saiu aquela cor.</p>'
+      + '<p style="margin:10px 0 0">Até 100 MB por arquivo. Fica guardado em pasta fechada: '
+      + 'só a equipe abre.</p>';
+    solta.appendChild(espera);
+
+    const escolhaTipo = el('div',{class:'chips', style:'margin-bottom:10px'});
+    let tipoAtual = 'manual';
+    TIPOS_ARQUIVO.forEach(([k, nome])=>{
+      escolhaTipo.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(k === tipoAtual),
+        onclick:()=>{ tipoAtual = k;
+          escolhaTipo.querySelectorAll('.chip-p').forEach((b,i)=>
+            b.setAttribute('aria-pressed', String(TIPOS_ARQUIVO[i][0] === k))); }}, esc(nome)));
+    });
+    solta.appendChild(el('p',{class:'dica', style:'margin:0 0 6px'},'O que é este arquivo:'));
+    solta.appendChild(escolhaTipo);
+
+    const entrada = el('input',{type:'file', style:'display:none',
+      accept:'.pdf,.png,.jpg,.jpeg,.svg,.webp,.ttf,.otf,.woff,.woff2,.zip'});
+    const btnMandar = el('button',{class:'btn small', onclick:()=>entrada.click()},'Escolher arquivo');
+    solta.appendChild(btnMandar);
+    solta.appendChild(entrada);
+    solta.appendChild(el('span',{class:'dica', style:'margin-top:8px'},
+      'Ou arraste o arquivo pra cima desta caixa.'));
+
+    const lista = el('div',{class:'idv-arqs'});
+    solta.appendChild(lista);
+    box.appendChild(solta);
+
+    // Arrastar pra cima da caixa. O preventDefault no dragover é obrigatório:
+    // sem ele o navegador abre o PDF numa aba e o arquivo não chega aqui.
+    ['dragenter','dragover'].forEach(ev => solta.addEventListener(ev, e=>{
+      e.preventDefault(); solta.classList.add('sobre'); }));
+    ['dragleave','drop'].forEach(ev => solta.addEventListener(ev, e=>{
+      e.preventDefault(); solta.classList.remove('sobre'); }));
+    solta.addEventListener('drop', e=>{
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f) mandar(f);
+    });
+    entrada.addEventListener('change', ()=>{
+      if(entrada.files && entrada.files[0]) mandar(entrada.files[0]);
+      entrada.value = '';
+    });
+
+    async function mandar(f){
+      const mime = mimeDe(f);
+      if(!Object.values(MIME_POR_EXT).includes(mime)){
+        toast('Esse tipo de arquivo não entra aqui: ' + extDe(f.name)); return;
+      }
+      if(f.size > 100 * 1048576){ toast('Passa de 100 MB. Exporte em qualidade menor.'); return; }
+      btnMandar.disabled = true;
+      btnMandar.textContent = 'Mandando ' + peso(f.size) + '…';
+      // O caminho leva o id do cliente na frente: é isso que deixa a política
+      // do balde e a limpeza por cliente serem uma coisa só.
+      const limpo = f.name.replace(/[^\w.\-]+/g,'-').slice(-80);
+      const caminho = c.id + '/' + Date.now() + '-' + limpo;
+      const up = await sb.storage.from('identidades').upload(caminho, f, { contentType:mime, upsert:false });
+      if(up.error){
+        btnMandar.disabled = false; btnMandar.textContent = 'Escolher arquivo';
+        toast('Não subiu: ' + up.error.message); return;
+      }
+      const { data, error } = await sb.from('marca_arquivos').insert({
+        cliente_id:c.id, tipo:tipoAtual, caminho, nome:f.name, bytes:f.size, mime,
+      }).select().single();
+      btnMandar.disabled = false; btnMandar.textContent = 'Escolher arquivo';
+      if(error){
+        // A linha não entrou: o arquivo solto no balde vira lixo que ninguém
+        // mais enxerga. Tira ele de volta em vez de deixar acumular.
+        await sb.storage.from('identidades').remove([caminho]);
+        toast('Não deu: ' + error.message); return;
+      }
+      arquivos.unshift(data);
+      toast('Guardado.');
+      pintarLista();
+    }
+
+    let arquivos = [];
+    function pintarLista(){
+      lista.innerHTML = '';
+      if(!arquivos.length){
+        lista.appendChild(el('p',{class:'dica', style:'margin-top:12px'},
+          'Nada guardado ainda para ' + esc(c.nome_preferido || c.nome) + '.'));
+        return;
+      }
+      arquivos.forEach(a=>{
+        const l = el('div',{class:'idv-arq'});
+        l.appendChild(el('span',{class:'tag'},
+          esc((TIPOS_ARQUIVO.find(t => t[0] === a.tipo) || ['','—'])[1])));
+        l.appendChild(el('span',{class:'nm'}, esc(a.nome)));
+        l.appendChild(el('span',{class:'pq'}, esc(peso(a.bytes))));
+        l.appendChild(el('button',{class:'btn ghost small', onclick:async()=>{
+          // Link assinado, curto. O balde é fechado: sem isto não há URL que
+          // abra, e é assim que tem que ser — manual de cliente não fica
+          // servido num endereço que qualquer um adivinha.
+          const { data, error } = await sb.storage.from('identidades').createSignedUrl(a.caminho, 120);
+          if(error){ toast('Não consegui abrir: ' + error.message); return; }
+          window.open(data.signedUrl, '_blank', 'noopener');
+        }},'Abrir'));
+        l.appendChild(el('button',{class:'lixo', 'aria-label':'Apagar ' + esc(a.nome), onclick:async()=>{
+          if(!confirm('Apagar "' + a.nome + '"? Isso não volta.')) return;
+          const r = await sb.from('marca_arquivos').delete().eq('id', a.id);
+          if(r.error){ toast('Não deu: ' + r.error.message); return; }
+          await sb.storage.from('identidades').remove([a.caminho]);
+          arquivos = arquivos.filter(x => x.id !== a.id);
+          toast('Apagado.'); pintarLista();
+        }},'×'));
+        lista.appendChild(l);
+      });
+    }
+    pintarLista();
+    sb.from('marca_arquivos').select('*').eq('cliente_id', c.id)
+      .order('enviado_em', { ascending:false })
+      .then(({ data, error })=>{
+        if(error) return;
+        arquivos = data || [];
+        pintarLista();
+      });
+
+    blocoElementos(c, box);
+
+    // ---- 2. a paleta ----
+
+    box.appendChild(el('p',{class:'rot laranja', style:'margin-top:26px'},'A paleta do manual'));
+    box.appendChild(el('p',{class:'dica', style:'margin:6px 0 0'},
+      'Cada cor com o nome que o manual dá a ela e com o uso que o manual manda. '
+      + 'O uso é a parte que vale: cor sem uso é só um código, e código solto é como alguém '
+      + 'acaba usando a cor de posicionamento numa peça de rua.'));
+    const palCx = el('div');
+    box.appendChild(palCx);
+
+    function pintarPaleta(){
+      palCx.innerHTML = '';
+      const pal = (marcaDe(c).paleta || []).slice();
+      const salvar = () => grava({ paleta: pal });
+      pal.forEach((p, i)=>{
+        const l = el('div',{class:'pal-linha'});
+        const cor = el('input',{type:'color', value: p.cor || '#000000'});
+        cor.addEventListener('change', ()=>{ pal[i].cor = cor.value; salvar().then(pintarConjuntos); });
+        const nome = el('input',{type:'text', value:p.nome || '', placeholder:'Nome (ex.: Roxo)'});
+        nome.addEventListener('change', ()=>{ pal[i].nome = nome.value.trim(); salvar(); });
+        const uso = el('input',{type:'text', class:'uso', value:p.uso || '',
+          placeholder:'Pra que o manual manda usar'});
+        uso.addEventListener('change', ()=>{ pal[i].uso = uso.value.trim(); salvar(); });
+        const x = el('button',{class:'lixo', 'aria-label':'Tirar esta cor', onclick:()=>{
+          pal.splice(i,1); salvar().then(()=>{ pintarPaleta(); pintarConjuntos(); });
+        }},'×');
+        [cor, nome, uso, x].forEach(n => l.appendChild(n));
+        palCx.appendChild(l);
+      });
+      palCx.appendChild(el('button',{class:'btn ghost small', style:'margin-top:12px', onclick:()=>{
+        pal.push({ nome:'', cor: c.cor || '#FF5E00', uso:'' });
+        salvar().then(()=>{ pintarPaleta(); pintarConjuntos(); });
+      }}, pal.length ? '+ outra cor' : '+ primeira cor'));
+    }
+    pintarPaleta();
+
+    // ---- 3. os conjuntos ----
+
+    box.appendChild(el('p',{class:'rot laranja', style:'margin-top:28px'},'Conjuntos prontos'));
+    box.appendChild(el('p',{class:'dica', style:'margin:6px 0 0'},
+      'Um conjunto é uma combinação já aprovada: qual fundo com qual texto, e em que tipo de assunto. '
+      + 'É o que o manual realmente diz — ele quase nunca diz “a cor da marca é esta”, ele diz em que '
+      + 'situação usa qual. Com os conjuntos preenchidos, a peça deixa de ser derivada de uma cor só e '
+      + 'passa a ser escolhida numa lista de três ou quatro.'));
+    const conjCx = el('div');
+    box.appendChild(conjCx);
+
+    function pintarConjuntos(){
+      conjCx.innerHTML = '';
+      const mm = marcaDe(c);
+      const cjs = (mm.conjuntos || []).slice();
+      const pal = mm.paleta || [];
+      const salvar = () => grava({ conjuntos: cjs });
+      const grade = el('div',{class:'conj-grade'});
+
+      cjs.forEach((j, i)=>{
+        const cart = el('div',{class:'conj-cartao'});
+
+        const am = el('div',{class:'conj-amostra'});
+        function pintarAmostra(){
+          const fundo = j.fundo || '#F5F2EC';
+          const tinta = j.tinta || tintaPara(fundo, j.destaque || c.cor || '#FF5E00', 7);
+          am.style.background = fundo;
+          am.innerHTML = '';
+          const t = el('div',{class:'t'}, esc(j.nome || 'Sem nome ainda'));
+          t.style.color = tinta;
+          const a = el('div',{class:'a'}, esc(j.quando || 'em que assunto se usa'));
+          // O "quando" usa a cor do TEXTO, não a de destaque. Parece detalhe e
+          // não é: rosa sobre roxo é uma combinação legítima do manual pra uma
+          // faixa, e ilegível pra uma linha de texto — pintar a linha com a cor
+          // de destaque fazia o próprio cartão do conjunto virar exemplo do
+          // erro que ele existe pra evitar.
+          a.style.color = tinta;
+          const barras = el('div',{style:'display:flex;gap:6px;align-items:center'});
+          [j.destaque, j.faixa].filter(Boolean).forEach(cor=>{
+            const f = el('div',{class:'f'});
+            f.style.background = cor;
+            barras.appendChild(f);
+          });
+          am.appendChild(t); am.appendChild(a); am.appendChild(barras);
+          // A conta de contraste é a mesma da norma, e aparece aqui porque um
+          // conjunto do manual pode simplesmente não ler — manual feito pra
+          // cartaz de rua não pensou em texto de 28px no celular. O Estúdio
+          // não conserta a escolha dele; avisa, e quem decide é a pessoa.
+          const r = contraste(tinta, fundo);
+          const av = el('div',{class:'a', style:'margin-top:4px;opacity:.85'},
+            r >= 4.5 ? '✓ lê bem (' + r.toFixed(1) + ':1)'
+                     : '⚠ contraste baixo (' + r.toFixed(1) + ':1) — o mínimo da norma é 4,5:1');
+          av.style.color = r >= 4.5 ? tinta : (contraste('#B00020', fundo) >= 3 ? '#B00020' : tinta);
+          am.appendChild(av);
+        }
+        pintarAmostra();
+        cart.appendChild(am);
+
+        const corpo = el('div',{class:'conj-corpo'});
+        const nome = el('input',{type:'text', value:j.nome || '', placeholder:'Nome (ex.: Tema leve)'});
+        nome.addEventListener('input', ()=>{ j.nome = nome.value; pintarAmostra(); });
+        nome.addEventListener('change', ()=>{ j.nome = nome.value.trim(); salvar(); });
+        corpo.appendChild(nome);
+        const quando = el('input',{type:'text', value:j.quando || '',
+          placeholder:'Quando usar (ex.: dia a dia, pauta leve)'});
+        quando.addEventListener('input', ()=>{ j.quando = quando.value; pintarAmostra(); });
+        quando.addEventListener('change', ()=>{ j.quando = quando.value.trim(); salvar(); });
+        corpo.appendChild(quando);
+
+        const cores = el('div',{class:'conj-cores'});
+        [['fundo','Fundo'],['tinta','Texto'],['destaque','Destaque'],['faixa','Faixa']].forEach(([k, rot])=>{
+          const cx = el('div',{class:'conj-cor'});
+          cx.appendChild(el('span',{}, rot));
+          const inp = el('input',{type:'color', value: j[k] || (k === 'fundo' ? '#F5F2EC' : '#1A1815')});
+          inp.addEventListener('input', ()=>{ j[k] = inp.value; pintarAmostra(); });
+          inp.addEventListener('change', ()=>{ j[k] = inp.value; salvar(); });
+          cx.appendChild(inp);
+          cores.appendChild(cx);
+        });
+        corpo.appendChild(cores);
+
+        // Puxar da paleta. Sem isto, as cores do conjunto são digitadas de novo
+        // e acabam divergindo por um dígito do que está lá em cima — e paleta
+        // que diverge do conjunto é pior do que paleta nenhuma.
+        if(pal.length){
+          corpo.appendChild(el('p',{class:'dica', style:'margin:2px 0 0'},'Pôr uma cor da paleta no fundo:'));
+          const puxa = el('div',{class:'chips'});
+          pal.forEach(p=>{
+            const b = el('button',{class:'chip-p', title: esc(p.uso || ''), onclick:()=>{
+              j.fundo = p.cor;
+              // O texto acompanha, calculado em cima do fundo novo: trocar o
+              // fundo e deixar o texto velho é o jeito mais rápido de gerar
+              // um conjunto ilegível sem perceber.
+              j.tinta = tintaPara(p.cor, j.destaque || c.cor || p.cor, 7);
+              salvar().then(pintarConjuntos);
+            }}, esc(p.nome || p.cor));
+            b.style.borderLeft = '10px solid ' + p.cor;
+            puxa.appendChild(b);
+          });
+          corpo.appendChild(puxa);
+        }
+
+        const pe = el('div',{class:'conj-pe'});
+        const ehPadrao = (marcaDe(c).conjuntoPadrao || '') === j.k;
+        pe.appendChild(el('button',{class:'chip-p', 'aria-pressed':String(ehPadrao), onclick:()=>{
+          grava({ conjuntoPadrao: ehPadrao ? '' : j.k }).then(pintarConjuntos);
+        }}, ehPadrao ? 'É o padrão dele' : 'Usar como padrão'));
+        pe.appendChild(el('button',{class:'lixo', 'aria-label':'Tirar este conjunto', onclick:()=>{
+          cjs.splice(i,1);
+          const extra = (marcaDe(c).conjuntoPadrao || '') === j.k ? { conjuntoPadrao:'' } : {};
+          salvarMarca(c, Object.assign({ conjuntos:cjs }, extra)).then(ok=>{
+            if(ok){ toast('Salvo.'); if(aoMudar) aoMudar(); pintarConjuntos(); }
+          });
+        }},'×'));
+        corpo.appendChild(pe);
+
+        cart.appendChild(corpo);
+        grade.appendChild(cart);
+      });
+      conjCx.appendChild(grade);
+
+      conjCx.appendChild(el('button',{class:'btn ghost small', style:'margin-top:12px', onclick:()=>{
+        const base = pal[0] ? pal[0].cor : (c.cor || '#FF5E00');
+        cjs.push({
+          k: 'j' + Date.now().toString(36),
+          nome:'', quando:'',
+          fundo:'#F5F2EC',
+          tinta: tintaPara('#F5F2EC', base, 7),
+          destaque: base,
+          faixa: base,
+        });
+        salvar().then(pintarConjuntos);
+      }}, cjs.length ? '+ outro conjunto' : '+ primeiro conjunto'));
+
+      if(!cjs.length) conjCx.appendChild(el('p',{class:'dica', style:'margin-top:10px'},
+        'Sem conjunto, a peça continua funcionando: a fábrica deriva tudo da cor principal, '
+        + 'como sempre fez. O conjunto só entra quando existe manual dizendo outra coisa.'));
+    }
+    pintarConjuntos();
+
+    // ---- 4. tipografia e obrigatórios ----
+
+    box.appendChild(el('p',{class:'rot laranja', style:'margin-top:28px'},'Tipografia e obrigatórios'));
+
+    const linhaCampo = (rot, dentro, dica)=>{
+      const l = el('div',{class:'campo-p'});
+      l.appendChild(el('span',{}, esc(rot)));
+      l.appendChild(dentro);
+      box.appendChild(l);
+      if(dica) box.appendChild(el('p',{class:'dica campo-dica'}, esc(dica)));
+    };
+
+    const fm = el('input',{type:'text', value:m0.fonteMarca || '', placeholder:'Ex.: Garet'});
+    fm.addEventListener('change', ()=>grava({ fonteMarca: fm.value.trim() }));
+    linhaCampo('Fonte da marca', fm,
+      'O nome que está no manual. Se ela estiver instalada no PC da fábrica, as peças saem nela; '
+      + 'se não, sai a substituta abaixo. Escrever aqui não instala a fonte.');
+
+    const gf = el('div',{class:'chips'});
+    [['','Nenhuma']].concat(FONTES.map(f=>[f[0], f[1]])).forEach(([k, nome])=>{
+      gf.appendChild(el('button',{class:'chip-p', 'aria-pressed':String((marcaDe(c).fonteFalback || '') === k),
+        onclick:()=>{ grava({ fonteFalback:k }).then(()=>render()); }}, esc(nome)));
+    });
+    linhaCampo('Substituta', gf,
+      'Qual destas fica mais perto da fonte da marca. É a que sai quando a da marca não está no PC da fábrica.');
+
+    const ob = el('div',{class:'campo-longo', style:'margin-top:14px'});
+    ob.appendChild(el('span',{},'O que não pode faltar'));
+    const obT = el('textarea',{rows:'3',
+      placeholder:'Ex.: a estrela amarela em toda peça; o número sempre no canto; o logo no último slide.'});
+    obT.value = m0.obrigatorios || '';
+    obT.addEventListener('change', ()=>grava({ obrigatorios: obT.value.trim() }));
+    ob.appendChild(obT);
+    box.appendChild(ob);
+    box.appendChild(el('p',{class:'dica campo-dica'},
+      'A fábrica recebe esta lista junto com cada pedido, mas não promete desenhar tudo dela — '
+      + 'confira na peça antes de aprovar. Prometer que o programa põe a estrela seria mentira; lembrar que '
+      + 'ela falta é o que dá pra fazer de verdade e é o que evita a peça voltar.'));
+
+    return box;
+  }
+
 
   // ---------- listas ----------
 
@@ -6803,6 +8414,7 @@
     const dentro = el('div');
     dentro.appendChild(explicacaoAba(state.aba));
     if(state.aba==='respostas') dentro.appendChild(abaRespostas());
+    if(state.aba==='plano') dentro.appendChild(abaPlano(c));
     if(state.aba==='agenda') dentro.appendChild(abaAgendaCliente(c));
     if(state.aba==='pagina') dentro.appendChild(abaPagina(c));
     if(state.aba==='acessos') dentro.appendChild(abaAcessos(c));
@@ -6836,6 +8448,12 @@
   function estadoDaAba(k, c){
     const d = state.detalhe;
     if(k === 'respostas') return d.onboarding ? 'cheio' : '';
+    if(k === 'plano'){
+      if(!d.onboarding) return '';
+      const pl = d.plano;
+      if(!pl) return '';
+      return (pl.plano && pl.pauta) ? 'cheio' : 'meio';
+    }
     if(k === 'acessos'){
       if(!d.acessos.length) return '';
       if(d.acessos.some(a => a.status === 'bloqueado')) return 'alerta';
