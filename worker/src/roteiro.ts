@@ -22,6 +22,7 @@ import { montarCenaDoPedido, renderizarDoPedido } from './motion.ts';
 import { CUSTO_ZERO, FalhaDoAgente, salvarTexto, type Agente, type ParametrosAgente } from './agente.ts';
 import type { Ajuste } from './fila.ts';
 import type { Conjunto } from './marca.ts';
+import { materialDoPedido } from './diagramacao.ts';
 import { cartazDoPedido, logoParaOFundo } from './vetor.ts';
 
 /** O título que o roteiro consegue tirar sem interpretar: as primeiras oito palavras, sem o que vem depois de ":". */
@@ -353,8 +354,22 @@ async function cartaz({ p, c, maxPalavras }: Contexto) {
   await p.aoMudarEtapa({ etapa: 'conferindo o cartaz', progresso: 80 });
 }
 
+/**
+ * O guia e o folheto: a primeira frase do pedido é o título, as outras são as
+ * ideias, na ordem — o roteiro não escreve conteúdo, só distribui o que o
+ * cliente mandou (uma ideia por página ou painel).
+ */
+async function material({ p, c, maxPalavras }: Contexto) {
+  await p.aoMudarEtapa({ etapa: p.skill.nome === 'folheto-dobravel' ? 'diagramando o folheto' : 'diagramando o guia', progresso: 20 });
+  const frases = frasesDoTexto(p.dados.textoDoCliente);
+  materialDoPedido(p, { titulo: tituloDoTexto(frases[0] ?? p.dados.textoDoCliente, maxPalavras), ideias: frases.slice(1).map((f) => f.replace(/[.,;]+$/, '') + '.'), conjunto: c });
+  await p.aoMudarEtapa({ etapa: 'conferindo as páginas', progresso: 80 });
+}
+
 const ROTEIROS: Record<string, (x: Contexto) => Promise<void>> = {
   'cartaz-impressao': cartaz,
+  'guia-pdf': material,
+  'folheto-dobravel': material,
   'abertura-com-motion': aberturaComMotion,
   'carrossel-em-video': carrosselEmVideo,
   'post-feed-teste': postDeTeste,

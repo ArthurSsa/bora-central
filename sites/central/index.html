@@ -4373,16 +4373,21 @@
     { k:'abertura',   tipo:'reel',      formato:'abertura',  nome:'Abertura animada',      sub:'10 s com o tema animado',         midia:'vídeo' },
     { k:'carvideo',   tipo:'reel',      formato:'carrossel', nome:'Carrossel em vídeo',    sub:'De um carrossel já aprovado',     midia:'vídeo' },
     { k:'cartaz',     tipo:'cartaz',    nome:'Cartaz para imprimir', sub:'A4 ou A3, PDF pronto pra gráfica', midia:'impressão' },
+    { k:'guia',       tipo:'material',  formato:'guia',    nome:'Guia em PDF',      sub:'A5, de 6 a 12 páginas, uma ideia por página', midia:'páginas' },
+    { k:'folheto',    tipo:'material',  formato:'folheto', nome:'Folheto dobrável', sub:'A4 em três, PDF/X-4 pra gráfica',            midia:'impressão' },
   ];
+  // As frases contam como na fábrica e no banco: pedaços entre . ; : ! ? ou quebra de linha, com duas palavras ou mais.
+  const frasesDoPedido = t => String(t || '').split(/[.;:!?\n]+/).map(f => f.trim()).filter(f => f.split(/\s+/).length >= 2);
+  const IDEIAS_PRECISA = n => n.tipo === 'guia' ? n.paginas - 2 : n.tipo === 'folheto' ? 3 : 0;
   const ESTADOS_PEDIDO = { rascunho:'Rascunho', produzindo:'Fazendo', para_aprovar:'Para aprovar', aprovado:'Aprovado',
     agendado:'Agendado', publicado:'Publicado', cancelado:'Cancelado' };
   const COR_ESTADO = { produzindo:'andamento', para_aprovar:'espera', aprovado:'ok', agendado:'ok', publicado:'ok', cancelado:'neutro' };
   // No vídeo, a fábrica sem o Claude troca a cor da legenda e mexe na música.
   const ATALHOS_CRIAR = tipo => tipo === 'reel' ? [['outra cor da marca','Outra cor da marca'], ['música mais baixa','Música mais baixa'], ['sem música','Sem música']]
-    : tipo === 'cartaz' ? [['mais curto','Mais curto'], ['outra cor da marca','Outra cor da marca']]
+    : tipo === 'cartaz' || tipo === 'material' ? [['mais curto','Mais curto'], ['outra cor da marca','Outra cor da marca']]
     : [['mais curto','Mais curto'], ['outra cor da marca','Outra cor da marca'], ['mais sério','Mais sério'], ['troca a foto','Troca a foto']];
   // Qual app da ArtCraft abre cada editável.
-  const APP_DO_ARQUIVO = { psd:'PhotoCraft', fcproj:'FilmCraft', ecproj:'EffectCraft', zip:'SoundCraft (descompacte)', vectorcraft:'VectorCraft', ai:'VectorCraft ou Illustrator' };
+  const APP_DO_ARQUIVO = { psd:'PhotoCraft', fcproj:'FilmCraft', ecproj:'EffectCraft', zip:'SoundCraft (descompacte)', vectorcraft:'VectorCraft', ai:'VectorCraft ou Illustrator', designcraft:'DesignCraft', idml:'DesignCraft ou InDesign' };
   const COLUNAS_PEDIDO = 'id, cliente_id, tipo, titulo, briefing, estado, publicar_em, ajustes, job_aprovado, escolha, aprovado_em, '
     + 'assumido_por, assumido_em, pela_equipe, criado_em, atualizado_em, '
     + 'jobs!jobs_pedido_id_fkey(id, rodada, skill, estado, etapa, progresso, restam_segundos, saidas, erro, tentativas, max_tentativas, criado_em, atualizado_em)';
@@ -4533,7 +4538,7 @@
 
   function formNovaPeca(){
     const c = C();
-    if(!c.novo) c.novo = { cliente:'', tipo:'post', texto:'', slides:5, objetivo:null, tom:null, data:'', video:null, deCarrossel:'', trilha:'', folha:'a4' };
+    if(!c.novo) c.novo = { cliente:'', tipo:'post', texto:'', slides:5, objetivo:null, tom:null, data:'', video:null, deCarrossel:'', trilha:'', folha:'a4', paginas:8 };
     const n = c.novo;
     const t = TIPOS_CRIAR.find(x => x.k === n.tipo);
     const b = el('div',{class:'bloco'});
@@ -4584,10 +4589,26 @@
     const area = el('textarea',{rows:'3', maxlength:'800', id:'cr-texto',
       placeholder: n.tipo === 'abertura' ? 'Ex.: Turma nova do laboratório, inscrições abertas.' : 'Ex.: Abrimos turma nova no laboratório, inscrições até sexta.'});
     area.value = n.texto;
-    area.addEventListener('input', ()=>{ n.texto = area.value; botao.disabled = !podePedir(); });
-    campo(n.tipo === 'abertura' ? 'O que a abertura vai dizer' : n.tipo === 'reel' ? 'Em uma frase, sobre o que é o vídeo' : 'O que a peça precisa dizer', area)
-      .querySelector('label').setAttribute('for', 'cr-texto');
+    area.addEventListener('input', ()=>{ n.texto = area.value; botao.disabled = !podePedir(); contarIdeias(); });
+    const caixaTexto = campo(n.tipo === 'abertura' ? 'O que a abertura vai dizer' : n.tipo === 'reel' ? 'Em uma frase, sobre o que é o vídeo'
+      : IDEIAS_PRECISA(n) ? 'O título e uma ideia por frase' : 'O que a peça precisa dizer', area);
+    caixaTexto.querySelector('label').setAttribute('for', 'cr-texto');
+    // Guia e folheto: a fábrica não escreve conteúdo; o pedido traz uma ideia por página ou painel.
+    const contagem = el('p',{class:'dica', id:'cr-ideias', 'aria-live':'polite'});
+    function contarIdeias(){
+      const precisa = IDEIAS_PRECISA(n);
+      if(!precisa){ contagem.textContent = ''; return; }
+      const tem = Math.max(0, frasesDoPedido(n.texto).length - 1);
+      contagem.textContent = 'Depois do título: ' + tem + ' de ' + precisa + (precisa === 1 ? ' ideia' : ' ideias') + (tem >= precisa ? '.' : ' — falta' + (precisa - tem > 1 ? 'm ' : ' ') + (precisa - tem) + '.');
+    }
+    caixaTexto.appendChild(contagem);
+    contarIdeias();
 
+    if(n.tipo === 'guia'){
+      const g = el('div',{class:'chips', role:'group', 'aria-label':'Páginas do guia'});
+      [6, 8, 10, 12].forEach(q => g.appendChild(el('button',{class:'chip-p', type:'button', 'aria-pressed':String(n.paginas === q), onclick:()=>{ n.paginas = q; render(); }}, String(q))));
+      campo('Páginas', g, 'A capa, uma ideia por página e o contato no fim: o guia de 8 páginas leva 6 ideias.');
+    }
     if(n.tipo === 'cartaz'){
       const g = el('div',{class:'chips', role:'group', 'aria-label':'Tamanho do cartaz'});
       [['a4','A4'],['a3','A3']].forEach(([k, rot]) => g.appendChild(el('button',{class:'chip-p', type:'button', 'aria-pressed':String(n.folha === k), onclick:()=>{ n.folha = k; render(); }}, rot)));
@@ -4615,6 +4636,7 @@
       if(!n.cliente || n.texto.trim().length < 3 || c.pedindo) return false;
       if(n.tipo === 'reel') return !!(n.video && n.video.estado === 'pronto');
       if(n.tipo === 'carvideo') return !!n.deCarrossel;
+      if(IDEIAS_PRECISA(n)) return frasesDoPedido(n.texto).length - 1 >= IDEIAS_PRECISA(n);
       return true;
     }
     const botao = el('button',{class:'btn', onclick:pedirCriar}, c.pedindo ? 'Pedindo…' : 'Pedir à fábrica');
@@ -4623,6 +4645,8 @@
     rodape.appendChild(botao);
     const d = el('p',{class:'dica'});
     d.textContent = t.midia === 'vídeo' ? 'Sai com prévia antes do vídeo inteiro. Vídeo do cliente: até 1 minuto e meio e 50 MB.'
+      : n.tipo === 'folheto' ? 'Sai o PDF/X-4 pra gráfica, a prévia de cada lado e o editável (DesignCraft e IDML, que abre no InDesign).'
+      : t.midia === 'páginas' ? 'Sai o PDF leve pra mandar no WhatsApp, uma prévia por página e o editável (DesignCraft e IDML).'
       : t.midia === 'impressão' ? 'Sai o PDF pra gráfica, uma imagem pro WhatsApp e o editável (VectorCraft e .ai).'
       : 'Sai em poucos minutos, com a legenda pronta. Você aprova antes do cliente ver como pronta.';
     rodape.appendChild(d);
@@ -4683,6 +4707,7 @@
     if(t.formato === 'carrossel') briefing.de_pedido = n.deCarrossel;
     if(t.tipo === 'reel' && n.trilha) briefing.trilha = n.trilha;
     if(t.tipo === 'cartaz') briefing.folha = n.folha;
+    if(n.tipo === 'guia') briefing.paginas = n.paginas;
     c.pedindo = true; render();
     const { data, error } = await sb.rpc('criar_pedido', { p_cliente: n.cliente, p_tipo: t.tipo, p_briefing: briefing,
       p_publicar_em: n.data ? new Date(n.data + 'T12:00:00').toISOString() : null });
@@ -5066,7 +5091,7 @@
       });
       w.appendChild(l);
     }
-    passo(2, 'Abra o editável no app da ArtCraft deste PC (PhotoCraft pra .psd, FilmCraft pra .fcproj, EffectCraft pra .ecproj, VectorCraft pra .vectorcraft, SoundCraft pro som.zip descompactado), corrija e exporte de novo.');
+    passo(2, 'Abra o editável no app da ArtCraft deste PC (PhotoCraft pra .psd, FilmCraft pra .fcproj, EffectCraft pra .ecproj, VectorCraft pra .vectorcraft, DesignCraft pra .designcraft, SoundCraft pro som.zip descompactado), corrija e exporte de novo.');
     passo(3, 'Suba todos os arquivos da entrega, com os mesmos nomes. Antes de chegar no cliente, passam pela conferência de marca.');
     if(c.enviando && c.enviando.pedido === p.id){
       const x = el('p',{class:'dica'}); x.textContent = 'Subindo ' + c.enviando.feitos + ' de ' + c.enviando.total + '…'; w.appendChild(x);

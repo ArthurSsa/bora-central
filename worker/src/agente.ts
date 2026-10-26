@@ -12,6 +12,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { desenharLegendas, exportarReel, lerSrt, somDoReel } from './reel.ts';
 import { montarCenaDoPedido, projetoDoMotion, renderizarDoPedido } from './motion.ts';
 import { cartazDoPedido } from './vetor.ts';
+import { materialDoPedido } from './diagramacao.ts';
 import path from 'node:path';
 import type { Ajuste, Custos, Elemento } from './fila.ts';
 import type { Conjunto } from './marca.ts';
@@ -184,6 +185,28 @@ export const rodarAgente: Agente = async (p) => {
             cartazDoPedido(p, { titulo, apoio: apoio ?? null, conjunto: c });
             renderMs += performance.now() - t;
             return { content: [{ type: 'text', text: 'cartaz salvo: saida/cartaz.pdf, saida/cartaz.png, editavel/cartaz.vectorcraft, editavel/cartaz.ai' }] };
+          } catch (e) {
+            return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
+          }
+        },
+      ),
+      // O guia e o folheto: diagramar é mecânico; o agente decide o texto.
+      tool(
+        'material_da_marca',
+        'Monta o guia (A5, uma ideia por página) ou o folheto dobrável (A4 em três painéis, PDF/X-4 pra gráfica) no DesignCraft, conforme o pedido, e salva o PDF em saida/, uma prévia por página (saida/pagina-01.png…) e os editáveis editavel/*.designcraft e editavel/*.idml. A letra encolhe sozinha até nenhum texto sobrar.',
+        {
+          titulo: z.string().min(2).max(120).describe('O tema em até oito palavras.'),
+          apoio: z.string().max(140).optional().describe('Uma linha menor na capa, ou nada.'),
+          ideias: z.array(z.string().min(2).max(400)).min(3).max(12).describe('As ideias do pedido, na ordem: uma por página do miolo (guia) ou por painel de dentro (folheto; da quarta em diante vão na aba).'),
+          conjunto: z.string().optional().describe('Nome do conjunto de cor; sem ele, o da peça.'),
+        },
+        async ({ titulo, apoio, ideias, conjunto }) => {
+          try {
+            const c = p.dados.conjuntos.find((x) => x.nome === conjunto) ?? p.dados.conjunto;
+            const t = performance.now();
+            const r = materialDoPedido(p, { titulo, apoio: apoio ?? null, ideias, conjunto: c });
+            renderMs += performance.now() - t;
+            return { content: [{ type: 'text', text: `pronto: ${path.relative(p.pastaJob, r.pdf)}, ${r.paginas.length} páginas${r.avisos.length ? `. Avisos: ${r.avisos.join('; ')}` : ''}` }] };
           } catch (e) {
             return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
           }

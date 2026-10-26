@@ -22,6 +22,7 @@ import { lerSrt } from './reel.ts';
 import { lerPng, type Imagem } from './png.ts';
 import { audioDe, curvaDaSessao, picoDb, trilhaAbaixaNaFala, type Trecho } from './som.ts';
 import { caixaDoLogo, caixasDoPdf, FORMATOS_CARTAZ, MARGEM_SEGURA_PT, SANGRIA_PT, textosDoDocumento, type FormatoCartaz } from './vetor.ts';
+import { caixasDoMaterial, coresNaImpressao, LARGURA_PREVIA, lerMaterial, MODELOS, validarPdfX4, type Modelo } from './diagramacao.ts';
 import { lerWav, listar, loudnessIntegrado, silencioMaisLongo, sondar } from './video.ts';
 import type { SaidaConferida } from './verificar.ts';
 
@@ -402,6 +403,75 @@ export function conferirCartaz(pastaJob: string, regra: { cores: string[]; fonte
     if (razao < 3) erros.push(`${rgbParaHex(cores[1].cor)} sobre ${rgbParaHex(cores[0].cor)} dá ${razao.toFixed(1)}:1; precisa de 3:1`);
   }
   return { erros: [...new Set(erros)], avisos: [] };
+}
+
+// ---------- guia e folheto ----------
+
+/**
+ * A conferência do material de várias páginas:
+ *   - o PDF: o número de páginas pedido; no folheto, o corte em A4 deitado,
+ *     a sangria de 3 mm e o PDF/X-4 válido pelo próprio DesignCraft (cor em
+ *     CMYK, fonte embutida);
+ *   - o texto: nenhum sobrando fora da caixa, e o preflight sem erro (fonte
+ *     que falta, imagem fraca);
+ *   - as páginas: toda cor que ocupa espaço é da paleta — no folheto, a
+ *     paleta como sai impressa; a área do logo não conta — e o texto lê sobre
+ *     o fundo. Cor da marca que muda muito no CMYK vira aviso, não erro.
+ */
+export function conferirMaterial(pastaJob: string, regra: { cores: string[]; modelo: Modelo; paginas: number }): Resultado {
+  const erros: string[] = [];
+  const avisos: string[] = [];
+  const md = MODELOS[regra.modelo];
+  const pdf = readFileSync(path.join(pastaJob, md.pdf));
+  const paginasPdf = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) ?? []).length;
+  if (paginasPdf !== regra.paginas) erros.push(`o PDF tem ${paginasPdf} páginas; o pedido é de ${regra.paginas}`);
+  if (md.sangria) {
+    const { trim, bleed } = caixasDoPdf(pdf);
+    const mm = (pt: number) => Math.round(pt / (72 / 25.4));
+    if (!trim || !bleed) erros.push('o PDF não diz onde cortar (falta TrimBox ou BleedBox)');
+    else {
+      if (Math.abs(trim[2] - trim[0] - md.largura) > 1 || Math.abs(trim[3] - trim[1] - md.altura) > 1) erros.push(`o corte tem ${mm(trim[2] - trim[0])}×${mm(trim[3] - trim[1])} mm; o folheto é 297×210`);
+      const lados = [trim[0] - bleed[0], trim[1] - bleed[1], bleed[2] - trim[2], bleed[3] - trim[3]];
+      if (lados.some((s) => Math.abs(s - md.sangria) > 0.5)) erros.push('a sangria não tem 3 mm de cada lado');
+    }
+    const x4 = validarPdfX4(path.join(pastaJob, md.pdf));
+    if (!x4.valido) erros.push(`o PDF não passa como PDF/X-4: ${x4.problemas.slice(0, 3).join('; ')}`);
+  }
+
+  const trabalho = path.join(pastaJob, '.trabalho');
+  const lido = lerMaterial(path.join(pastaJob, 'editavel', `${md.base}.designcraft`), trabalho);
+  if (lido.sobrando) erros.push(`${lido.sobrando} texto(s) não couberam na caixa`);
+  for (const p of lido.problemas.filter((x) => x.severity === 'error')) erros.push(`preflight: ${p.message}${p.page ? ` (página ${p.page})` : ''}`);
+
+  // A paleta como aparece: no folheto, a da impressão.
+  let paleta = regra.cores.map(hexParaRgb);
+  if (md.sangria) {
+    const impressas = coresNaImpressao(regra.cores, trabalho);
+    paleta = [...paleta, ...Object.values(impressas).map((c) => hexParaRgb(c.impressa))];
+    for (const [hex, ci] of Object.entries(impressas)) {
+      if (distancia(hexParaRgb(hex), hexParaRgb(ci.impressa)) > 25) avisos.push(`na gráfica, ${hex} sai como ${ci.impressa} (o CMYK não alcança essa cor)`);
+    }
+  }
+  const aceita = (c: number[]) => paleta.some((p) => distancia(p, c) <= 16)
+    || paleta.some((a, i) => paleta.slice(i + 1).some((b) => distanciaAoSegmento(c, a, b) <= 14));
+  const escala = LARGURA_PREVIA[regra.modelo] / md.largura;
+  const { logos } = caixasDoMaterial({ modelo: regra.modelo, paginas: regra.paginas, logo: 'x', titulo: '', ideias: [], apoio: null, chamada: null, assinatura: null,
+    conjunto: { nome: '', fundo: '#000000', tinta: '#FFFFFF', destaque: '#FFFFFF', faixa: '#FFFFFF' }, fonte: '', pesos: { titulo: 700, texto: 500 }, impacto: false, alinhamento: 'left' });
+  const pngs = listar(path.join(pastaJob, 'saida'), /^pagina-\d+\.png$/);
+  if (pngs.length !== regra.paginas) erros.push(`saíram ${pngs.length} prévias; o pedido é de ${regra.paginas} páginas`);
+  for (const [i, arq] of pngs.entries()) {
+    const img = lerPng(readFileSync(arq));
+    // O logo é um retângulo de largura dada e altura até a metade dela: sai da conta com folga.
+    const fora: Caixa[] = logos.filter((l) => l.pagina === i).map((l) => [Math.floor(l.x * escala) - 4, Math.floor(l.y * escala) - 4, Math.ceil((l.x + l.largura) * escala) + 4, Math.ceil((l.y + l.largura) * escala) + 4]);
+    const cores = coresQueOcupam(img, fora, 0.0005);
+    const nome = `página ${i + 1}`;
+    for (const { cor, fatia } of cores) if (!aceita(cor)) erros.push(`${nome}: a cor ${rgbParaHex(cor)} ocupa ${(fatia * 100).toFixed(1)}% e não é da paleta`);
+    if (cores.length >= 2) {
+      const razao = contraste(rgbParaHex(cores[1].cor), rgbParaHex(cores[0].cor));
+      if (razao < 3) erros.push(`${nome}: ${rgbParaHex(cores[1].cor)} sobre ${rgbParaHex(cores[0].cor)} dá ${razao.toFixed(1)}:1; precisa de 3:1`);
+    } else erros.push(`${nome}: só tem o fundo`);
+  }
+  return { erros: [...new Set(erros)], avisos };
 }
 
 // ---------- som ----------

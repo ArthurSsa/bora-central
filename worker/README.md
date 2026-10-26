@@ -137,6 +137,7 @@ também soma. `FABRICA_TETO_USD` corta a rodada que passar do teto.
 | FilmCraft | `mcp --project J/editavel/projeto.fcproj --data-dir J/.filmcraft` | recusa raízes; passo 5 |
 | SoundCraft | só o CLI: `script`, `convert` | o som dos vídeos (`src/som.ts`); etapa C |
 | VectorCraft | `mcp --headless` + as raízes; o roteiro usa `run` | logo vetorial e cartaz (`src/vetor.ts`); etapa D |
+| DesignCraft | `mcp` + as raízes; o roteiro usa `script` | guia e folheto (`src/diagramacao.ts`); etapa E |
 
 O SoundCraft (0.13.1, portátil, em `.ferramentas/soundcraft/`) faz o som dos
 vídeos sem janela: trata a voz do reel (filtro de graves, de-esser,
@@ -154,6 +155,15 @@ coisas. O logo que a equipe sobe em vetor (SVG, PDF, AI, EPS) vira PNG de
 para imprimir (A4 ou A3): PDF com 3 mm de sangria, TrimBox, BleedBox e marcas
 de corte, PNG pro WhatsApp, editável em `.vectorcraft` e `.ai`. A conferência
 lê as caixas do PDF, a margem de 15 mm dos textos e as cores da imagem.
+
+O DesignCraft (0.13.0, portátil, em `.ferramentas/designcraft/`) diagrama o
+material de várias páginas: o guia em PDF (A5, de 6 a 12 páginas, uma ideia
+do pedido por página, PDF leve) e o folheto dobrável (A4 em três painéis,
+PDF/X-4 pra gráfica, cor em CMYK, 3 mm de sangria). Ele não encolhe texto
+sozinho: o tamanho sai de uma conta pelo comprimento, e a caixa com texto
+sobrando refaz com a letra menor. A conferência usa o `validate-pdf` e o
+`preflight.run` do próprio DesignCraft, e compara as páginas do folheto com a
+paleta como ela sai impressa (cor que o CMYK não alcança vira aviso).
 
 `transcript.generate` (FilmCraft) e `develop.sync` (LightCraft), citados no
 prompt original, não aparecem na documentação atual dos repositórios — o mais

@@ -17,7 +17,7 @@ import path from 'node:path';
 import type { McpStdioServerConfig } from '@anthropic-ai/claude-agent-sdk';
 import { acharCli } from './config.ts';
 
-export const APPS = ['photocraft', 'effectcraft', 'lightcraft', 'filmcraft', 'vectorcraft'] as const;
+export const APPS = ['photocraft', 'effectcraft', 'lightcraft', 'filmcraft', 'vectorcraft', 'designcraft'] as const;
 export type App = (typeof APPS)[number];
 
 export function servidorMcp(app: App, pastaJob: string): McpStdioServerConfig {
@@ -40,6 +40,9 @@ export function servidorMcp(app: App, pastaJob: string): McpStdioServerConfig {
     case 'vectorcraft':
       // --headless: nunca se liga num VectorCraft aberto na tela deste PC.
       return { ...base, args: ['mcp', '--headless', '--automation-read-root', pastaJob, '--automation-write-root', pastaJob] };
+    case 'designcraft':
+      // As raízes rodam o servidor dentro do processo: nunca o DesignCraft aberto na tela.
+      return { ...base, args: ['mcp', '--automation-read-root', pastaJob, '--automation-write-root', pastaJob] };
   }
 }
 

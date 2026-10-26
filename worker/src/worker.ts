@@ -11,11 +11,12 @@ import path from 'node:path';
 import { setTimeout as esperar } from 'node:timers/promises';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { fontesInstaladas, pesoMaisPerto } from './apps.ts';
-import { conferirCartaz, conferirMarca, conferirMotion, conferirSom, conferirTextos, conferirVideo, type Caixa } from './conferencia.ts';
+import { conferirCartaz, conferirMarca, conferirMaterial, conferirMotion, conferirSom, conferirTextos, conferirVideo, type Caixa } from './conferencia.ts';
 import { projetoDoMotion, SEGUNDOS_ABERTURA, SEGUNDOS_POR_SLIDE } from './motion.ts';
 import { exportarAudioFinal, lerSrt } from './reel.ts';
 import { somDaRodada, trechosDeFala, trilhaDaEntrada } from './som.ts';
 import { folhaDoPedido, prepararElementos } from './vetor.ts';
+import { modeloDoPedido } from './diagramacao.ts';
 import { listar, sondar, transcrever } from './video.ts';
 import { lerConfig, type Config } from './config.ts';
 import { rodarAgente, FalhaDoAgente, CUSTO_ZERO, type Agente, type Etapa, type ResultadoAgente } from './agente.ts';
@@ -148,7 +149,7 @@ export async function produzir(a: {
     throw new FalhaDoAgente(`reprovado na conferência: ${(e as Error).message}`, resultado.custos);
   }
   // O cartaz tem conferência própria (PDF, sangria, margem, cores): a de marca é a do PSD dos posts.
-  const daMarca = a.skill.apps.includes('vectorcraft') ? { erros: [], avisos: [] }
+  const daMarca = a.skill.apps.includes('vectorcraft') || a.skill.apps.includes('designcraft') ? { erros: [], avisos: [] }
     : conferirMarca(pastaJob, conferidas, { cores: coresDaMarca(a.cliente), fontes: [fonte.usada] });
   const dosTextos = conferirTextos(pastaJob, conferidas, { semEmoji: /emoji/i.test(m.evitar ?? '') });
   const slides = listar(path.join(pastaJob, 'entrada', 'slides'), /^slide-\d+\.png$/).length;
@@ -174,7 +175,10 @@ export async function produzir(a: {
         })
       : a.skill.apps.includes('vectorcraft') && existsSync(path.join(pastaJob, 'editavel', 'cartaz.vectorcraft'))
         ? conferirCartaz(pastaJob, { cores: coresDaMarca(a.cliente), fonte: fonte.usada, folha: folhaDoPedido(a.pedido.briefing ?? {}) })
-        : { erros: [], avisos: [] };
+        : a.skill.apps.includes('designcraft')
+          ? conferirMaterial(pastaJob, { cores: coresDaMarca(a.cliente), modelo: modeloDoPedido(a.pedido.briefing ?? {}),
+              paginas: saidas.filter((s) => /^saida\/pagina-\d+\.png$/.test(s.caminho)).length })
+          : { erros: [], avisos: [] };
   // O som só se confere quando a fábrica mixou (a entrega da equipe chega pronta).
   const legendas = path.join(pastaJob, 'saida', 'legendas.srt');
   const doSom = existsSync(path.join(pastaJob, 'editavel', 'som', 'som.scraft'))

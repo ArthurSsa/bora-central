@@ -63,7 +63,10 @@ test('skill com nome diferente da pasta, ou app desconhecido, não carrega', () 
 
 test('as skills do repositório carregam e cada tipo do app cai na skill certa', () => {
   const skills = carregarSkills(path.join(RAIZ_REPO, 'skills'));
-  assert.deepEqual([...skills.keys()].sort(), ['abertura-com-motion', 'capa-thumbnail', 'carrossel', 'carrossel-em-video', 'cartaz-impressao', 'copy-e-hashtags', 'post-feed', 'post-feed-teste', 'reel-de-bruto']);
+  assert.deepEqual([...skills.keys()].sort(), ['abertura-com-motion', 'capa-thumbnail', 'carrossel', 'carrossel-em-video', 'cartaz-impressao', 'copy-e-hashtags', 'folheto-dobravel', 'guia-pdf', 'post-feed', 'post-feed-teste', 'reel-de-bruto']);
+  // O material de páginas: o guia é o padrão; o folheto, pelo formato.
+  assert.equal(escolherSkill(skills, 'material', null).nome, 'guia-pdf');
+  assert.equal(escolherSkill(skills, 'material', null, { formato: 'folheto' }).nome, 'folheto-dobravel');
   // O cartaz: o tamanho do papel vai em "folha", não em "formato" — A4 e A3 são a mesma skill.
   assert.equal(escolherSkill(skills, 'cartaz', null, { folha: 'a3' }).nome, 'cartaz-impressao');
   assert.deepEqual(skills.get('cartaz-impressao')!.apps, ['vectorcraft']);

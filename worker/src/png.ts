@@ -2,7 +2,7 @@
 // canal, sem entrelaçamento — o que o PhotoCraft exporta. Uma dependência de
 // imagem inteira (com binário nativo, no caso das rápidas) pra ler pixel de
 // uma peça por vez seria mais coisa pra instalar no servidor do que isto.
-import { inflateSync } from 'node:zlib';
+import { deflateSync, inflateSync } from 'node:zlib';
 
 export type Imagem = { largura: number; altura: number; rgb: Uint8Array; alfa: Uint8Array };
 
@@ -64,4 +64,34 @@ export function lerPng(buf: Buffer): Imagem {
     rgb[i * 3 + 2] = Math.round(b * alfa + 255 * (1 - alfa));
   }
   return { largura, altura, rgb, alfa: alfaOut };
+}
+
+const TABELA_CRC = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+const crc = (b: Buffer) => { let c = ~0; for (const x of b) c = TABELA_CRC[(c ^ x) & 0xff] ^ (c >>> 8); return ~c >>> 0; };
+
+/** PNG RGB de 8 bits, sem filtro: o bastante pra prévia de página, que já vem de um app. */
+export function escreverPng(img: Pick<Imagem, 'largura' | 'altura' | 'rgb'>): Buffer {
+  const { largura, altura, rgb } = img;
+  const bruto = Buffer.alloc((largura * 3 + 1) * altura);
+  for (let y = 0; y < altura; y++) Buffer.from(rgb.buffer, rgb.byteOffset + y * largura * 3, largura * 3).copy(bruto, y * (largura * 3 + 1) + 1);
+  const bloco = (tipo: string, dados: Buffer) => {
+    const cab = Buffer.alloc(4); cab.writeUInt32BE(dados.length);
+    const fim = Buffer.alloc(4); fim.writeUInt32BE(crc(Buffer.concat([Buffer.from(tipo), dados])));
+    return Buffer.concat([cab, Buffer.from(tipo), dados, fim]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(largura, 0); ihdr.writeUInt32BE(altura, 4); ihdr[8] = 8; ihdr[9] = 2;
+  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    bloco('IHDR', ihdr), bloco('IDAT', deflateSync(bruto)), bloco('IEND', Buffer.alloc(0))]);
+}
+
+/** Um recorte retangular da imagem: a página sem a sangria em volta. */
+export function recortar(img: Imagem, x: number, y: number, largura: number, altura: number): Imagem {
+  const rgb = new Uint8Array(largura * altura * 3);
+  const alfa = new Uint8Array(largura * altura);
+  for (let l = 0; l < altura; l++) {
+    rgb.set(img.rgb.subarray(((y + l) * img.largura + x) * 3, ((y + l) * img.largura + x + largura) * 3), l * largura * 3);
+    alfa.set(img.alfa.subarray((y + l) * img.largura + x, (y + l) * img.largura + x + largura), l * largura);
+  }
+  return { largura, altura, rgb, alfa };
 }

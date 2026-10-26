@@ -156,7 +156,7 @@ export function carregarSkills(pasta: string): Map<string, Skill> {
  * o tipo do pedido. Skill de teste tem `tipos: []` e só roda forçada.
  */
 /** O formato de quem pede sem dizer qual: no reel, o vídeo gravado (o pedido do passo 5 não tinha formato). */
-export const FORMATO_PADRAO: Record<string, string> = { reel: 'bruto' };
+export const FORMATO_PADRAO: Record<string, string> = { reel: 'bruto', material: 'guia' };
 
 /**
  * A skill do pedido: a do tipo e, dentro dele, a do formato — o reel tem três
