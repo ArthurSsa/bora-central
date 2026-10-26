@@ -15,6 +15,8 @@
     "fabrica:desligar": "node --env-file-if-exists=.env scripts/fabrica.ts desligar",
     "fabrica:remover": "node --env-file-if-exists=.env scripts/fabrica.ts remover",
     "enfileirar-teste": "node --env-file-if-exists=.env scripts/enfileirar-teste.ts",
+    "demo:criar": "node --env-file-if-exists=.env scripts/cliente-demo.ts",
+    "demo:remover": "node --env-file-if-exists=.env scripts/cliente-demo.ts --remover",
     "ensaio": "node scripts/ensaio-sdk.ts",
     "fontes": "node scripts/instalar-fontes.ts",
     "test": "node --test teste/*.test.ts",
