@@ -4,8 +4,7 @@ Este repositório reúne o que está no ar hoje: os dois sites estáticos, as mi
 
 ```
 sites/formulario/   Conhecendo Você(s) e Seu Trabalho — o formulário de 24 perguntas
-sites/central/      Central Bora — o painel interno da agência
-sites/estudio/      Estúdio — peças, marca do cliente e plano do mês
+sites/central/      Central Bora — o painel interno da agência: clientes, agenda, marca, plano do mês e Criar (peças pela fábrica)
 sites/app/          O app do cliente — pede, acompanha, pede ajuste e aprova pelo celular
 worker/             Fábrica — consome a fila de jobs e roda o agente com os apps da ArtCraft
 skills/             Uma pasta por tipo de pedido; o agente lê, o cliente não vê

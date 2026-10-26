@@ -10,6 +10,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawn, type ChildProcess } from 'node:child_process';
+import { deflateSync } from 'node:zlib';
 import { createServer, type Server } from 'node:http';
 import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -22,6 +23,7 @@ import { montarBrutoDeTeste, temTudoProReel } from '../teste/bruto.ts';
 import { acharCli, type Config } from '../src/config.ts';
 import { fontesInstaladas } from '../src/apps.ts';
 import type { ClienteParaMarca } from '../src/marca.ts';
+import { lerPng } from '../src/png.ts';
 import { rodarRoteiro } from '../src/roteiro.ts';
 import { carregarSkills } from '../src/skills.ts';
 import { produzir } from '../src/worker.ts';
@@ -77,6 +79,7 @@ async function prepararCliente() {
   }
   ok(await admin.from('pedidos').delete().eq('cliente_id', CLIENTE), 'limpar pedidos');
   await limparAgenda();
+  await limparElementos();
 
   // Um plano do mês de mentira, no mês corrente: é dele que saem as sugestões.
   ok(await admin.from('planos').upsert(
@@ -99,7 +102,7 @@ async function prepararCliente() {
 }
 
 /**
- * Alguém da equipe, de mentira: entra no Estúdio e vê a Fábrica. Senha nova a
+ * Alguém da equipe, de mentira: entra na Central e vê a Fábrica. Senha nova a
  * cada rodada, só na memória; o acesso de equipe sai no fim do teste.
  */
 let sessaoEquipe: object;
@@ -142,14 +145,12 @@ before(async () => {
   await prepararCliente();
 
   await prepararEquipe();
-  // O app do cliente na raiz e o Estúdio da equipe em /estudio/, no mesmo servidor.
+  // O app do cliente na raiz e a Central da equipe em /central/, no mesmo servidor.
   const html = readFileSync(path.join(RAIZ_REPO, 'sites', 'app', 'index.html'));
-  const estudio = readFileSync(path.join(RAIZ_REPO, 'sites', 'estudio', 'index.html'));
   const central = readFileSync(path.join(RAIZ_REPO, 'sites', 'central', 'index.html'));
   servidor = createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-    const url = req.url ?? '';
-    res.end(url.startsWith('/estudio') ? estudio : url.startsWith('/central') ? central : html);
+    res.end((req.url ?? '').startsWith('/central') ? central : html);
   });
   // Porta fixa 3000: é um endereço que o Supabase aceita como destino do link
   // de acesso, e o teste do link do e-mail precisa voltar pra cá. Ocupada,
@@ -181,6 +182,14 @@ async function limparAgenda() {
   if (error) throw new Error(`limpar agenda: ${error.message}`);
 }
 
+/** O logo de mentira da etapa B: sai no começo e no fim, pra não entrar nas peças dos outros testes. */
+async function limparElementos() {
+  const { data } = await admin.storage.from('elementos').list(CLIENTE, { limit: 1000 });
+  if (data?.length) await admin.storage.from('elementos').remove(data.map((o) => `${CLIENTE}/${o.name}`));
+  const { error } = await admin.from('marca_elementos').delete().eq('cliente_id', CLIENTE);
+  if (error) throw new Error(`limpar elementos: ${error.message}`);
+}
+
 /** Hoje + n dias, no fuso desta máquina (o mesmo do app). */
 function hojeIso(mais = 0) {
   const d = new Date();
@@ -191,6 +200,7 @@ function hojeIso(mais = 0) {
 
 after(async () => {
   await limparAgenda().catch((e) => console.error(e.message));
+  await limparElementos().catch((e) => console.error(e.message));
   // A conta de equipe de teste só é da equipe enquanto o teste roda.
   if (uidEquipe) await admin.from('profiles').update({ is_agency: false }).eq('id', uidEquipe);
   await navegador?.close();
@@ -224,7 +234,7 @@ async function semErroNaTela(page: Page) {
 const semRolagemLateral = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
 
 // Todo texto visível, com a opacidade herdada e a regra de texto grande da
-// WCAG — a mesma varredura que a Central e o Estúdio passaram a usar.
+// WCAG — a mesma varredura que a Central passou a usar.
 const varrerContraste = (page: Page) => page.evaluate(() => {
   const rgb = (s: string) => (s.match(/[\d.]+/g) || []).map(Number);
   const lum = ([r, g, b]: number[]) => [r, g, b].map((c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; })
@@ -813,16 +823,6 @@ async function esperar<T>(ler: () => Promise<T>, pronto: (v: T) => boolean, ms: 
   }
 }
 
-async function abrirEstudio(): Promise<Page> {
-  const ctx = await navegador.newContext({ viewport: { width: 1280, height: 900 } });
-  await ctx.addInitScript(([chave, valor]) => localStorage.setItem(chave, valor), ['sb-yxewmauwnxnrrhevlbtc-auth-token', JSON.stringify(sessaoEquipe)]);
-  const page = await ctx.newPage();
-  page.on('pageerror', (e) => { throw e; });
-  page.on('dialog', (d) => d.accept());
-  await page.goto(origem + '/estudio/#/fabrica');
-  return page;
-}
-
 test('Visão Bora: a fábrica refaz duas vezes, a equipe assume, entrega, a conferência barra o que falta, e o cliente aprova', { timeout: 300_000 }, async () => {
   // Só a equipe vê a fila e assume.
   assert.ok((await comoCliente.rpc('fila_da_fabrica')).error, 'cliente viu a fila da fábrica');
@@ -846,8 +846,8 @@ test('Visão Bora: a fábrica refaz duas vezes, a equipe assume, entrega, a conf
   const { data: erros } = await admin.from('job_eventos').select('mensagem').eq('job_id', job.id).eq('nivel', 'erro');
   assert.equal(erros!.length, 3, 'cada tentativa deixa o motivo');
 
-  // A Fábrica, no Estúdio: o número aceso, o pedido em "Precisa da equipe" com os três motivos.
-  const est = await abrirEstudio();
+  // A Fábrica, na Central: o número aceso, o pedido em "Precisa da equipe" com os três motivos.
+  const est = await abrirCentral('#/fabrica');
   await est.getByRole('heading', { name: 'Fábrica', exact: true, level: 1 }).waitFor();
   // O worker deste teste dá sinal de vida: a Fábrica aparece ligada.
   await est.locator('.fab-sinal.ligada', { hasText: /Fábrica ligada em .*sem o Claude/ }).waitFor({ timeout: 15_000 });
@@ -857,12 +857,16 @@ test('Visão Bora: a fábrica refaz duas vezes, a equipe assume, entrega, a conf
   assert.equal(await cartao.locator('.fab-motivos li').count(), 3);
   assert.match((await cartao.locator('.fab-motivos').textContent())!, /o roteiro não sabe fazer a skill copy-e-hashtags/);
   assert.match((await cartao.locator('.fab-linha').textContent())!, /tentativa 3 de 3/);
-  assert.ok(Number(await est.locator('.navtopo .conta').first().textContent()) >= 1, 'o número da aba Fábrica não acendeu');
+  assert.ok(Number(await est.locator('.navtopo button', { hasText: 'Fábrica' }).locator('.conta').textContent()) >= 1, 'o número da aba Fábrica não acendeu');
   if (process.env.E2E_FOTOS) await est.screenshot({ path: path.join(process.env.E2E_FOTOS, 'fabrica.png'), fullPage: true });
 
-  // Assumir: o cliente passa a ver que a equipe está finalizando.
-  await cartao.getByRole('button', { name: 'Assumir o pedido' }).click();
-  await cartao.locator('.chip', { hasText: 'Com a equipe' }).waitFor();
+  // Assumir é "Editar à mão", na tela do pedido: o cliente passa a ver que a equipe está finalizando.
+  await cartao.getByRole('button', { name: 'Abrir o pedido' }).click();
+  await est.waitForURL(/#\/p\//);
+  await est.getByRole('button', { name: 'Editar à mão' }).click();
+  const entrega = est.locator(`#cr-entrega-${pedidoId}`);
+  await entrega.waitFor();
+  await est.locator('.chip', { hasText: 'Com a equipe' }).first().waitFor();
   const cli = await abrir();
   await cli.goto(origem + '/#/pedido/' + pedidoId);
   await cli.getByText('A equipe da Bora está finalizando este pedido.').first().waitFor();
@@ -879,19 +883,19 @@ test('Visão Bora: a fábrica refaz duas vezes, a equipe assume, entrega, a conf
   const arq = (c: string) => path.join(feito.pastaJob, c);
 
   // Primeira entrega sem o editável e sem a legenda: a conferência barra, e diz o que faltou.
-  await cartao.locator('input[type=file]').setInputFiles([arq('saida/post.png')]);
-  await cartao.getByRole('button', { name: 'Entregar pro cliente' }).click();
+  await entrega.setInputFiles([arq('saida/post.png')]);
+  await est.getByRole('button', { name: 'Entregar a versão corrigida' }).click();
   const barrada = await esperar(
     async () => (await admin.from('jobs').select('estado, erro, skill').eq('pedido_id', pedidoId).eq('rodada', 'da_bora').order('criado_em')).data?.[0] ?? null,
     (j) => j?.estado === 'falhou', 60_000, 'a entrega incompleta ser barrada',
   );
   assert.equal(barrada!.skill, 'post-feed', 'a entrega da equipe usou a skill da rodada que travou');
   assert.match(barrada!.erro!, /faltou na entrega da equipe: post\.psd, legenda\.txt/);
-  await cartao.locator('.fab-motivos', { hasText: 'faltou na entrega da equipe' }).waitFor();
+  await est.locator('.cr-edicao .erro', { hasText: 'faltou na entrega da equipe' }).waitFor({ timeout: 30_000 });
 
   // A entrega completa passa, e chega no cliente.
-  await cartao.locator('input[type=file]').setInputFiles([arq('saida/post.png'), arq('editavel/post.psd'), arq('saida/legenda.txt')]);
-  await cartao.getByRole('button', { name: 'Entregar pro cliente' }).click();
+  await entrega.setInputFiles([arq('saida/post.png'), arq('editavel/post.psd'), arq('saida/legenda.txt')]);
+  await est.getByRole('button', { name: 'Entregar a versão corrigida' }).click();
   await esperar(
     async () => (await admin.from('pedidos').select('estado').eq('id', pedidoId).single()).data!.estado,
     (e) => e === 'para_aprovar', 60_000, 'a entrega da equipe chegar no cliente',
@@ -904,8 +908,8 @@ test('Visão Bora: a fábrica refaz duas vezes, a equipe assume, entrega, a conf
   await semErroNaTela(cli);
 
   // Nos custos do mês, o cliente de teste com a rodada da equipe contada.
-  await est.reload();
-  await est.getByRole('heading', { name: 'Custos do mês' }).waitFor();
+  await est.goto(origem + '/central/#/fabrica');
+  await est.getByRole('heading', { name: 'Custos da fábrica no mês' }).waitFor();
   const linhaCusto = est.locator('.fab-custos tr', { hasText: 'Cliente de Teste' });
   await linhaCusto.waitFor();
   const celulas = await linhaCusto.locator('td').allTextContents();
@@ -923,7 +927,7 @@ test('Visão Bora: a fábrica refaz duas vezes, a equipe assume, entrega, a conf
 // do supabase-js ler a sessão — o login dava certo e a tela voltava pro "Entrar".
 for (const [onde, email, caminho, dentro] of [
   ['app do cliente', EMAIL, '/', 'O que você quer criar hoje?'],
-  ['Estúdio', EMAIL_EQUIPE, '/estudio/', null],
+  ['Central', EMAIL_EQUIPE, '/central/', null],
 ] as const) {
   test(`entrar pelo link do e-mail: ${onde}`, async (t) => {
     if (!origem.endsWith(':3000')) { t.skip('a porta 3000 estava ocupada; o Supabase só aceita voltar pra ela'); return; }
@@ -934,12 +938,12 @@ for (const [onde, email, caminho, dentro] of [
     const page = await ctx.newPage();
     page.on('pageerror', (e) => { throw e; });
     await page.goto(data.properties.action_link);
-    // No Estúdio, dentro é ver o menu das áreas, que só aparece pra quem entrou.
+    // Na Central, dentro é ver o menu das áreas, que só aparece pra quem entrou.
     await (dentro ? page.getByRole('heading', { name: dentro }) : page.locator('.navtopo')).first().waitFor({ timeout: 20_000 });
     assert.doesNotMatch(page.url(), /access_token/, 'a sessão ficou exposta na barra de endereço');
     // E continua dentro ao recarregar: a sessão foi guardada, não só lida.
     await page.reload();
-    // No Estúdio, dentro é ver o menu das áreas, que só aparece pra quem entrou.
+    // Na Central, dentro é ver o menu das áreas, que só aparece pra quem entrou.
     await (dentro ? page.getByRole('heading', { name: dentro }) : page.locator('.navtopo')).first().waitFor({ timeout: 20_000 });
     await ctx.close();
   });
@@ -958,6 +962,13 @@ async function abrirCentral(rota: string): Promise<Page> {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => { throw e; });
   page.on('dialog', (d) => d.accept());
+  if (process.env.E2E_DEPURAR) {
+    page.on('response', async (r) => { if (/\/(rpc|rest\/v1)\//.test(r.url()) && r.status() >= 400) console.log('[rede]', r.status(), r.url().split('/v1/')[1], (await r.text().catch(() => '')).slice(0, 200)); });
+    page.on('console', (m) => console.log('[console]', m.text()));
+    await page.exposeFunction('__toast', (t: string) => console.log('[toast]', t));
+    await ctx.addInitScript(() => new MutationObserver(() => { const t = document.getElementById('toast'); if (t?.textContent) (window as unknown as { __toast: (s: string) => void }).__toast(t.textContent); })
+      .observe(document, { subtree: true, childList: true, characterData: true }));
+  }
   await page.goto(origem + '/central/' + rota);
   return page;
 }
@@ -1102,11 +1113,136 @@ test('Central: todas as áreas e todas as abas da ficha abrem sem erro, depois d
   await page.locator('canvas.previa-cv').waitFor();
   await page.waitForFunction(() => (document.querySelector('canvas.previa-cv') as HTMLCanvasElement).width > 0);
   // Cada aba da ficha do cliente de teste.
-  for (const aba of ['respostas', 'acessos', 'metas', 'baseline', 'marcos', 'conformidade', 'horas', 'agenda', 'pagina']) {
+  for (const aba of ['respostas', 'plano', 'acessos', 'metas', 'baseline', 'marcos', 'conformidade', 'horas', 'agenda', 'pagina']) {
     await page.goto(origem + `/central/#/c/${CLIENTE}/${aba}`);
     await page.locator('.side .navitem.active').waitFor({ timeout: 15_000 });
   }
   assert.deepEqual(erros, [], 'erro no console');
+  await semErroNaTela(page);
+  await page.context().close();
+});
+
+// ---------- etapa B: a Marca, o Plano do mês e o mês inteiro pela Central ----------
+//
+// O critério de pronto da etapa B: a equipe cria um conjunto de cores, sobe o
+// logo, escreve a pauta no Plano do mês e manda o mês inteiro pra fábrica de
+// uma vez — e as peças saem com aquele conjunto e aquele logo.
+
+/** Um PNG de verdade: retângulo de uma cor sobre fundo transparente — o logo de mentira. */
+function pngDeTeste(largura: number, altura: number, cor: string): Buffer {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(cor.slice(i, i + 2), 16));
+  const passo = 1 + largura * 4;
+  const bruto = Buffer.alloc(passo * altura);
+  for (let y = 0; y < altura; y++) {
+    for (let x = 0; x < largura; x++) {
+      const dentro = x >= largura * 0.1 && x < largura * 0.9 && y >= altura * 0.2 && y < altura * 0.8;
+      if (dentro) bruto.set([r, g, b, 255], y * passo + 1 + x * 4);
+    }
+  }
+  const crc = (buf: Buffer) => {
+    let c = ~0;
+    for (const x of buf) { c ^= x; for (let k = 0; k < 8; k++) c = (c >>> 1) ^ (0xedb88320 & -(c & 1)); }
+    return ~c >>> 0;
+  };
+  const bloco = (tipo: string, dados: Buffer) => {
+    const cab = Buffer.alloc(4); cab.writeUInt32BE(dados.length);
+    const fim = Buffer.alloc(4); fim.writeUInt32BE(crc(Buffer.concat([Buffer.from(tipo), dados])));
+    return Buffer.concat([cab, Buffer.from(tipo), dados, fim]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(largura, 0); ihdr.writeUInt32BE(altura, 4); ihdr[8] = 8; ihdr[9] = 6;
+  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    bloco('IHDR', ihdr), bloco('IDAT', deflateSync(bruto)), bloco('IEND', Buffer.alloc(0))]);
+}
+
+const hex = (rgb: Uint8Array, i: number) => '#' + [0, 1, 2].map((k) => rgb[i * 3 + k].toString(16).padStart(2, '0')).join('').toUpperCase();
+
+/** A imagem que a fábrica entregou num pedido, já lida. */
+async function imagemEntregue(pedidoId: string, final: RegExp) {
+  const { data: job } = await admin.from('jobs').select('saidas').eq('pedido_id', pedidoId).eq('estado', 'pronto').single();
+  const s = (job!.saidas as Array<{ caminho: string }>).find((x) => final.test(x.caminho));
+  assert.ok(s, `a entrega não tem ${final}`);
+  const { data: blob } = await admin.storage.from('pedidos').download(s.caminho);
+  return lerPng(Buffer.from(await blob!.arrayBuffer()));
+}
+
+test('Central, etapa B: conjunto e logo na Marca, pauta no Plano do mês, o mês inteiro pra fábrica — e as peças saem com os dois', { timeout: 400_000 }, async () => {
+  const page = await abrirCentral('#/criar');
+  await page.getByRole('heading', { name: 'Criar', exact: true, level: 1 }).waitFor();
+  await page.getByRole('button', { name: 'Marca', exact: true }).click();
+  await page.locator('.bloco .visao button', { hasText: 'Cliente de Teste' }).click();
+
+  // O logo: verde-limão, a única cor da marca que o conjunto novo não usa —
+  // se ela aparece na peça, foi o logo que entrou.
+  await page.getByText('O que entra nas peças', { exact: true }).waitFor();
+  await page.locator('.el-entrada').setInputFiles({ name: 'logo-teste.png', mimeType: 'image/png', buffer: pngDeTeste(280, 140, '#A4E830') });
+  await page.locator('.el-item', { hasText: 'logo-teste.png' }).filter({ hasText: '280×140' }).waitFor({ timeout: 30_000 });
+  const { data: els } = await admin.from('marca_elementos').select('tipo, largura, altura').eq('cliente_id', CLIENTE);
+  assert.deepEqual(els, [{ tipo: 'logo', largura: 280, altura: 140 }]);
+
+  // Um conjunto novo, claro, que vira o padrão do cliente.
+  const antes = await page.locator('.conj-cartao').count();
+  await page.getByRole('button', { name: '+ outro conjunto' }).click();
+  const novo = page.locator('.conj-cartao').nth(antes);
+  await novo.waitFor();
+  await novo.getByPlaceholder('Nome (ex.: Tema leve)').fill('Areia do lote');
+  await novo.getByPlaceholder('Nome (ex.: Tema leve)').press('Tab');
+  const lerMarca = async () => (await admin.from('clientes').select('marca').eq('id', CLIENTE).single()).data!.marca;
+  await esperar(lerMarca, (m) => m.conjuntos.some((j: { nome: string }) => j.nome === 'Areia do lote'), 15_000, 'o nome do conjunto novo ser guardado');
+  await page.locator('.conj-cartao').nth(antes).getByRole('button', { name: 'Usar como padrão' }).click();
+  const marca = await esperar(lerMarca,
+    (m) => m.conjuntos.find((j: { k: string }) => j.k === m.conjuntoPadrao)?.nome === 'Areia do lote', 15_000, 'o conjunto novo virar o padrão');
+  const areia = marca.conjuntos.find((j: { k: string }) => j.k === marca.conjuntoPadrao) as { fundo: string };
+  assert.equal(areia.fundo.toUpperCase(), '#F5F2EC');
+  await page.locator('.conj-cartao').nth(antes).getByRole('button', { name: 'É o padrão dele' }).waitFor();
+  if (process.env.E2E_FOTOS) await page.screenshot({ path: path.join(process.env.E2E_FOTOS, 'central-marca.png'), fullPage: true });
+
+  // A pauta, escrita à mão no Plano do mês — o cliente de teste nem tem formulário.
+  await page.goto(origem + `/central/#/c/${CLIENTE}/plano`);
+  await page.getByText('Sem formulário, não há o que ler').waitFor({ timeout: 15_000 });
+  const temas = ['Carrossel: os três erros de quem começa', 'A turma nova do laboratório', 'Capa do vídeo da aula aberta'];
+  await page.getByLabel('Pauta do mês').fill(temas.join('\n'));
+  await page.getByRole('button', { name: 'Produzir o mês' }).click();
+
+  // Produzir o mês: o cliente já escolhido, um tema por linha, o formato sugerido pelo texto.
+  await page.locator('#lote-cliente').waitFor();
+  assert.equal(await page.locator('#lote-cliente').inputValue(), CLIENTE);
+  const linhas = page.locator('.lote-linha');
+  await linhas.first().waitFor({ timeout: 15_000 });
+  assert.deepEqual(await linhas.locator('.lote-tema').allTextContents(), temas);
+  assert.deepEqual(await linhas.locator('select').evaluateAll((s) => s.map((x) => (x as HTMLSelectElement).value)), ['carrossel', 'post', 'capa']);
+  assert.deepEqual(await linhas.locator('input[type=checkbox]').evaluateAll((s) => s.map((x) => (x as HTMLInputElement).checked)), [true, true, true]);
+  if (process.env.E2E_FOTOS) await page.screenshot({ path: path.join(process.env.E2E_FOTOS, 'central-lote.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Pedir 3 peças à fábrica' }).click();
+
+  // Volta pra Peças, só deste cliente.
+  await page.locator('.cr-lista').waitFor({ timeout: 30_000 });
+  assert.equal(await page.locator('select[aria-label=Cliente]').inputValue(), CLIENTE);
+  const { data: plano } = await admin.from('planos').select('id').eq('cliente_id', CLIENTE).eq('mes', hojeIso().slice(0, 8) + '01').single();
+  const pedidos = await esperar(
+    async () => (await admin.from('pedidos').select('id, tipo, estado, origem_tema, pela_equipe').eq('origem_plano', plano!.id).in('origem_tema', temas).order('criado_em')).data ?? [],
+    (ps) => ps.length === 3 && ps.every((p) => p.estado === 'para_aprovar'), 300_000, 'as três peças do mês ficarem prontas',
+  );
+  assert.deepEqual(pedidos.map((p) => [p.origem_tema, p.tipo]), [[temas[0], 'carrossel'], [temas[1], 'post-feed'], [temas[2], 'capa']]);
+  assert.ok(pedidos.every((p) => p.pela_equipe), 'o banco não marcou que foi a equipe');
+
+  // O post: no fundo do conjunto novo, e com o logo.
+  const img = await imagemEntregue(pedidos.find((p) => p.tipo === 'post-feed')!.id, /saida\/post\.png$/);
+  assert.equal(hex(img.rgb, 150 * img.largura + 540), '#F5F2EC', 'o post não saiu no conjunto padrão novo');
+  let limao = 0;
+  for (let i = 0; i < img.largura * img.altura; i++) if (hex(img.rgb, i) === '#A4E830') limao++;
+  assert.ok(limao > 2000, `o logo não entrou no post (${limao} px verde-limão)`);
+
+  // O carrossel também nasce no conjunto novo.
+  const s1 = await imagemEntregue(pedidos.find((p) => p.tipo === 'carrossel')!.id, /saida\/slide-01\.png$/);
+  assert.equal(hex(s1.rgb, 150 * s1.largura + 540), '#F5F2EC', 'o carrossel não saiu no conjunto padrão novo');
+
+  // De novo em Produzir o mês: os três temas já viraram pedido, e nada sai duas vezes.
+  await page.getByRole('button', { name: 'Produzir o mês', exact: true }).click();
+  await page.locator('#lote-cliente').selectOption(CLIENTE);
+  await page.locator('.lote-linha.feito').nth(2).waitFor({ timeout: 15_000 });
+  assert.equal(await page.getByRole('button', { name: 'Já virou pedido →' }).count(), 3);
+  assert.ok(await page.getByRole('button', { name: 'Pedir 0 peças à fábrica' }).isDisabled());
   await semErroNaTela(page);
   await page.context().close();
 });

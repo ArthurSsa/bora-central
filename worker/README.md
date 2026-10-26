@@ -71,7 +71,7 @@ npm run fabrica:remover    # desliga e tira da inicialização
   guarda 3), `jobs\` (pasta de cada pedido; a que deu certo sai na hora, a que
   falhou fica 7 dias) e o pid do vigia.
 - **Sem a chave da Anthropic**, roda no roteiro. Com ela no `.env`, usa o Claude.
-- **A Fábrica do Estúdio** mostra se ela está ligada (sinal a cada 30 s,
+- **A Fábrica da Central** mostra se ela está ligada (sinal a cada 30 s,
   contado pelo relógio do banco).
 - **O PC não pode dormir:** Configurações → Sistema → Energia → Suspender:
   Nunca (na tomada). A tela pode apagar.

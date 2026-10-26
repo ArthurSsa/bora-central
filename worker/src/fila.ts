@@ -70,7 +70,7 @@ export async function renovarLease(sb: SupabaseClient, cfg: Config, job: Job): P
   ) === true;
 }
 
-/** "Estou vivo" a cada 30 s: é o que a Fábrica do Estúdio mostra como ligada ou desligada. */
+/** "Estou vivo" a cada 30 s: é o que a Fábrica da Central mostra como ligada ou desligada. */
 export async function sinalDeVida(sb: SupabaseClient, cfg: Config, extra: { ocupado: string | null; ligou: boolean }) {
   ok(await sb.rpc('sinal_da_fabrica', {
     p_worker: cfg.workerId, p_maquina: hostname(), p_agente: cfg.agente, p_ocupado: extra.ocupado, p_ligou: extra.ligou,
@@ -214,8 +214,8 @@ export async function juntarSaida(sb: SupabaseClient, cfg: Config, job: Job, sai
 export type Elemento ={ tipo: string; nome: string; arquivo: string; largura: number | null; altura: number | null };
 
 /**
- * A biblioteca de elementos do cliente (logo, selo, foto…), do balde que o
- * Estúdio enche. Vão pra entrada/elementos/ com o tipo no nome, e o agente
+ * A biblioteca de elementos do cliente (logo, selo, foto…), do balde que a
+ * Marca da Central enche. Vão pra entrada/elementos/ com o tipo no nome, e o agente
  * recebe a lista com o tamanho de cada um — pra pôr o logo com 140 px sem
  * precisar adivinhar a escala.
  */
