@@ -19,8 +19,10 @@ import { rodarRoteiro } from '../src/roteiro.ts';
 import { carregarSkills } from '../src/skills.ts';
 import { montarBrutoDeTeste, temTudoProReel } from './bruto.ts';
 import { BEATRIZ } from './marcas.ts';
+import { curvaDaSessao, trechosDeFala, trilhaAbaixaNaFala, valorNaCurva } from '../src/som.ts';
+import { temSoundCraft, trilhaDeTeste } from './trilha.ts';
 
-test('reel de bruto pelo roteiro: corta, legenda na marca, -16 LUFS e passa na conferência', {
+test('reel de bruto pelo roteiro: corta, legenda na marca, a trilha abaixando na fala, -16 LUFS e passa na conferência', {
   skip: !temTudoProReel && 'falta FilmCraft, PhotoCraft, whisper.cpp ou a voz do Windows', timeout: 600_000,
 }, async () => {
   const bruto = montarBrutoDeTeste();
@@ -33,7 +35,7 @@ test('reel de bruto pelo roteiro: corta, legenda na marca, -16 LUFS e passa na c
     cfg: { pastaJobs: raiz, tetoUsd: 1 } as Config, job: { id: 'reel-beatriz' }, skill: skills.get('reel-de-bruto')!, skills,
     pedido: { id: 'p', tipo: 'reel', titulo: null, briefing: { texto: 'Turma nova do laboratório de redes' }, publicar_em: null },
     cliente: BEATRIZ, instaladas: fontesInstaladas(), agente: rodarRoteiro,
-    arquivos: [{ nome: 'bruto.mp4', conteudo: readFileSync(bruto) }],
+    arquivos: [{ nome: 'bruto.mp4', conteudo: readFileSync(bruto) }, ...(temSoundCraft ? [{ nome: 'trilha.wav', conteudo: readFileSync(trilhaDeTeste()) }] : [])],
     abortar: new AbortController(), aoMudarEtapa: async (e) => { etapas.push(e.etapa); }, aoUsarFerramenta: () => {},
     entregarParcial: async (c) => { parciais.push(c); },
   });
@@ -61,4 +63,18 @@ test('reel de bruto pelo roteiro: corta, legenda na marca, -16 LUFS e passa na c
   exportarAudioFinal(path.join(r.pastaJob, 'editavel', 'reel.fcproj'), wav);
   const lufs = loudnessIntegrado(lerWav(readFileSync(wav)));
   assert.ok(Math.abs(lufs + 16) <= 1, `${lufs.toFixed(1)} LUFS`);
+
+  // O som passou pelo SoundCraft: a trilha abaixa em cada trecho com legenda,
+  // e o editável do som sobe junto.
+  assert.ok(etapas.indexOf('cuidando do som') < etapas.indexOf('preparando a prévia'));
+  assert.ok(r.conferidas.some((c) => c.caminho === 'editavel/som.zip'), 'o editável do som não subiria');
+  if (temSoundCraft) {
+    // Sem as pausas, a fala do reel vira um trecho quase contínuo: a trilha
+    // fica baixa debaixo dela toda e só sobe nas pontas.
+    const falas = trechosDeFala(legendas);
+    assert.ok(falas.length >= 1);
+    const curva = curvaDaSessao(path.join(r.pastaJob, 'editavel', 'som', 'som.scraft'), 'trilha');
+    assert.deepEqual(trilhaAbaixaNaFala(curva, falas), []);
+    assert.equal(valorNaCurva(curva, (falas[0][0] + falas[0][1]) / 2), -24);
+  }
 });

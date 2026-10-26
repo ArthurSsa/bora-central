@@ -67,8 +67,13 @@ O que já está pronto quando você começa:
    O cliente vê os 15 primeiros segundos enquanto o resto termina.
 
 7. `avisar_etapa` "finalizando o som", 72, e `exportar_video` `{"previa": false}`.
-   Volume em -16 LUFS é a exportação que garante; trilha de música ainda não
-   existe (não há faixa com licença), então não ponha.
+   Antes de exportar, `exportar_video` passa o som pelo SoundCraft: a fala
+   ganha filtro de graves, de-esser e compressor, e a trilha da marca (quando
+   o pedido tem) entra por baixo, abaixando onde há legenda. Por isso as
+   legendas precisam estar em `saida/legendas.srt` antes. Não importe outro
+   áudio nem mexa no volume da faixa "Som da Bora": a conferência lê a curva
+   da trilha na sessão do SoundCraft. Volume em -16 LUFS é a exportação que
+   garante.
 
 8. `avisar_etapa` "escrevendo a legenda", 88, e a legenda do post como diz a
    parte "copy-e-hashtags" — sobre o que a pessoa disse no vídeo, não sobre o

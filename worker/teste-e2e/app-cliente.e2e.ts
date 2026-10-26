@@ -24,6 +24,9 @@ import { acharCli, type Config } from '../src/config.ts';
 import { fontesInstaladas } from '../src/apps.ts';
 import type { ClienteParaMarca } from '../src/marca.ts';
 import { lerPng } from '../src/png.ts';
+import { audioDe } from '../src/som.ts';
+import { loudnessIntegrado, sondar } from '../src/video.ts';
+import { temSoundCraft, trilhaDeTeste } from '../teste/trilha.ts';
 import { rodarRoteiro } from '../src/roteiro.ts';
 import { carregarSkills } from '../src/skills.ts';
 import { produzir } from '../src/worker.ts';
@@ -182,12 +185,19 @@ async function limparAgenda() {
   if (error) throw new Error(`limpar agenda: ${error.message}`);
 }
 
-/** O logo de mentira da etapa B: sai no começo e no fim, pra não entrar nas peças dos outros testes. */
+/**
+ * O logo da etapa B e a trilha da etapa C: saem no começo e no fim, pra não
+ * entrar nas peças dos outros testes.
+ */
 async function limparElementos() {
-  const { data } = await admin.storage.from('elementos').list(CLIENTE, { limit: 1000 });
-  if (data?.length) await admin.storage.from('elementos').remove(data.map((o) => `${CLIENTE}/${o.name}`));
-  const { error } = await admin.from('marca_elementos').delete().eq('cliente_id', CLIENTE);
-  if (error) throw new Error(`limpar elementos: ${error.message}`);
+  for (const balde of ['elementos', 'trilhas']) {
+    const { data } = await admin.storage.from(balde).list(CLIENTE, { limit: 1000 });
+    if (data?.length) await admin.storage.from(balde).remove(data.map((o) => `${CLIENTE}/${o.name}`));
+  }
+  for (const tabela of ['marca_elementos', 'marca_trilhas']) {
+    const { error } = await admin.from(tabela).delete().eq('cliente_id', CLIENTE);
+    if (error) throw new Error(`limpar ${tabela}: ${error.message}`);
+  }
 }
 
 /** Hoje + n dias, no fuso desta máquina (o mesmo do app). */
@@ -699,9 +709,9 @@ test('reel: sobe o vídeo pelo celular, vê a prévia antes, depois o reel intei
   assert.deepEqual(await varrerContraste(page), []);
   await foto(page, 'reel-para-aprovar');
 
-  // No reel, o ajuste só oferece o que a fábrica sabe mudar no vídeo.
+  // No reel, o ajuste só oferece o que a fábrica sabe mudar no vídeo: a cor da legenda e a música.
   await page.getByRole('button', { name: 'Pedir ajuste' }).click();
-  assert.deepEqual(await page.locator('[aria-label="Atalhos de ajuste"] button').allTextContents(), ['Outra cor da marca']);
+  assert.deepEqual(await page.locator('[aria-label="Atalhos de ajuste"] button').allTextContents(), ['Outra cor da marca', 'Música mais baixa', 'Sem música']);
   await page.getByRole('button', { name: 'Cancelar' }).click();
 
   await page.getByRole('button', { name: 'Aprovar' }).click();
@@ -1243,6 +1253,98 @@ test('Central, etapa B: conjunto e logo na Marca, pauta no Plano do mês, o mês
   await page.locator('.lote-linha.feito').nth(2).waitFor({ timeout: 15_000 });
   assert.equal(await page.getByRole('button', { name: 'Já virou pedido →' }).count(), 3);
   assert.ok(await page.getByRole('button', { name: 'Pedir 0 peças à fábrica' }).isDisabled());
+  await semErroNaTela(page);
+  await page.context().close();
+});
+
+// ---------- etapa C: o SoundCraft nos vídeos ----------
+//
+// O critério de pronto da etapa C: a equipe sobe a trilha na Marca, com a
+// licença; a abertura pedida pela Central sai com ela em -16 LUFS; "sem
+// música" no ajuste tira; e o reel do vídeo gravado sai com a voz tratada e a
+// trilha por baixo — a conferência da fábrica reprova se ela não abaixa na fala.
+
+/** O som do vídeo entregue num pedido, medido aqui. */
+async function somEntregue(pedidoId: string, rodada?: string) {
+  let q = admin.from('jobs').select('saidas, rodada').eq('pedido_id', pedidoId).eq('estado', 'pronto').order('criado_em', { ascending: false });
+  if (rodada) q = q.eq('rodada', rodada);
+  const { data } = await q.limit(1);
+  const saidas = (data![0].saidas as Array<{ caminho: string }>);
+  const reel = saidas.find((s) => s.caminho.endsWith('saida/reel.mp4'))!;
+  const { data: blob } = await admin.storage.from('pedidos').download(reel.caminho);
+  const pasta = mkdtempSync(path.join(tmpdir(), 'som-e2e-'));
+  writeFileSync(path.join(pasta, 'reel.mp4'), Buffer.from(await blob!.arrayBuffer()));
+  const temAudio = sondar(path.join(pasta, 'reel.mp4')).temAudio;
+  return {
+    temAudio,
+    lufs: temAudio ? loudnessIntegrado(audioDe(path.join(pasta, 'reel.mp4'), path.join(pasta, 'som.wav'))) : null,
+    editavelDoSom: saidas.some((s) => s.caminho.endsWith('editavel/som.zip')),
+  };
+}
+
+test('Central, etapa C: trilha com licença na Marca, abertura com música, "sem música" no ajuste, e o reel com a trilha abaixando na fala', {
+  skip: (!temSoundCraft || !temEffectCraft) && 'falta SoundCraft ou EffectCraft', timeout: 600_000,
+}, async () => {
+  const page = await abrirCentral('#/criar');
+  await page.getByRole('heading', { name: 'Criar', exact: true, level: 1 }).waitFor();
+  await page.getByRole('button', { name: 'Marca', exact: true }).click();
+  await page.locator('.bloco .visao button', { hasText: 'Cliente de Teste' }).click();
+
+  // A trilha: sem licença não sobe; com licença, é a primeira, então vira a padrão.
+  await page.getByText('Trilhas dos vídeos', { exact: true }).waitFor();
+  await page.locator('.tr-arquivo').setInputFiles(trilhaDeTeste());
+  assert.equal(await page.locator('.tr-nome').inputValue(), 'trilha', 'o nome não veio do arquivo');
+  await page.locator('.tr-nome').fill('Demo do SoundCraft');
+  await page.getByRole('button', { name: 'Subir trilha' }).click();
+  await page.locator('#toast', { hasText: 'Diga de onde vem o direito' }).waitFor();
+  await page.locator('.tr-licenca').fill('Sintetizada pelo próprio SoundCraft (música de demonstração)');
+  await page.getByRole('button', { name: 'Subir trilha' }).click();
+  const item = page.locator('.tr-item', { hasText: 'Demo do SoundCraft' });
+  await item.waitFor({ timeout: 60_000 });
+  assert.match((await item.textContent())!, /Padrão/);
+  const { data: trilhas } = await admin.from('marca_trilhas').select('nome, padrao, segundos, licenca').eq('cliente_id', CLIENTE);
+  assert.equal(trilhas!.length, 1);
+  assert.equal(trilhas![0].padrao, true);
+  assert.ok(Math.abs(Number(trilhas![0].segundos) - 55.9) < 1, `duração ${trilhas![0].segundos}`);
+  // O cliente não enxerga as trilhas (são da equipe).
+  assert.deepEqual((await comoCliente.from('marca_trilhas').select('id')).data, []);
+  if (process.env.E2E_FOTOS) await page.screenshot({ path: path.join(process.env.E2E_FOTOS, 'central-trilhas.png'), fullPage: true });
+
+  // A abertura, com a trilha padrão: sai com som em -16 LUFS e o editável do som.
+  const abertura = await pedirPelaCentral(page, /^Abertura animada/, 'Turma nova do laboratório, inscrições abertas', async (p) => {
+    assert.match(await p.locator('#cr-musica option:checked').textContent() ?? '', /A padrão da marca \(Demo do SoundCraft\)/);
+  });
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 180_000 });
+  const comMusica = await somEntregue(abertura);
+  assert.equal(comMusica.temAudio, true, 'a abertura saiu muda');
+  assert.ok(Math.abs(comMusica.lufs! + 16) <= 1, `${comMusica.lufs!.toFixed(1)} LUFS`);
+  assert.ok(comMusica.editavelDoSom, 'o editável do som não subiu');
+
+  // "Sem música" no ajuste: a versão nova sai muda.
+  await page.getByRole('button', { name: 'Pedir ajuste' }).click();
+  await page.getByRole('button', { name: 'Sem música' }).click();
+  await page.getByRole('button', { name: 'Enviar ajuste' }).click();
+  await page.getByRole('button', { name: 'Versão 2' }).waitFor({ timeout: 180_000 });
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 180_000 });
+  assert.equal((await somEntregue(abertura, 'ajuste')).temAudio, false, '"sem música" não tirou a trilha');
+
+  // O reel do vídeo gravado, com a trilha por baixo da fala.
+  if (temTudoProReel) {
+    await page.getByRole('button', { name: '← Peças' }).click();
+    const reel = await pedirPelaCentral(page, /^Reel do vídeo gravado/, 'Turma nova do laboratório de redes', async (p) => {
+      await p.locator('#cr-video').setInputFiles(montarBrutoDeTeste());
+      await p.locator('#cr-envio', { hasText: 'recebido' }).waitFor({ timeout: 60_000 });
+    });
+    await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 400_000 });
+    const s = await somEntregue(reel);
+    assert.equal(s.temAudio, true);
+    assert.ok(Math.abs(s.lufs! + 16) <= 1, `${s.lufs!.toFixed(1)} LUFS`);
+    assert.ok(s.editavelDoSom, 'o editável do som do reel não subiu');
+    // A conferência da fábrica mediu a curva da trilha contra cada fala; o histórico conta que passou.
+    const { data: ev } = await admin.from('job_eventos').select('mensagem').in('job_id',
+      ((await admin.from('jobs').select('id').eq('pedido_id', reel)).data ?? []).map((j) => j.id)).eq('mensagem', 'cuidando do som');
+    assert.ok(ev!.length >= 1, 'a etapa do som não apareceu');
+  }
   await semErroNaTela(page);
   await page.context().close();
 });

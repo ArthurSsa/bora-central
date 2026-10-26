@@ -15,11 +15,12 @@
 // ela tiraria as cores da paleta; o FilmCraft entraria pra mixar som, e sem
 // trilha licenciada não há som pra mixar.
 import { execFileSync, spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ParametrosAgente } from './agente.ts';
 import { acharCli } from './config.ts';
 import type { Conjunto } from './marca.ts';
+import { mixarSom, prepararTrilha, zipar, type Mixagem } from './som.ts';
 import { listar } from './video.ts';
 
 export const QUADROS_POR_SEGUNDO = 24;
@@ -214,7 +215,8 @@ export function renderizarMotion(
   opcoes: { previa?: boolean; aoAndar?: (a: Andamento) => void; abortar?: AbortSignal } = {},
 ): Promise<void> {
   const args = ['render', '--project', projeto, '--comp', COMP, '--out', saida, '--format', 'h264', '--fps', String(QUADROS_POR_SEGUNDO),
-    '--bitrate', opcoes.previa ? '3000' : '8000', '--audio', 'off', '--progress'];
+    // "auto": sai com som quando a cena tem a trilha, e sem quando não tem.
+    '--bitrate', opcoes.previa ? '3000' : '8000', '--audio', 'auto', '--progress'];
   if (opcoes.previa) args.push('--start', '0', '--end', String(SEGUNDOS_PREVIA_MOTION), '--resolution', 'half');
   return new Promise((ok, falha) => {
     const p = spawn(acharCli('effectcraft'), args, { stdio: ['ignore', 'ignore', 'pipe'], signal: opcoes.abortar });
@@ -258,15 +260,47 @@ export function montarCenaDoPedido(p: ParametrosAgente, o: { conjunto: Conjunto;
     margem: p.dados.margem,
   };
   let script: string;
+  let segundos: number;
   if (p.skill.nome === 'carrossel-em-video') {
     const slides = listar(path.join(p.pastaJob, 'entrada', 'slides'), /^slide-\d+\.png$/);
     if (slides.length < 2) throw new Error(`o carrossel chegou com ${slides.length} imagem(ns)`);
     script = cenaDeCarrossel(cena, slides);
+    segundos = slides.length * SEGUNDOS_POR_SLIDE + 0.5;
   } else {
     if (!o.titulo?.trim()) throw new Error('falta o título da abertura');
     script = cenaDeAbertura(cena, { titulo: o.titulo.trim(), rotulo: o.rotulo ?? null });
+    segundos = SEGUNDOS_ABERTURA;
   }
+  const som = somDoMotion(p, segundos);
+  if (som) script += cenaComSom(som.mix);
   return montarCena(script, path.join(p.pastaJob, '.trabalho'), projetoDoMotion(p));
+}
+
+/** A mixagem entra na composição como camada de áudio, do começo ao fim. */
+export function cenaComSom(mix: string): string {
+  return `
+var som = app.project.importFile(new ImportOptions(new File(${js(mix)})));
+var faixaDoSom = comp.layers.add(som);
+faixaDoSom.name = "trilha";
+faixaDoSom.startTime = 0;
+`;
+}
+
+/**
+ * A trilha da marca no tamanho da cena, mixada no SoundCraft em -16 LUFS e
+ * com o fim sumindo em 1,5 s. Sem trilha (pedido sem música, ou a marca sem
+ * nenhuma), o vídeo sai mudo como antes.
+ */
+export function somDoMotion(p: ParametrosAgente, segundos: number): Mixagem | null {
+  const pasta = path.join(p.pastaJob, 'editavel', 'som');
+  rmSync(pasta, { recursive: true, force: true });
+  rmSync(path.join(p.pastaJob, 'editavel', 'som.zip'), { force: true });
+  if (!p.dados.som.trilha) return null;
+  mkdirSync(pasta, { recursive: true });
+  const trilha = prepararTrilha(p.dados.som.trilha, path.join(pasta, 'trilha.wav'), segundos);
+  const m = mixarSom({ pasta, duracao: segundos, trilha, nivel: p.dados.som.nivel });
+  zipar(pasta, path.join(p.pastaJob, 'editavel', 'som.zip'));
+  return m;
 }
 
 /**

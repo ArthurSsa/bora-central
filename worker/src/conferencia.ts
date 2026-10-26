@@ -20,6 +20,7 @@ import { contraste } from './marca.ts';
 import { fontesDoProjeto, quadroDoProjeto } from './motion.ts';
 import { lerSrt } from './reel.ts';
 import { lerPng, type Imagem } from './png.ts';
+import { audioDe, curvaDaSessao, picoDb, trilhaAbaixaNaFala, type Trecho } from './som.ts';
 import { lerWav, listar, loudnessIntegrado, silencioMaisLongo, sondar } from './video.ts';
 import type { SaidaConferida } from './verificar.ts';
 
@@ -346,6 +347,37 @@ export function conferirMotion(
     }
   }
   return { erros: [...new Set(erros)], avisos };
+}
+
+// ---------- som ----------
+
+/**
+ * O som que a fábrica mixou no SoundCraft (só existe quando ela mixou):
+ *   - o editável (editavel/som.zip) foi feito;
+ *   - no motion, o áudio do vídeo entregue: -16 LUFS ±1 e pico até -1 dB;
+ *     no reel isso já sai da conferência do vídeo;
+ *   - com trilha e fala, a trilha abaixa em cada trecho de fala, lido da
+ *     curva de volume da sessão salva.
+ */
+export function conferirSom(pastaJob: string, regra: { trilha: boolean; medirVideo: string | null; falas: Trecho[] }): Resultado {
+  const erros: string[] = [];
+  const sessao = path.join(pastaJob, 'editavel', 'som', 'som.scraft');
+  if (!existsSync(path.join(pastaJob, 'editavel', 'som.zip'))) erros.push('o editável do som (editavel/som.zip) não foi feito');
+  if (regra.medirVideo) {
+    const v = path.join(pastaJob, regra.medirVideo);
+    if (!sondar(v).temAudio) erros.push(`${regra.medirVideo}: saiu sem a trilha`);
+    else {
+      const trabalho = path.join(pastaJob, '.trabalho');
+      mkdirSync(trabalho, { recursive: true });
+      const som = audioDe(v, path.join(trabalho, 'som-do-video.wav'));
+      const lufs = loudnessIntegrado(som);
+      if (!(lufs >= -17 && lufs <= -15)) erros.push(`o som saiu em ${lufs.toFixed(1)} LUFS; os Reels pedem -16`);
+      const pico = picoDb(som);
+      if (pico > -1) erros.push(`o som chega a ${pico.toFixed(1)} dB; o pico vai até -1`);
+    }
+  }
+  if (regra.trilha && regra.falas.length && existsSync(sessao)) erros.push(...trilhaAbaixaNaFala(curvaDaSessao(sessao, 'trilha'), regra.falas));
+  return { erros, avisos: [] };
 }
 
 const EMOJI = /\p{Extended_Pictographic}/u;

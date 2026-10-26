@@ -135,6 +135,16 @@ também soma. `FABRICA_TETO_USD` corta a rodada que passar do teto.
 | EffectCraft | `mcp --autosave` + as mesmas raízes | pelos docs; entra no passo 6 |
 | LightCraft | `mcp --library J/biblioteca J/frames` | sem raiz; passo 6 |
 | FilmCraft | `mcp --project J/editavel/projeto.fcproj --data-dir J/.filmcraft` | recusa raízes; passo 5 |
+| SoundCraft | só o CLI: `script`, `convert` | o som dos vídeos (`src/som.ts`); etapa C |
+
+O SoundCraft (0.13.1, portátil, em `.ferramentas/soundcraft/`) faz o som dos
+vídeos sem janela: trata a voz do reel (filtro de graves, de-esser,
+compressor), põe a trilha da marca por baixo — abaixando onde há legenda,
+pela automação de volume — e acerta -16 LUFS com o pico até -1 dB. A trilha é
+música com licença que a equipe sobe na Marca (`marca_trilhas`, balde
+`trilhas`); nada gera música. A sessão sobe como `editavel/som.zip`, que abre
+no SoundCraft de qualquer PC. Os testes usam a música de demonstração do
+próprio SoundCraft, que ele sintetiza.
 
 `transcript.generate` (FilmCraft) e `develop.sync` (LightCraft), citados no
 prompt original, não aparecem na documentação atual dos repositórios — o mais

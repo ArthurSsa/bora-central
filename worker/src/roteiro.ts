@@ -16,7 +16,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { servidorMcp } from './apps.ts';
 import { abrirMcp } from './mcp-cru.ts';
-import { desenharLegendas, exportarReel, lerSrt, lerTranscricao, trechosACortar } from './reel.ts';
+import { desenharLegendas, exportarReel, lerSrt, lerTranscricao, somDoReel, trechosACortar } from './reel.ts';
 import { TICKS_POR_SEGUNDO, listar, sondar, transcricaoParaFilmCraft } from './video.ts';
 import { montarCenaDoPedido, renderizarDoPedido } from './motion.ts';
 import { CUSTO_ZERO, FalhaDoAgente, salvarTexto, type Agente, type ParametrosAgente } from './agente.ts';
@@ -46,7 +46,8 @@ export function frasesDoTexto(texto: string): string[] {
 export function aplicarAtalhos(ajustes: Ajuste[], totalConjuntos: number) {
   const todos = ajustes.flatMap((a) => a.atalhos);
   const ignorados = [
-    ...todos.filter((t) => t !== 'mais curto' && t !== 'outra cor da marca'),
+    // Os de música valem igual pros dois: quem aplica é o som (somDaRodada).
+    ...todos.filter((t) => !['mais curto', 'outra cor da marca', 'sem música', 'música mais baixa'].includes(t)),
     ...ajustes.filter((a) => a.texto).map((a) => `"${a.texto}"`),
   ];
   return {
@@ -302,6 +303,9 @@ async function reelDeBruto(x: Contexto) {
   } finally {
     fc.fechar();
   }
+
+  await p.aoMudarEtapa({ etapa: 'cuidando do som', progresso: 52 });
+  somDoReel(p);
 
   await p.aoMudarEtapa({ etapa: 'preparando a prévia', progresso: 58 });
   exportarReel(projeto, path.join(p.pastaJob, 'saida', 'previa.mp4'), { previaSegundos: 15 });
