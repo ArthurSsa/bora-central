@@ -1,0 +1,1307 @@
+{
+ "calendario": "https://claude.ai/artifact/CHLU9HH2k1691UAq29KAC6",
+ "nota": "passos[].i é o índice usado pelo calendário (começa em 0). dias = dias úteis.",
+ "feriados": {
+  "2026-11-02": "Finados",
+  "2026-11-15": "Proclamação da República",
+  "2026-11-20": "Consciência Negra",
+  "2026-12-24": "Véspera de Natal",
+  "2026-12-25": "Natal",
+  "2026-12-31": "Réveillon",
+  "2027-01-01": "Ano Novo",
+  "2027-02-15": "Carnaval",
+  "2027-02-16": "Carnaval",
+  "2027-02-17": "Quarta de Cinzas (meio dia)"
+ },
+ "tarefas": [
+  {
+   "id": 1,
+   "inicio": "2026-10-28",
+   "dias": 2,
+   "area": "fabrica",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "Medir o custo real por pedido",
+   "pronto": "Tabela \"custo médio por skill\" salva no projeto, com 30 pedidos somados.",
+   "passos": [
+    {
+     "i": 0,
+     "dia": "qua 28/10",
+     "texto": "Primeira medida: 11 rodadas com o Claude em 10 tipos de peça, US$ 2,22 no total (docs/medidas/custo-por-pedido.md). O reel passou a funcionar com o Claude depois da correção.",
+     "ja": "feito em 27/10"
+    },
+    {
+     "i": 1,
+     "dia": "qua 28/10",
+     "texto": "Pré-registrar o lote de hoje no topo do documento, antes de rodar: 3 rodadas por tipo nos que só têm 1 (carrossel de 5, capa, cartaz, guia, abertura animada, post com a pessoa) = 18 pedidos; teto do bloco US$ 5; o que conta como falha."
+    },
+    {
+     "i": 2,
+     "dia": "qua 28/10",
+     "texto": "Conferir a fábrica: .env com ANTHROPIC_API_KEY e FABRICA_TETO_USD=0.50; nenhum outro worker ligado; PC sem suspender."
+    },
+    {
+     "i": 3,
+     "dia": "qua 28/10",
+     "texto": "Variar a marca para ver se o custo muda: padaria (Manrope), Moacyr (Anton) e Virtuex. Um terço dos pedidos de cada."
+    },
+    {
+     "i": 4,
+     "dia": "qua 28/10",
+     "texto": "Enfileirar os 9 pedidos de imagem (post com a pessoa, carrossel de 5, capa ×3 marcas) pelo app ou pela Central. Acompanhar na Visão Bora e anotar cada falha com o motivo que o job devolveu."
+    },
+    {
+     "i": 5,
+     "dia": "qua 28/10",
+     "texto": "Enfileirar os 9 de material e motion (cartaz A4, guia em PDF, abertura animada ×3 marcas). Mesma anotação."
+    },
+    {
+     "i": 6,
+     "dia": "qua 28/10",
+     "texto": "Fechar o dia com a tabela e guardar a saída no documento (seção \"28/10\")."
+    },
+    {
+     "i": 7,
+     "dia": "qui 29/10",
+     "texto": "Reel mais barato antes de medir de novo: ferramenta da fábrica que põe todas as legendas de uma vez (como o roteiro já faz), em vez de um comando por legenda. Meta: reel abaixo de US$ 0,30 por rodada."
+    },
+    {
+     "i": 8,
+     "dia": "qui 29/10",
+     "texto": "Rodar 3 reels do vídeo gravado (brutos de 30 a 60 s: Moacyr, padaria, um seu), com o teto de US$ 0,50."
+    },
+    {
+     "i": 9,
+     "dia": "qui 29/10",
+     "texto": "Rodar 3 ajustes em texto livre (post, carrossel, capa) para ter o custo do \"pedir ajuste\" com n = 3."
+    },
+    {
+     "i": 10,
+     "dia": "qui 29/10",
+     "texto": "Três perfis de mês com os números novos: leve (8 posts, 2 carrosséis), típico (12 posts, 4 carrosséis, 4 reels, 2 capas, 1 cartaz) e pesado (20 posts, 8 carrosséis, 8 reels, 4 capas)."
+    },
+    {
+     "i": 11,
+     "dia": "qui 29/10",
+     "texto": "Atualizar docs/medidas/custo-por-pedido.md: n ≥ 3 por tipo, mínimo e máximo, os três meses em US$ e em R$ (câmbio do dia, com a fonte)."
+    },
+    {
+     "i": 12,
+     "dia": "qui 29/10",
+     "texto": "Preço mínimo por nível: custo de IA do mês ≤ 10 % do preço. Anotar o piso do Autônomo (mês leve), do Acompanhado (típico) e do Feito para você (pesado). Vai para a tarefa \"Preço e níveis travados\" de 04/11."
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "inicio": "2026-10-28",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "Listar os custos fixos da Bora",
+   "pronto": "Arquivo custos-bora.md no projeto, com total mensal.",
+   "passos": [
+    {
+     "i": 0,
+     "dia": null,
+     "texto": "Abrir os painéis e as faturas de outubro: Anthropic Console (uso da API e cartão), assinatura do Claude, Supabase (plano do projeto bora-postar e uso de banco, storage e tráfego), Vercel (plano do time), GitHub."
+    },
+    {
+     "i": 1,
+     "dia": null,
+     "texto": "Domínios, e-mail e ferramentas: domínio(s) atuais e data de renovação, Google Workspace ou Gmail, Canva, qualquer outra assinatura no cartão da Bora (olhar a fatura do cartão linha por linha)."
+    },
+    {
+     "i": 2,
+     "dia": null,
+     "texto": "A fábrica no PC: potência do PC ligado (W) × horas por mês × tarifa da Enel Ceará na conta de luz; parte da internet que conta como da Bora."
+    },
+    {
+     "i": 3,
+     "dia": null,
+     "texto": "Custos de existir como empresa: CNPJ e regime (MEI ou Simples), imposto mensal, contador, conta PJ. Se não houver CNPJ, anotar como pendência: sem ele a cobrança da Fase 1 não entra."
+    },
+    {
+     "i": 4,
+     "dia": null,
+     "texto": "Cotar o que entra até fevereiro: VPS para a fábrica (3 opções com 4 a 8 vCPU e 16 GB, preço em R$), taxa do Asaas por Pix e por cartão, Supabase Pro (se o uso passar do gratuito), domínio do nome novo. O gerador de imagem fica para o teste de 30/10."
+    },
+    {
+     "i": 5,
+     "dia": null,
+     "texto": "Montar custos-bora.md: item, fornecedor, valor, moeda, vencimento, forma de pagamento, obrigatório ou cortável, a partir de quando. Valores em dólar convertidos pelo câmbio do dia, com a fonte."
+    },
+    {
+     "i": 6,
+     "dia": null,
+     "texto": "Três totais: hoje, em dezembro (com VPS e cobrança) e em fevereiro (com tudo). E o custo fixo por conta com 10 contas pagantes."
+    },
+    {
+     "i": 7,
+     "dia": null,
+     "texto": "Lista de cortes imediatos: o que está pago e sem uso (por exemplo o projeto bora-estudio na Vercel, assinaturas esquecidas). Cortar só depois de anotar."
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "inicio": "2026-10-29",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "Travar o nível de lucro de fevereiro",
+   "pronto": "Decisão escrita com o valor de receita mínima de fevereiro."
+  },
+  {
+   "id": 4,
+   "inicio": "2026-10-30",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "Testar o gerador de imagem",
+   "pronto": "Planilha com 10 imagens, custo e tempo; provedor escolhido."
+  },
+  {
+   "id": 5,
+   "inicio": "2026-10-30",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "Lista curta de nomes para o software",
+   "pronto": "Cinco nomes com domínio e arroba conferidos."
+  },
+  {
+   "id": 6,
+   "inicio": "2026-11-03",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "Testar o gerador de vídeo",
+   "pronto": "Três clipes, custo e tempo anotados; decisão de usar ou adiar."
+  },
+  {
+   "id": 7,
+   "inicio": "2026-11-03",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "Nome final, domínio e arroba",
+   "pronto": "Domínio comprado e perfis criados."
+  },
+  {
+   "id": 8,
+   "inicio": "2026-11-04",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "Imagem gerada vira objeto",
+   "pronto": "Pipeline em script no worker; 7 de 10 imagens aproveitáveis."
+  },
+  {
+   "id": 9,
+   "inicio": "2026-11-04",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "Preço e níveis travados",
+   "pronto": "Tabela de níveis no projeto e na página de venda."
+  },
+  {
+   "id": 10,
+   "inicio": "2026-11-05",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "CNPJ e conta para receber",
+   "pronto": "Conta de cobrança aberta e aprovada."
+  },
+  {
+   "id": 11,
+   "inicio": "2026-11-06",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "Arquitetura do sistema novo (ADR)",
+   "pronto": "ADR escrito; esquema v2 desenhado."
+  },
+  {
+   "id": 12,
+   "inicio": "2026-11-06",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 0 · Fundamentos",
+   "titulo": "Moacyr: contrato ou caso público",
+   "pronto": "Acordo escrito."
+  },
+  {
+   "id": 13,
+   "inicio": "2026-11-09",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Base do app novo",
+   "pronto": "Login funciona e as cinco telas abrem vazias no celular e no desktop."
+  },
+  {
+   "id": 53,
+   "inicio": "2026-11-09",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 65,
+   "inicio": "2026-11-10",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (1ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 14,
+   "inicio": "2026-11-11",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Formatos e presets das redes",
+   "pronto": "Escolher um preset ou digitar medidas cria a cena no tamanho certo com a área segura visível."
+  },
+  {
+   "id": 92,
+   "inicio": "2026-11-11",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 78,
+   "inicio": "2026-11-12",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (1ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 15,
+   "inicio": "2026-11-13",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Esquema v2 no Supabase",
+   "pronto": "Migração aplicada; teste de isolamento entre contas passando."
+  },
+  {
+   "id": 105,
+   "inicio": "2026-11-13",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 16,
+   "inicio": "2026-11-16",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Minha marca v2",
+   "pronto": "Marca de um cliente preenchida em menos de 10 minutos."
+  },
+  {
+   "id": 54,
+   "inicio": "2026-11-16",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 118,
+   "inicio": "2026-11-16",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Texto da página de venda",
+   "pronto": "Texto aprovado e entregue."
+  },
+  {
+   "id": 66,
+   "inicio": "2026-11-17",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (2ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 119,
+   "inicio": "2026-11-17",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Lista de 40 contatos",
+   "pronto": "Planilha com 40 nomes."
+  },
+  {
+   "id": 17,
+   "inicio": "2026-11-18",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Studio v1: a cena com objetos",
+   "pronto": "Dez objetos manipulados sem travar no celular de 390 px."
+  },
+  {
+   "id": 93,
+   "inicio": "2026-11-18",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 79,
+   "inicio": "2026-11-19",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (2ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 120,
+   "inicio": "2026-11-19",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Proppozzy como canal",
+   "pronto": "Reunião feita; resposta registrada."
+  },
+  {
+   "id": 18,
+   "inicio": "2026-11-23",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Gerar imagem como objeto",
+   "pronto": "Imagem gerada aparece como objeto em menos de 30 s, com 3 variações."
+  },
+  {
+   "id": 55,
+   "inicio": "2026-11-23",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 67,
+   "inicio": "2026-11-24",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (3ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 121,
+   "inicio": "2026-11-24",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Caso público: Moacyr",
+   "pronto": "Caso publicado."
+  },
+  {
+   "id": 19,
+   "inicio": "2026-11-25",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Objetos vetoriais e biblioteca",
+   "pronto": "Objeto recolorido com uma cor da marca; biblioteca com busca."
+  },
+  {
+   "id": 94,
+   "inicio": "2026-11-25",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 80,
+   "inicio": "2026-11-26",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (3ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 20,
+   "inicio": "2026-11-27",
+   "dias": 1,
+   "area": "fabrica",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Exportar pela fábrica",
+   "pronto": "PNG e PSD no balde; conferência aprova."
+  },
+  {
+   "id": 106,
+   "inicio": "2026-11-27",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 21,
+   "inicio": "2026-11-30",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Fluxo Hoje → Criar",
+   "pronto": "Do clique em \"Post\" à cena pronta para ajustar em menos de 60 s."
+  },
+  {
+   "id": 56,
+   "inicio": "2026-11-30",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 68,
+   "inicio": "2026-12-01",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (4ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 122,
+   "inicio": "2026-12-01",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Proposta de vídeo nº 1",
+   "pronto": "Três propostas enviadas."
+  },
+  {
+   "id": 22,
+   "inicio": "2026-12-02",
+   "dias": 2,
+   "area": "negocio",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Cobrança e cadastro",
+   "pronto": "Conta de teste paga R$ 1 em sandbox e abre; inadimplente bloqueia."
+  },
+  {
+   "id": 95,
+   "inicio": "2026-12-02",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 81,
+   "inicio": "2026-12-03",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (4ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 23,
+   "inicio": "2026-12-04",
+   "dias": 1,
+   "area": "fabrica",
+   "fase": "Fase 1 · Núcleo: formato, cena, objetos",
+   "titulo": "Fábrica no VPS",
+   "pronto": "Um pedido roda de ponta a ponta com o PC desligado."
+  },
+  {
+   "id": 107,
+   "inicio": "2026-12-04",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 24,
+   "inicio": "2026-12-07",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 2 · Vídeo",
+   "titulo": "Clipe gerado como objeto",
+   "pronto": "Clipe gerado posicionado numa cena de story."
+  },
+  {
+   "id": 57,
+   "inicio": "2026-12-07",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 69,
+   "inicio": "2026-12-08",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (5ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 123,
+   "inicio": "2026-12-08",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 2 · Vídeo",
+   "titulo": "Revisão de 30 dias dos primeiros pagantes",
+   "pronto": "Notas por cliente; ajustes na lista de correções."
+  },
+  {
+   "id": 25,
+   "inicio": "2026-12-09",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 2 · Vídeo",
+   "titulo": "Linha do tempo simples",
+   "pronto": "Vídeo de 3 cenas montado só no app."
+  },
+  {
+   "id": 96,
+   "inicio": "2026-12-09",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 82,
+   "inicio": "2026-12-10",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (5ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 124,
+   "inicio": "2026-12-10",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Fase 2 · Vídeo",
+   "titulo": "Contrato e termos",
+   "pronto": "Termos publicados."
+  },
+  {
+   "id": 26,
+   "inicio": "2026-12-11",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Fase 2 · Vídeo",
+   "titulo": "Objetos animados",
+   "pronto": "Objeto animado na prévia em menos de 2 min."
+  },
+  {
+   "id": 108,
+   "inicio": "2026-12-11",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 27,
+   "inicio": "2026-12-14",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 2 · Vídeo",
+   "titulo": "Reel do vídeo bruto",
+   "pronto": "Reel aprovado por um cliente externo."
+  },
+  {
+   "id": 58,
+   "inicio": "2026-12-14",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 70,
+   "inicio": "2026-12-15",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (6ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 125,
+   "inicio": "2026-12-15",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 2 · Vídeo",
+   "titulo": "Oferta de fim de ano",
+   "pronto": "Oferta enviada para 40 contatos."
+  },
+  {
+   "id": 28,
+   "inicio": "2026-12-16",
+   "dias": 2,
+   "area": "fabrica",
+   "fase": "Fase 2 · Vídeo",
+   "titulo": "Render e entrega de vídeo",
+   "pronto": "Vídeo de 30 s entregue com progresso visível."
+  },
+  {
+   "id": 97,
+   "inicio": "2026-12-16",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 83,
+   "inicio": "2026-12-17",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (6ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 29,
+   "inicio": "2026-12-18",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Fase 2 · Vídeo",
+   "titulo": "Correções do beta e congelamento",
+   "pronto": "Lista zerada; congelamento registrado."
+  },
+  {
+   "id": 109,
+   "inicio": "2026-12-18",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 30,
+   "inicio": "2026-12-21",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 2 · Vídeo",
+   "titulo": "Migrar os clientes atuais",
+   "pronto": "Os clientes entram no app novo e veem o que já tinham."
+  },
+  {
+   "id": 31,
+   "inicio": "2026-12-28",
+   "dias": 2,
+   "area": "fabrica",
+   "fase": "Fase 2 · Vídeo",
+   "titulo": "Monitoramento das festas",
+   "pronto": "Zero pedidos travados entre 23/12 e 04/01."
+  },
+  {
+   "id": 32,
+   "inicio": "2027-01-05",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Modelos de cena por objetivo",
+   "pronto": "Modelo aplicado com a marca do cliente em um clique."
+  },
+  {
+   "id": 71,
+   "inicio": "2027-01-05",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (7ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 126,
+   "inicio": "2027-01-05",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Lista nova de 40 contatos",
+   "pronto": "Quarenta nomes novos."
+  },
+  {
+   "id": 98,
+   "inicio": "2027-01-06",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 33,
+   "inicio": "2027-01-07",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Onboarding de 10 minutos",
+   "pronto": "Um desconhecido sai com a primeira peça em 10 minutos."
+  },
+  {
+   "id": 84,
+   "inicio": "2027-01-07",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (7ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 110,
+   "inicio": "2027-01-08",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 34,
+   "inicio": "2027-01-11",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Carrossel, story e capa no Studio",
+   "pronto": "Carrossel de 7 páginas exportado para Instagram e LinkedIn."
+  },
+  {
+   "id": 59,
+   "inicio": "2027-01-11",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 72,
+   "inicio": "2027-01-12",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (8ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 127,
+   "inicio": "2027-01-12",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Proposta de vídeo nº 2",
+   "pronto": "Propostas enviadas."
+  },
+  {
+   "id": 35,
+   "inicio": "2027-01-13",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Resultados",
+   "pronto": "Painel de resultados com 10 peças registradas."
+  },
+  {
+   "id": 99,
+   "inicio": "2027-01-13",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 85,
+   "inicio": "2027-01-14",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (8ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 36,
+   "inicio": "2027-01-15",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Indicação",
+   "pronto": "Indicação testada de ponta a ponta."
+  },
+  {
+   "id": 111,
+   "inicio": "2027-01-15",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 37,
+   "inicio": "2027-01-18",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Relatório mensal e agenda de 90 dias",
+   "pronto": "Relatório de janeiro gerado para todas as contas."
+  },
+  {
+   "id": 60,
+   "inicio": "2027-01-18",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 73,
+   "inicio": "2027-01-19",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (9ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 38,
+   "inicio": "2027-01-20",
+   "dias": 2,
+   "area": "fabrica",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Custo e desempenho",
+   "pronto": "Margem por conta acima de 70 % no painel."
+  },
+  {
+   "id": 100,
+   "inicio": "2027-01-20",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 86,
+   "inicio": "2027-01-21",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (9ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 39,
+   "inicio": "2027-01-22",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Painel de negócio",
+   "pronto": "Painel no ar com os números de janeiro."
+  },
+  {
+   "id": 112,
+   "inicio": "2027-01-22",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 40,
+   "inicio": "2027-01-25",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Publicação assistida",
+   "pronto": "Lembrete chega no horário com a peça anexada."
+  },
+  {
+   "id": 61,
+   "inicio": "2027-01-25",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 74,
+   "inicio": "2027-01-26",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (10ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 128,
+   "inicio": "2027-01-26",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Upgrade dos clientes de novembro",
+   "pronto": "Dois upgrades."
+  },
+  {
+   "id": 41,
+   "inicio": "2027-01-27",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Celular e acessibilidade",
+   "pronto": "Teste ponta a ponta no celular passando."
+  },
+  {
+   "id": 101,
+   "inicio": "2027-01-27",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 87,
+   "inicio": "2027-01-28",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (10ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 42,
+   "inicio": "2027-01-29",
+   "dias": 1,
+   "area": "fabrica",
+   "fase": "Fase 3 · Polimento e crescimento",
+   "titulo": "Revisão de segurança",
+   "pronto": "Checklist assinado."
+  },
+  {
+   "id": 113,
+   "inicio": "2027-01-29",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 43,
+   "inicio": "2027-02-01",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Correções da leva de janeiro",
+   "pronto": "Lista zerada."
+  },
+  {
+   "id": 62,
+   "inicio": "2027-02-01",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 75,
+   "inicio": "2027-02-02",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (11ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 129,
+   "inicio": "2027-02-02",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Proposta de vídeo nº 3",
+   "pronto": "Propostas enviadas."
+  },
+  {
+   "id": 44,
+   "inicio": "2027-02-03",
+   "dias": 2,
+   "area": "negocio",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Página de venda v2",
+   "pronto": "Página no ar com dois casos externos."
+  },
+  {
+   "id": 102,
+   "inicio": "2027-02-03",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 88,
+   "inicio": "2027-02-04",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (11ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 45,
+   "inicio": "2027-02-05",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Cobrança de fevereiro emitida",
+   "pronto": "100 % das faturas emitidas e conferidas."
+  },
+  {
+   "id": 114,
+   "inicio": "2027-02-05",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 46,
+   "inicio": "2027-02-08",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Qualidade das gerações",
+   "pronto": "Aprovação de primeira acima de 60 %."
+  },
+  {
+   "id": 63,
+   "inicio": "2027-02-08",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 76,
+   "inicio": "2027-02-09",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (12ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 130,
+   "inicio": "2027-02-09",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Caso público nº 2",
+   "pronto": "Caso publicado com autorização."
+  },
+  {
+   "id": 47,
+   "inicio": "2027-02-10",
+   "dias": 2,
+   "area": "produto",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Ajuda dentro do produto",
+   "pronto": "Ajuda publicada; suporte por WhatsApp com horário."
+  },
+  {
+   "id": 103,
+   "inicio": "2027-02-10",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 89,
+   "inicio": "2027-02-11",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (12ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 48,
+   "inicio": "2027-02-12",
+   "dias": 1,
+   "area": "fabrica",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Preparar o Carnaval",
+   "pronto": "Zero pedidos travados no Carnaval."
+  },
+  {
+   "id": 115,
+   "inicio": "2027-02-12",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 49,
+   "inicio": "2027-02-18",
+   "dias": 2,
+   "area": "negocio",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Upgrade de plano no app",
+   "pronto": "Dois upgrades feitos pelo próprio cliente."
+  },
+  {
+   "id": 90,
+   "inicio": "2027-02-18",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (13ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 116,
+   "inicio": "2027-02-19",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  },
+  {
+   "id": 131,
+   "inicio": "2027-02-19",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Revisão de 30 dias da leva de janeiro",
+   "pronto": "Notas por cliente."
+  },
+  {
+   "id": 50,
+   "inicio": "2027-02-22",
+   "dias": 2,
+   "area": "fabrica",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Backup e restauração testados",
+   "pronto": "Restauração em menos de 1 hora, documentada."
+  },
+  {
+   "id": 64,
+   "inicio": "2027-02-22",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Prospecção da semana: 10 mensagens",
+   "pronto": "Dez mensagens enviadas e três conversas marcadas para a semana."
+  },
+  {
+   "id": 77,
+   "inicio": "2027-02-23",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (13ª)",
+   "pronto": "Conversa feita, resumo de 5 linhas e próximo passo marcado."
+  },
+  {
+   "id": 51,
+   "inicio": "2027-02-24",
+   "dias": 2,
+   "area": "negocio",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Decisão de março (ADR)",
+   "pronto": "ADR rascunhado."
+  },
+  {
+   "id": 104,
+   "inicio": "2027-02-24",
+   "dias": 1,
+   "area": "produto",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conteúdo da semana no próprio produto",
+   "pronto": "Peças da semana publicadas; lista de travas atualizada."
+  },
+  {
+   "id": 91,
+   "inicio": "2027-02-25",
+   "dias": 1,
+   "area": "venda",
+   "fase": "Venda e conteúdo",
+   "titulo": "Conversa de venda (14ª) e acompanhamento dos testes",
+   "pronto": "Conversa feita; cada teste com uma mensagem enviada."
+  },
+  {
+   "id": 52,
+   "inicio": "2027-02-26",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Fase 4 · Fevereiro: estabilizar e fechar",
+   "titulo": "Fechamento de fevereiro",
+   "pronto": "Número no quadro e decisão registrada."
+  },
+  {
+   "id": 117,
+   "inicio": "2027-02-26",
+   "dias": 1,
+   "area": "negocio",
+   "fase": "Venda e conteúdo",
+   "titulo": "Quadro da semana",
+   "pronto": "Quadro atualizado; decisão da semana escrita."
+  }
+ ]
+}
