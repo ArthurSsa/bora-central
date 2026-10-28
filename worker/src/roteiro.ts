@@ -16,8 +16,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { servidorMcp } from './apps.ts';
 import { abrirMcp } from './mcp-cru.ts';
-import { desenharLegendas, exportarReel, lerSrt, lerTranscricao, somDoReel, trechosACortar } from './reel.ts';
-import { TICKS_POR_SEGUNDO, listar, sondar, transcricaoParaFilmCraft } from './video.ts';
+import { desenharLegendas, escalaQueCobre, exportarReel, lerSrt, lerTranscricao, somDoReel, trechosACortar } from './reel.ts';
+import { TICKS_POR_SEGUNDO, listar, sondar } from './video.ts';
 import { montarCenaDoPedido, renderizarDoPedido } from './motion.ts';
 import { CUSTO_ZERO, FalhaDoAgente, salvarTexto, type Agente, type ParametrosAgente } from './agente.ts';
 import type { Ajuste } from './fila.ts';
@@ -266,8 +266,9 @@ async function capa(x: Contexto) {
 
 /**
  * O reel a partir do vídeo bruto, com os mesmos comandos que a skill manda o
- * agente usar. A transcrição já está em entrada/transcricao.json (o worker
- * faz antes, com o whisper.cpp). Este roteiro não precisa interpretar nada:
+ * agente usar. O worker já transcreveu (whisper.cpp) e já deixou o projeto do
+ * FilmCraft com o vídeo e a fala (prepararProjetoDoReel), que o FilmCraft abre
+ * — igual pro agente, que não lê arquivo. Este roteiro não precisa interpretar nada:
  * cortar muleta, frase repetida e pausa é regra; o que o Claude faria a mais
  * é escolher melhor onde aproximar e o que dizer na legenda do post.
  */
@@ -287,16 +288,10 @@ async function reelDeBruto(x: Contexto) {
   if (!bruto) throw new FalhaDoAgente('não achei o vídeo bruto em entrada/', CUSTO_ZERO);
 
   try {
-    await p.aoMudarEtapa({ etapa: 'preparando o vídeo', progresso: 8 });
-    const { items: [item] } = await fcPasso('media_import', { paths: [bruto] });
-    const sonda = sondar(bruto);
-    await cmd('file.newSequence', { name: 'reel', width: 1080, height: 1920, fps: 30, video: 2, audio: 1 });
-    await cmd('timeline.place', { item, track: 'V1', seconds: 0 });
-    // Vídeo deitado ou de outra proporção: amplia até cobrir o quadro em pé.
-    const base = Math.max(1080 / (sonda.largura || 1080), 1920 / (sonda.altura || 1920)) * 100;
+    // O worker já deixou a sequência com o vídeo e a transcrição (prepararProjetoDoReel),
+    // e o FilmCraft abriu nela; a escala é a que ele usou pra cobrir o quadro.
+    const base = escalaQueCobre(sondar(bruto));
     const clipes = async () => (await fcPasso('sequence_inspect')).video[0].items.map((i: { clip: number }) => i.clip) as number[];
-    if (Math.abs(base - 100) > 0.5) for (const clip of await clipes()) await cmd('effects.setParam', { clip, effect: 'motion', param: 'scale', value: base });
-    await cmd('transcript.set', { item, transcript: transcricaoParaFilmCraft(lerTranscricao(p.pastaJob)) });
 
     await p.aoMudarEtapa({ etapa: 'cortando as pausas', progresso: 20 });
     const { words } = await cmd('transcript.inspect', {});

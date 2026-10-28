@@ -11,7 +11,9 @@ import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { RAIZ_REPO, type Config } from '../src/config.ts';
-import { fontesInstaladas } from '../src/apps.ts';
+import { fontesInstaladas, servidorMcp } from '../src/apps.ts';
+import type { Agente } from '../src/agente.ts';
+import { abrirMcp } from '../src/mcp-cru.ts';
 import { lerWav, loudnessIntegrado, sondar } from '../src/video.ts';
 import { exportarAudioFinal, lerSrt } from '../src/reel.ts';
 import { produzir } from '../src/worker.ts';
@@ -31,10 +33,24 @@ test('reel de bruto pelo roteiro: corta, legenda na marca, a trilha abaixando na
   const etapas: string[] = [];
   const parciais: string[] = [];
   const raiz = process.env.PASTA_PREVIAS ?? mkdtempSync(path.join(tmpdir(), 'jobs-'));
+  // O que o agente encontra ao abrir o FilmCraft: o agente não lê arquivo, então
+  // a fala tem que chegar dentro do projeto. Confere como o Claude veria, e segue pelo roteiro.
+  let pontoDePartida: { clipes: number; palavras: number } | null = null;
+  const agente: Agente = async (p) => {
+    const fc = await abrirMcp(servidorMcp('filmcraft', p.pastaJob));
+    try {
+      const seq = JSON.parse((await fc.chamar('sequence_inspect', {})).texto);
+      const tr = JSON.parse((await fc.chamar('command_run', { id: 'transcript.inspect', params: {} })).texto);
+      pontoDePartida = { clipes: seq.video[0].items.length, palavras: tr.words.length };
+    } finally {
+      fc.fechar();
+    }
+    return rodarRoteiro(p);
+  };
   const r = await produzir({
     cfg: { pastaJobs: raiz, tetoUsd: 1 } as Config, job: { id: 'reel-beatriz' }, skill: skills.get('reel-de-bruto')!, skills,
     pedido: { id: 'p', tipo: 'reel', titulo: null, briefing: { texto: 'Turma nova do laboratório de redes' }, publicar_em: null },
-    cliente: BEATRIZ, instaladas: fontesInstaladas(), agente: rodarRoteiro,
+    cliente: BEATRIZ, instaladas: fontesInstaladas(), agente,
     arquivos: [{ nome: 'bruto.mp4', conteudo: readFileSync(bruto) }, ...(temSoundCraft ? [{ nome: 'trilha.wav', conteudo: readFileSync(trilhaDeTeste()) }] : [])],
     abortar: new AbortController(), aoMudarEtapa: async (e) => { etapas.push(e.etapa); }, aoUsarFerramenta: () => {},
     entregarParcial: async (c) => { parciais.push(c); },
@@ -44,7 +60,10 @@ test('reel de bruto pelo roteiro: corta, legenda na marca, a trilha abaixando na
   const fala = readFileSync(path.join(r.pastaJob, 'entrada', 'transcricao.txt'), 'utf8');
   assert.match(fala, /laboratório/);
   assert.match(fala, /Mas não precisa\. Mas não precisa mesmo\./);
-  assert.equal(etapas[0], 'ouvindo o vídeo');
+  assert.deepEqual(etapas.slice(0, 2), ['ouvindo o vídeo', 'preparando o vídeo']);
+  // O FilmCraft do agente abriu com o vídeo na sequência e a fala inteira, palavra por palavra.
+  const palavras = JSON.parse(readFileSync(path.join(r.pastaJob, 'entrada', 'transcricao.json'), 'utf8')).length;
+  assert.deepEqual(pontoDePartida, { clipes: 1, palavras });
   // A prévia foi entregue antes do reel completo existir.
   assert.deepEqual(parciais, ['saida/previa.mp4']);
   assert.ok(etapas.indexOf('preparando a prévia') < etapas.indexOf('finalizando o som'));

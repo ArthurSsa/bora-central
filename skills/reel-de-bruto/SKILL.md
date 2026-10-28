@@ -19,21 +19,18 @@ começando a frase duas vezes. O reel é a mesma fala, sem nada disso, com a
 câmera chegando perto nos cortes e a legenda na marca dele — porque a maioria
 assiste sem som.
 
-O que já está pronto quando você começa:
-- o vídeo em `entrada/bruto.*`;
-- a transcrição, palavra por palavra com o tempo de cada uma, em
-  `entrada/transcricao.json` (e o texto corrido em `entrada/transcricao.txt`).
-  Os tempos já foram encostados no som: palavra não esconde pausa.
+O que já está pronto quando você começa (a fábrica faz antes de você):
+- o FilmCraft já abriu `editavel/reel.fcproj`, com a sequência "reel"
+  (1080×1920, 30 fps), o vídeo bruto na trilha V1 já cobrindo o quadro em pé,
+  e a fala carregada como transcrição, palavra por palavra com o tempo de cada
+  uma. Os tempos já foram encostados no som: palavra não esconde pausa.
+- Você não lê arquivo: a fala você vê com `transcript.inspect`.
 
 ## Passos (FilmCraft, pelo MCP)
 
-1. `avisar_etapa` "preparando o vídeo", 8.
-   - `media_import` com o caminho absoluto do bruto (devolve o id do item).
-   - `command_run` `file.newSequence` `{"name": "reel", "width": 1080, "height": 1920, "fps": 30, "video": 2, "audio": 1}`.
-   - `command_run` `timeline.place` `{"item": <id>, "track": "V1", "seconds": 0}`.
-   - Vídeo que não é em pé: `effects.setParam` no clipe, `{"effect": "motion", "param": "scale", "value": <o que cobre 1080×1920>}`.
-   - `command_run` `transcript.set` `{"item": <id>, "transcript": {"language": "pt", "speakers": [{"name": "Pessoa"}], "words": [...]}}`
-     com as palavras do JSON (tempos em ticks: 254016000000 por segundo).
+1. Confira o ponto de partida com `sequence_inspect` (um clipe em V1) e
+   `transcript.inspect` (as palavras). Não importe o vídeo de novo nem crie
+   outra sequência.
 
 2. `avisar_etapa` "cortando as pausas", 20. Leia `transcript.inspect` e corte
    com `transcript.extract` `{"from": i, "to": j}` — **do fim pro começo**:

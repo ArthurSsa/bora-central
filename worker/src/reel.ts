@@ -19,7 +19,51 @@ import type { ParametrosAgente } from './agente.ts';
 import type { Conjunto } from './marca.ts';
 import { abrirMcp } from './mcp-cru.ts';
 import { mixarSom, prepararTrilha, trechosDeFala, zipar, type Mixagem } from './som.ts';
-import { lerWav, type Palavra } from './video.ts';
+import { lerWav, listar, sondar, transcricaoParaFilmCraft, type Palavra, type Sonda } from './video.ts';
+
+// ---------- o projeto pronto pra editar ----------
+
+export const PROJETO_DO_REEL = 'editavel/reel.fcproj';
+
+/** A escala que faz o vídeo cobrir o quadro em pé (100 quando ele já é 1080×1920). */
+export const escalaQueCobre = (s: Pick<Sonda, 'largura' | 'altura'>) => Math.max(1080 / (s.largura || 1080), 1920 / (s.altura || 1920)) * 100;
+
+/**
+ * Antes do agente (e do roteiro): a sequência em pé com o vídeo cobrindo o
+ * quadro e a transcrição carregada, salva em editavel/reel.fcproj. O agente
+ * não lê arquivo — e nem precisa: o FilmCraft dele abre este projeto já com a
+ * fala palavra por palavra, pronta pra cortar e legendar.
+ */
+export async function prepararProjetoDoReel(pastaJob: string): Promise<{ projeto: string; escala: number }> {
+  const bruto = listar(path.join(pastaJob, 'entrada'), /^bruto\./)[0];
+  if (!bruto) throw new Error('não achei o vídeo bruto em entrada/');
+  const projeto = path.join(pastaJob, PROJETO_DO_REEL);
+  mkdirSync(path.dirname(projeto), { recursive: true });
+  rmSync(projeto, { force: true });
+  const fc = await abrirMcp(servidorMcp('filmcraft', pastaJob));
+  const chamar = async (ferramenta: string, args: Record<string, unknown> = {}) => {
+    const r = await fc.chamar(ferramenta, args);
+    if (r.erro) throw new Error(`FilmCraft ${ferramenta} ${String(args.id ?? '')}: ${r.texto}`);
+    return r.texto ? JSON.parse(r.texto) : null;
+  };
+  const cmd = (id: string, params: Record<string, unknown> = {}) => chamar('command_run', { id, params });
+  try {
+    const { items: [item] } = await chamar('media_import', { paths: [bruto] });
+    await cmd('file.newSequence', { name: 'reel', width: 1080, height: 1920, fps: 30, video: 2, audio: 1 });
+    await cmd('timeline.place', { item, track: 'V1', seconds: 0 });
+    // Vídeo deitado ou de outra proporção: amplia até cobrir o quadro em pé.
+    const escala = escalaQueCobre(sondar(bruto));
+    if (Math.abs(escala - 100) > 0.5) {
+      const clipes = (await chamar('sequence_inspect')).video[0].items.map((i: { clip: number }) => i.clip) as number[];
+      for (const clip of clipes) await cmd('effects.setParam', { clip, effect: 'motion', param: 'scale', value: escala });
+    }
+    await cmd('transcript.set', { item, transcript: transcricaoParaFilmCraft(lerTranscricao(pastaJob)) });
+    await cmd('file.saveAs', { path: projeto });
+    return { projeto, escala };
+  } finally {
+    fc.fechar();
+  }
+}
 
 // ---------- o que cortar ----------
 
