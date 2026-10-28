@@ -11,6 +11,8 @@ import path from 'node:path';
 import { setTimeout as esperar } from 'node:timers/promises';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { fontesInstaladas, pesoMaisPerto } from './apps.ts';
+import { camadasDaPeca } from './camadas.ts';
+import { conferirPessoa, prepararPessoa, PASTA_PESSOA, type AnaliseDaPessoa } from './pessoa.ts';
 import { conferirCartaz, conferirMarca, conferirMaterial, conferirMotion, conferirSom, conferirTextos, conferirVideo, type Caixa } from './conferencia.ts';
 import { projetoDoMotion, SEGUNDOS_ABERTURA, SEGUNDOS_POR_SLIDE } from './motion.ts';
 import { exportarAudioFinal, lerSrt } from './reel.ts';
@@ -19,15 +21,16 @@ import { folhaDoPedido, prepararElementos } from './vetor.ts';
 import { modeloDoPedido } from './diagramacao.ts';
 import { listar, sondar, transcrever } from './video.ts';
 import { lerConfig, type Config } from './config.ts';
-import { rodarAgente, FalhaDoAgente, CUSTO_ZERO, type Agente, type Etapa, type ResultadoAgente } from './agente.ts';
+import { rodarAgente, FalhaDoAgente, FalhaDoPedido, CUSTO_ZERO, type Agente, type Etapa, type ResultadoAgente } from './agente.ts';
 import {
   conectar, pegarJob, renovarLease, anotar, evento, carregarContexto, subir, concluir, devolverOuFalhar,
-  historicoDeAjustes, baixarEditaveisBase, baixarElementos, baixarAnexo, baixarSlides, baixarDaBora, baixarTrilha, juntarSaida, ehJobPerdido, sinalDeVida, soltarOsMeus,
+  historicoDeAjustes, baixarEditaveisBase, baixarVersaoBase, baixarFotoDaPessoa, baixarElementos, baixarAnexo, baixarSlides, baixarDaBora, baixarTrilha, juntarSaida, ehJobPerdido, sinalDeVida, soltarOsMeus,
   type Ajuste, type ArquivoDeEntrada, type Elemento, type Job, type Pedido,
 } from './fila.ts';
 import { montarSistema, montarPedido } from './instrucoes.ts';
 import { rodarRoteiro } from './roteiro.ts';
 import { agenteDaBora } from './da-bora.ts';
+import { agenteDeEdicao } from './edicao.ts';
 import { coresDaMarca, ehImpacto, marcaParaAgente, resolverFonte, type ClienteParaMarca, type FonteResolvida } from './marca.ts';
 import { carregarSkills, escolherSkill, expandirSaidas, type Skill } from './skills.ts';
 import { conferirSaida, type SaidaConferida } from './verificar.ts';
@@ -106,13 +109,36 @@ export async function produzir(a: {
   const elementos = prepararElementos(pastaJob, a.elementos ?? [], conjuntos.map((c) => c.tinta));
   // Só repete o motivo quando é de fato uma nova tentativa do mesmo job.
   const erroAnterior = (a.job.tentativas ?? 1) > 1 ? a.job.erro ?? null : null;
+  // A foto da pessoa: tratada e recortada uma vez, antes do agente. Por ora só o post usa.
+  const avisosDaFoto: string[] = [];
+  let pessoa: AnaliseDaPessoa | null = null;
+  if (listar(path.join(pastaJob, PASTA_PESSOA), /^origem\./).length) {
+    if (a.skill.nome !== 'post-feed') avisosDaFoto.push(`a foto da pessoa ainda não entra em ${a.skill.nome}; a peça saiu sem ela`);
+    else {
+      await a.aoMudarEtapa({ etapa: 'preparando a sua foto', progresso: 6 });
+      try {
+        pessoa = prepararPessoa(pastaJob);
+      } catch (e) {
+        const msg = (e as Error).message;
+        if (/não achamos um rosto/.test(msg)) {
+          throw new FalhaDoPedido(msg, 'Não achamos um rosto na sua foto. Peça de novo com uma foto em que o seu rosto apareça de frente.');
+        }
+        throw new FalhaDoAgente(msg, CUSTO_ZERO);
+      }
+      if (pessoa?.cabecaCortada) {
+        throw new FalhaDoPedido('a foto já vem com a cabeça cortada em cima',
+          'A sua foto corta a cabeça em cima. Peça de novo com uma foto em que a cabeça apareça inteira.');
+      }
+    }
+  }
 
   const resultado = await a.agente({
     cfg: a.cfg,
     skill: a.skill,
     pastaJob,
     sistema: montarSistema(a.skill, a.skills),
-    pedido: montarPedido(a.skill, a.pedido, marca, { saidas, ajustes, temAnterior, elementos, erroAnterior }),
+    pedido: montarPedido(a.skill, a.pedido, marca, { saidas, ajustes, temAnterior, elementos, erroAnterior,
+      pessoa: pessoa && { recorteOk: pessoa.recorte.ok, motivo: pessoa.recorte.motivo } }),
     dados: {
       conjunto,
       conjuntos,
@@ -133,6 +159,8 @@ export async function produzir(a: {
       saidas,
       elementos,
       som: somDaRodada(trilhaDaEntrada(pastaJob), ajustes),
+      cores: coresDaMarca(a.cliente),
+      pessoa,
     },
     abortar: a.abortar,
     aoMudarEtapa: a.aoMudarEtapa,
@@ -188,14 +216,20 @@ export async function produzir(a: {
         falas: bruto && existsSync(legendas) ? trechosDeFala(lerSrt(readFileSync(legendas, 'utf8'))) : [],
       })
     : { erros: [], avisos: [] };
-  const erros = [...daMarca.erros, ...dosTextos.erros, ...doVideo.erros, ...doSom.erros];
+  // A pessoa: o rosto achado de novo no PNG entregue, inteiro, na margem e sem texto por cima.
+  const daPessoa = pessoa && existsSync(path.join(pastaJob, 'saida', 'post.png')) ? conferirPessoa(pastaJob, 'post') : { erros: [], avisos: [] };
+  const erros = [...daMarca.erros, ...dosTextos.erros, ...doVideo.erros, ...doSom.erros, ...daPessoa.erros];
   if (erros.length) {
     throw new FalhaDoAgente(`reprovado na conferência de marca: ${erros.slice(0, 6).join('; ')}`, resultado.custos);
   }
   // O editável do som não é saída prometida da skill (a equipe não precisa
   // mandar um na correção à mão), mas sobe sempre que a fábrica fez.
   if (existsSync(path.join(pastaJob, 'editavel', 'som.zip'))) conferidas.push(conferirSaida(pastaJob, { caminho: 'editavel/som.zip' }));
-  return { pastaJob, conferidas, resultado, fonte, avisos: [...daMarca.avisos, ...dosTextos.avisos, ...doVideo.avisos] };
+  // Toda imagem com PSD vai pro Studio da Central em camadas.
+  const dasCamadas = camadasDaPeca(pastaJob, conferidas);
+  conferidas.push(...dasCamadas.conferidas);
+  return { pastaJob, conferidas, resultado, fonte,
+    avisos: [...avisosDaFoto, ...daMarca.avisos, ...dosTextos.avisos, ...doVideo.avisos, ...daPessoa.avisos, ...dasCamadas.avisos] };
 }
 
 export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<string, Skill>, instaladas: string[], job: Job, agente: Agente) {
@@ -229,8 +263,11 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     // A primeira linha que o cliente lê, uma por rodada — e só na primeira
     // tentativa: um job que volta pra fila não "começa" de novo pra quem espera.
     const daBora = job.rodada === 'da_bora';
+    // Edição do Studio: a equipe já decidiu cada mudança; a fábrica só aplica e confere.
+    const doStudio = job.rodada === 'edicao';
     if (job.tentativas === 1) {
       await evento(sb, job, daBora ? 'A equipe da Bora terminou. Estamos conferindo antes de te mostrar.'
+        : doStudio ? 'A equipe da Bora está fazendo um ajuste fino.'
         : job.rodada === 'ajuste' ? 'Recebemos o seu pedido de ajuste.' : 'Começamos a produzir o seu pedido.', { visivel: true });
     }
 
@@ -244,12 +281,17 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
 
     const ajustes = await historicoDeAjustes(sb, job);
     const anteriores = job.rodada === 'ajuste' ? await baixarEditaveisBase(sb, job) : [];
-    const { elementos, arquivos } = await baixarElementos(sb, job);
-    const anexo = skill.entrada === 'video' ? await baixarAnexo(sb, pedido)
+    const { elementos, arquivos } = doStudio ? { elementos: [], arquivos: [] } : await baixarElementos(sb, job);
+    const anexo = doStudio ? [] : skill.entrada === 'video' ? await baixarAnexo(sb, pedido)
       : skill.entrada === 'slides' ? await baixarSlides(sb, pedido) : [];
+    // A foto da pessoa vale pra produção e pros ajustes; a entrega da equipe e o Studio já chegam montados.
+    const fotoDaPessoa = doStudio || daBora ? [] : await baixarFotoDaPessoa(sb, pedido);
     const daEquipe = daBora ? await baixarDaBora(sb, job) : [];
+    const doEditor = doStudio
+      ? [...await baixarVersaoBase(sb, job), { nome: 'edicao.json', conteudo: Buffer.from(JSON.stringify(job.entrada.edicao ?? {})) }]
+      : [];
     // Vídeo feito pela fábrica: a trilha da marca (a do pedido, ou a padrão).
-    const trilha = skill.tipos.includes('reel') && !daBora ? await baixarTrilha(sb, pedido, job.cliente_id) : { arquivos: [], nome: null, aviso: null };
+    const trilha = skill.tipos.includes('reel') && !daBora && !doStudio ? await baixarTrilha(sb, pedido, job.cliente_id) : { arquivos: [], nome: null, aviso: null };
     if (trilha.aviso) await evento(sb, job, trilha.aviso, { nivel: 'aviso' });
     if (trilha.nome) log(`trilha: ${trilha.nome}`);
 
@@ -265,9 +307,9 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
         log(`entregue antes: ${caminho}`);
       },
       cfg, job, skill, skills, pedido, cliente, instaladas, abortar, ajustes, elementos,
-      agente: daBora ? agenteDaBora : agente,
-      semPreparo: daBora,
-      arquivos: [...anteriores, ...arquivos, ...anexo, ...daEquipe, ...trilha.arquivos],
+      agente: daBora ? agenteDaBora : doStudio ? agenteDeEdicao : agente,
+      semPreparo: daBora || doStudio,
+      arquivos: [...anteriores, ...arquivos, ...anexo, ...fotoDaPessoa, ...daEquipe, ...doEditor, ...trilha.arquivos],
       // O render de motion manda a mesma etapa a cada dois segundos, com quanto
       // falta: o histórico do cliente ganha uma linha só por etapa.
       aoMudarEtapa: async ({ etapa, progresso, restamSegundos }) => {
@@ -288,9 +330,11 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     for (const a of p.avisos) await evento(sb, job, a, { nivel: 'aviso' });
 
     await anotar(sb, cfg, job, { etapa: 'finalizando', progresso: 95, restam_segundos: null });
-    const saidas = [];
-    for (const c of p.conferidas) {
-      saidas.push({ ...c, caminho: await subir(sb, job, path.join(p.pastaJob, c.caminho), c) });
+    // Oito por vez: um carrossel tem dez PSDs e umas sessenta camadas pequenas.
+    const saidas: object[] = [];
+    for (let i = 0; i < p.conferidas.length; i += 8) {
+      saidas.push(...await Promise.all(p.conferidas.slice(i, i + 8)
+        .map(async (c) => ({ ...c, caminho: await subir(sb, job, path.join(p.pastaJob, c.caminho), c) }))));
     }
     pararLease();
     await concluir(sb, cfg, job, saidas, p.resultado.custos);
@@ -305,19 +349,21 @@ export async function processar(sb: SupabaseClient, cfg: Config, skills: Map<str
     // A Bora assumiu no meio: o job já está cancelado e a versão dela vale.
     if (ehJobPerdido(e)) { log(msg); return; }
     const custos = e instanceof FalhaDoAgente ? e.custos : CUSTO_ZERO;
+    const doPedido = e instanceof FalhaDoPedido ? e : null;
     let acabou: boolean;
     try {
-      acabou = await devolverOuFalhar(sb, cfg, job, msg, custos);
+      acabou = await devolverOuFalhar(sb, cfg, job, msg, custos, { deVez: Boolean(doPedido) });
     } catch (e2) {
       if (ehJobPerdido(e2)) { log((e2 as Error).message); return; }
       throw e2;
     }
     await evento(sb, job, msg, { nivel: 'erro', dados: { tentativa: job.tentativas } });
-    const paraOCliente = !acabou
+    const paraOCliente = doPedido ? doPedido.paraOCliente
+      : !acabou
       ? 'Estamos refazendo uma parte.'
       : job.rodada === 'da_bora'
         ? 'A equipe da Bora está revendo um detalhe antes de te mostrar.'
-        : job.rodada === 'ajuste'
+        : job.rodada === 'ajuste' || job.rodada === 'edicao'
           ? 'Não conseguimos fazer esse ajuste. A versão anterior continua aqui, e a equipe da Bora já foi avisada.'
           : 'A equipe da Bora vai finalizar este pedido.';
     await evento(sb, job, paraOCliente, { visivel: true });

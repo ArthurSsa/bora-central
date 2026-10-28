@@ -59,7 +59,8 @@ function lerPsd(psd: string): { textos: Texto[]; fotos: Caixa[] } {
   // Camada de pixel que não é o fundo, ou objeto colocado: é foto ou elemento
   // do cliente, e a cor dela não é da conta da paleta.
   const fotos: Caixa[] = info.layers
-    .filter((l: { kind: string; name: string; bounds: number[] | null }) => l.bounds && (l.kind === 'SmartObject' || (l.kind === 'Pixel' && l.name !== 'Background')))
+    // O PhotoCraft escreve "Smart Object", com espaço.
+    .filter((l: { kind: string; name: string; bounds: number[] | null }) => l.bounds && (/^smart ?object$/i.test(l.kind) || (l.kind === 'Pixel' && l.name !== 'Background')))
     .map((l: { bounds: number[] }) => [l.bounds[0], l.bounds[1], l.bounds[0] + l.bounds[2], l.bounds[1] + l.bounds[3]] as Caixa);
   const ids: number[] = info.layers.filter((l: { kind: string }) => l.kind === 'Type').map((l: { id: number }) => l.id);
   if (!ids.length) return { textos: [], fotos };

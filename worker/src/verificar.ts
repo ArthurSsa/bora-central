@@ -47,7 +47,8 @@ export const MIME: Record<string, string> = {
 
 export type SaidaConferida = {
   caminho: string;
-  papel: 'saida' | 'editavel';
+  /** camada: o pedaço do PSD que o Studio da Central empilha (src/camadas.ts). */
+  papel: 'saida' | 'editavel' | 'camada';
   mime: string;
   bytes: number;
   largura?: number;

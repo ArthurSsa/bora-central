@@ -156,6 +156,31 @@ export async function baixarEditaveisBase(sb: SupabaseClient, job: Job): Promise
 }
 
 /**
+ * A versão inteira de que a edição do Studio parte, em entrada/base/ com o
+ * mesmo caminho que tinha no job (saida/post.png, editavel/post.psd): o que a
+ * skill entrega e, das camadas, só as listas — os PNGs de camada a fábrica
+ * refaz no fim.
+ */
+export async function baixarVersaoBase(sb: SupabaseClient, job: Job): Promise<ArquivoDeEntrada[]> {
+  const base = job.entrada.base_job as string | undefined;
+  if (!base) throw new Error('a edição não diz de que versão parte');
+  const { data: rodada, error } = await sb.from('jobs').select('saidas').eq('id', base).single();
+  if (error) throw new Error(`ler a versão de que a edição parte: ${error.message}`);
+  const arquivos: ArquivoDeEntrada[] = [];
+  const saidas = ((rodada?.saidas ?? []) as Array<{ caminho: string; papel: string }>)
+    .filter((s) => s.papel !== 'camada' || s.caminho.endsWith('/camadas.json'));
+  for (let i = 0; i < saidas.length; i += 8) {
+    arquivos.push(...await Promise.all(saidas.slice(i, i + 8).map(async (s) => {
+      const { data, error: e } = await sb.storage.from(BALDE).download(s.caminho);
+      if (e) throw new Error(`baixar a versão de que a edição parte (${s.caminho}): ${e.message}`);
+      // <conta>/<cliente>/<pedido>/<job>/<relativo> (o balde é "pedidos")
+      return { nome: `base/${s.caminho.split('/').slice(4).join('/')}`, conteudo: Buffer.from(await data.arrayBuffer()) };
+    })));
+  }
+  return arquivos;
+}
+
+/**
  * As imagens do carrossel que vira vídeo (briefing.de_pedido): as da versão
  * que o cliente aprovou, na ordem, como entrada/slides/slide-NN.png. O banco
  * já conferiu, ao criar o pedido, que o carrossel é dele e está aprovado.
@@ -192,6 +217,26 @@ export async function baixarDaBora(sb: SupabaseClient, job: Job): Promise<Arquiv
   }
   if (!arquivos.length) throw new Error('a pasta da entrega da Bora está vazia');
   return arquivos;
+}
+
+/**
+ * A foto da pessoa, como entrada/pessoa/origem.<ext>: a que subiu pela pasta
+ * de envios (briefing.foto) ou uma do banco de fotos da marca (briefing.foto_marca).
+ * O banco já conferiu, ao criar o pedido, que ela é deste cliente.
+ */
+export async function baixarFotoDaPessoa(sb: SupabaseClient, pedido: Pedido): Promise<ArquivoDeEntrada[]> {
+  const b = pedido.briefing ?? {};
+  let balde = BALDE, caminho = typeof b.foto === 'string' && b.foto ? b.foto : null;
+  if (!caminho && typeof b.foto_marca === 'string' && b.foto_marca) {
+    const { data, error } = await sb.from('marca_elementos').select('caminho').eq('id', b.foto_marca).single();
+    if (error || !data) throw new Error('a foto escolhida não está mais no banco de fotos da marca');
+    balde = 'elementos'; caminho = data.caminho as string;
+  }
+  if (!caminho) return [];
+  const { data, error } = await sb.storage.from(balde).download(caminho);
+  if (error) throw new Error(`baixar a foto da pessoa: ${error.message}`);
+  const ext = (caminho.match(/\.[a-z0-9]+$/i)?.[0] ?? '.jpg').toLowerCase();
+  return [{ nome: `pessoa/origem${ext}`, conteudo: Buffer.from(await data.arrayBuffer()) }];
 }
 
 /** O vídeo que o cliente mandou pelo app (briefing.anexo), como entrada/bruto.<ext>. */
@@ -319,9 +364,10 @@ export async function concluir(sb: SupabaseClient, cfg: Config, job: Job, saidas
 }
 
 /** Deu errado: volta pra fila enquanto houver tentativa, senão falha de vez. */
-export async function devolverOuFalhar(sb: SupabaseClient, cfg: Config, job: Job, erro: string, custos: Custos) {
+export async function devolverOuFalhar(sb: SupabaseClient, cfg: Config, job: Job, erro: string, custos: Custos, o: { deVez?: boolean } = {}) {
   const somados = await somarCustos(sb, job, custos);
-  const acabou = job.tentativas >= job.max_tentativas;
+  // deVez: o pedido não dá pra fazer como veio; outra tentativa daria no mesmo.
+  const acabou = o.deVez || job.tentativas >= job.max_tentativas;
   aindaMeu(
     await sb.from('jobs').update({
       estado: acabou ? 'falhou' : 'na_fila',
@@ -337,7 +383,7 @@ export async function devolverOuFalhar(sb: SupabaseClient, cfg: Config, job: Job
   );
   // Ajuste que falhou de vez não tira do cliente a versão que ele já tinha:
   // o pedido volta a esperar aprovação, com a rodada anterior valendo.
-  if (acabou && job.rodada === 'ajuste') {
+  if (acabou && (job.rodada === 'ajuste' || job.rodada === 'edicao')) {
     ok(await sb.from('pedidos').update({ estado: 'para_aprovar' }).eq('id', job.pedido_id), 'pedido');
   }
   return acabou;
