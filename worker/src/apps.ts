@@ -13,6 +13,7 @@
 // Onde o app não tem raiz, quem segura o isolamento é a pasta do job ser a
 // única coisa que o processo recebe, mais o usuário de sistema do worker.
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import type { McpStdioServerConfig } from '@anthropic-ai/claude-agent-sdk';
 import { acharCli } from './config.ts';
@@ -33,10 +34,13 @@ export function servidorMcp(app: App, pastaJob: string): McpStdioServerConfig {
       return { ...base, args: ['mcp', '--autosave', '--automation-read-root', pastaJob, '--automation-write-root', pastaJob] };
     case 'lightcraft':
       return { ...base, args: ['mcp', '--library', path.join(pastaJob, 'biblioteca'), path.join(pastaJob, 'frames')] };
-    case 'filmcraft':
-      // Sem --project: o job cria a sequência e salva em editavel/reel.fcproj.
+    case 'filmcraft': {
+      // O reel chega com editavel/reel.fcproj pronto (vídeo e transcrição, de
+      // prepararProjetoDoReel): o servidor já abre nele. Sem ele, projeto vazio.
       // O --data-dir na pasta do job guarda prévias e presets dele lá dentro.
-      return { ...base, args: ['mcp', '--data-dir', path.join(pastaJob, '.filmcraft')] };
+      const projeto = path.join(pastaJob, 'editavel', 'reel.fcproj');
+      return { ...base, args: [...(existsSync(projeto) ? ['--project', projeto] : []), 'mcp', '--data-dir', path.join(pastaJob, '.filmcraft')] };
+    }
     case 'vectorcraft':
       // --headless: nunca se liga num VectorCraft aberto na tela deste PC.
       return { ...base, args: ['mcp', '--headless', '--automation-read-root', pastaJob, '--automation-write-root', pastaJob] };

@@ -15,7 +15,7 @@ import { camadasDaPeca } from './camadas.ts';
 import { conferirPessoa, prepararPessoa, PASTA_PESSOA, type AnaliseDaPessoa } from './pessoa.ts';
 import { conferirCartaz, conferirMarca, conferirMaterial, conferirMotion, conferirSom, conferirTextos, conferirVideo, type Caixa } from './conferencia.ts';
 import { projetoDoMotion, SEGUNDOS_ABERTURA, SEGUNDOS_POR_SLIDE } from './motion.ts';
-import { exportarAudioFinal, lerSrt } from './reel.ts';
+import { exportarAudioFinal, lerSrt, prepararProjetoDoReel } from './reel.ts';
 import { somDaRodada, trechosDeFala, trilhaDaEntrada } from './som.ts';
 import { folhaDoPedido, prepararElementos } from './vetor.ts';
 import { modeloDoPedido } from './diagramacao.ts';
@@ -97,6 +97,14 @@ export async function produzir(a: {
     if (palavras.length < 3) throw new FalhaDoAgente('não deu pra ouvir fala no vídeo', CUSTO_ZERO);
     writeFileSync(path.join(pastaJob, 'entrada', 'transcricao.json'), JSON.stringify(palavras));
     writeFileSync(path.join(pastaJob, 'entrada', 'transcricao.txt'), palavras.map((p) => p.texto).join(' '));
+    // E o projeto do FilmCraft já com o vídeo e essa transcrição: o agente não lê
+    // arquivo, então a fala chega pra ele dentro do projeto que o FilmCraft abre.
+    await a.aoMudarEtapa({ etapa: 'preparando o vídeo', progresso: 8 });
+    try {
+      await prepararProjetoDoReel(pastaJob);
+    } catch (e) {
+      throw new FalhaDoAgente((e as Error).message, CUSTO_ZERO);
+    }
   }
 
   const m = a.cliente.marca ?? {};
@@ -174,7 +182,10 @@ export async function produzir(a: {
   try {
     conferidas = saidas.map((s) => conferirSaida(pastaJob, s));
   } catch (e) {
-    throw new FalhaDoAgente(`reprovado na conferência: ${(e as Error).message}`, resultado.custos);
+    // O que o agente disse ao terminar explica por que faltou arquivo (ele pode ter
+    // parado de propósito); vai junto pro erro e pra próxima tentativa.
+    const disse = resultado.resumo?.trim() ? ` (o agente disse: "${resultado.resumo.trim().replace(/\s+/g, ' ').slice(0, 300)}")` : '';
+    throw new FalhaDoAgente(`reprovado na conferência: ${(e as Error).message}${disse}`, resultado.custos);
   }
   // O cartaz tem conferência própria (PDF, sangria, margem, cores): a de marca é a do PSD dos posts.
   const daMarca = a.skill.apps.includes('vectorcraft') || a.skill.apps.includes('designcraft') ? { erros: [], avisos: [] }
