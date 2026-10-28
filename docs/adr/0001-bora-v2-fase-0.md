@@ -45,6 +45,7 @@ O risco técnico número um é o texto: o navegador (Konva) e o PhotoCraft quebr
 - **Quebra de linha decidida num lugar só:** a fábrica mede o texto e devolve as linhas; o navegador desenha essas linhas. Ao editar, o navegador quebra por conta própria e a fábrica confere na exportação.
 - **A conferência compara:** exportação contra prévia, pixel a pixel, com limiar. Diferença acima do limiar reprova e diz onde.
 - **Spike da Fase 0:** 20 cenas de teste desenhadas nos dois lados, diferença medida. Se passar de 2% dos pixels em texto, a decisão de quem quebra linha muda antes da Fase 1.
+- **Resultado (28/10, `docs/medidas/fidelidade-previa-exportacao.md`):** a quebra de linha saiu idêntica nas 20 cenas; o texto só diferia na altura, corrigida pela linha de base que a fábrica informa por fonte (diferença nos textos de 14,8% para 1,5%). O navegador quebra a linha ao editar e a fábrica confere. A régua da conferência passa a ser "mesmas linhas, deslocamento zero e até 4% de borda nos textos", e não 2% de pixels.
 
 ### D3. Objetos em tabela, gravados juntos
 

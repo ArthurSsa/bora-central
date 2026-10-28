@@ -22,7 +22,8 @@
     "test": "node --test teste/*.test.ts",
     "e2e": "node --env-file-if-exists=.env --test --test-concurrency=1 teste-e2e/*.e2e.ts",
     "tipos": "tsc --noEmit",
-    "custos": "node --env-file-if-exists=.env scripts/custos.ts"
+    "custos": "node --env-file-if-exists=.env scripts/custos.ts",
+    "fidelidade": "node scripts/fidelidade.ts"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.310",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "konva": "9.3.22",
     "playwright-core": "^1.64.1",
     "typescript": "^7.0.2"
   }
