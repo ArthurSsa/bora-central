@@ -45,6 +45,8 @@ export type OpcoesDoPedido = {
   elementos?: Elemento[];
   /** Por que a tentativa anterior foi reprovada — a próxima precisa saber. */
   erroAnterior?: string | null;
+  /** O pedido traz foto da pessoa: o post sai pela ferramenta post_com_pessoa. */
+  pessoa?: { recorteOk: boolean; motivo: string | null } | null;
 };
 
 export function montarPedido(skill: Skill, pedido: Pedido, marca: string, o: OpcoesDoPedido): string {
@@ -64,6 +66,11 @@ export function montarPedido(skill: Skill, pedido: Pedido, marca: string, o: Opc
   for (const [chave, valor] of Object.entries(pedido.briefing ?? {})) {
     if (valor === null || valor === '' || typeof valor === 'object') continue;
     linhas.push(`${ROTULOS[chave] ?? chave}: ${String(valor)}`);
+  }
+  if (o.pessoa) {
+    linhas.push('', '# A pessoa no post', '',
+      'O pedido traz uma foto da pessoa, já tratada e recortada. Monte o post com a ferramenta post_com_pessoa (não monte à mão no PhotoCraft): ela encaixa o rosto e nunca deixa o texto por cima dele. Você decide o título, o apoio e, se tiver motivo, o jeito.',
+      o.pessoa.recorteOk ? 'O recorte ficou bom: "auto" vai usar o recorte.' : `O recorte não ficou bom (${o.pessoa.motivo}): "auto" vai usar a foto inteira, e é o que deve ser usado.`);
   }
   const ajustes = o.ajustes ?? [];
   if (ajustes.length) {

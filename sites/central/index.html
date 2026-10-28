@@ -291,6 +291,10 @@
   .cr-tipo span{ font-size:0.78rem; color:var(--fraco); }
   .cr-tipo[aria-pressed="true"]{ border-color:var(--laranja-forte); box-shadow:0 0 0 1px var(--laranja-forte) inset; }
   .cr-acoes{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .cr-fotos{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .cr-foto{ width:84px; height:104px; padding:0; overflow:hidden; border-radius:10px; border:2px solid var(--linha); background:var(--sup2); color:var(--fraco); font:inherit; font-size:0.78rem; cursor:pointer; display:grid; place-items:center; }
+  .cr-foto img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .cr-foto[aria-pressed="true"]{ border-color:var(--laranja-forte); box-shadow:0 0 0 2px var(--laranja-fraco); }
   .lote-lista{ display:grid; gap:8px; margin-bottom:18px; max-width:760px; }
   .lote-linha{ display:flex; align-items:center; gap:12px; background:var(--sup); border:1px solid var(--linha); border-radius:12px; padding:10px 14px; }
   .lote-linha input[type=checkbox]{ width:18px; height:18px; flex:none; }
@@ -310,6 +314,55 @@
   .cr-imagens{ display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; }
   .cr-imagens img{ height:360px; width:auto; border-radius:10px; border:1px solid var(--linha); flex-shrink:0; }
   .cr-imagens.antiga, .cr-video.antiga{ opacity:.55; }
+
+  /* Studio: a peça em camadas, por cima da página inteira. */
+  .st{ position:fixed; inset:0; z-index:80; background:var(--papel); color:var(--tinta); display:grid; grid-template-rows:auto 1fr; }
+  .st-topo{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 18px; border-bottom:1px solid var(--linha); background:var(--sup); }
+  .st-topo h2{ font-family:var(--display); font-size:1.05rem; margin:0; }
+  .st-topo .muted{ font-size:0.85rem; }
+  .st-topo .st-fim{ margin-left:auto; display:flex; gap:8px; align-items:center; }
+  .st-paginas{ display:flex; gap:6px; flex-wrap:wrap; }
+  .st-paginas button{ font:inherit; font-size:0.8rem; padding:5px 10px; border-radius:999px; border:1px solid var(--linha); background:var(--sup2); color:var(--tinta); cursor:pointer; }
+  .st-paginas button[aria-pressed="true"]{ border-color:var(--tinta); background:var(--tinta); color:var(--papel); }
+  .st-paginas button.mexida::after{ content:" •"; color:var(--laranja); }
+  .st-corpo{ display:grid; grid-template-columns:1fr 320px; min-height:0; }
+  .st-area{ position:relative; overflow:hidden; display:grid; place-items:center; padding:24px; background:repeating-conic-gradient(var(--linha2) 0 25%, transparent 0 50%) 0 0/24px 24px; }
+  .st-moldura{ position:relative; box-shadow:var(--s2); }
+  .st-palco{ position:absolute; left:0; top:0; transform-origin:0 0; overflow:hidden; user-select:none; touch-action:none; }
+  .st-palco > .st-c{ position:absolute; left:0; top:0; transform-origin:0 0; }
+  .st-palco img.st-c{ display:block; max-width:none; pointer-events:auto; }
+  .st-c.st-cor{ -webkit-mask-size:100% 100%; mask-size:100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; }
+  .st-texto{ position:absolute; outline:none; }
+  .st-texto[contenteditable="true"]{ outline:2px dashed var(--laranja); outline-offset:4px; cursor:text; }
+  .st-seguro{ position:absolute; inset:5%; border:1px dashed rgba(255,94,0,.45); pointer-events:none; }
+  .st-sel{ position:absolute; border:2px solid var(--laranja); pointer-events:none; }
+  .st-sel.escondida{ border-style:dashed; opacity:.6; }
+  .st-sel i{ position:absolute; width:16px; height:16px; background:#fff; border:2px solid var(--laranja); border-radius:3px; pointer-events:auto; }
+  .st-sel i[data-canto="nw"]{ left:-9px; top:-9px; cursor:nwse-resize; }
+  .st-sel i[data-canto="ne"]{ right:-9px; top:-9px; cursor:nesw-resize; }
+  .st-sel i[data-canto="sw"]{ left:-9px; bottom:-9px; cursor:nesw-resize; }
+  .st-sel i[data-canto="se"]{ right:-9px; bottom:-9px; cursor:nwse-resize; }
+  .st-lado{ border-left:1px solid var(--linha); background:var(--sup); overflow-y:auto; overflow-x:hidden; padding:14px 16px; display:grid; grid-template-columns:minmax(0, 1fr); align-content:start; gap:16px; min-width:0; }
+  .st-camadas{ list-style:none; margin:0; padding:0; display:grid; grid-template-columns:minmax(0, 1fr); gap:4px; }
+  .st-camadas li{ display:flex; align-items:center; gap:6px; padding:5px 6px; border-radius:9px; border:1px solid transparent; cursor:pointer; }
+  .st-camadas li[aria-selected="true"]{ border-color:var(--laranja-forte); background:var(--laranja-fraco); }
+  .st-camadas li .nome{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.86rem; }
+  .st-camadas li .tipo{ font-family:var(--dado); font-size:0.66rem; color:var(--fraco); text-transform:uppercase; }
+  .st-camadas li.oculta .nome{ color:var(--fraco); text-decoration:line-through; }
+  .st-ico{ width:26px; height:26px; display:grid; place-items:center; border:1px solid var(--linha); border-radius:7px; background:var(--sup2); color:var(--tinta); font:inherit; font-size:0.8rem; cursor:pointer; padding:0; flex:none; }
+  .st-ico[aria-pressed="true"]{ background:var(--tinta); color:var(--papel); border-color:var(--tinta); }
+  .st-ico:disabled{ opacity:.35; cursor:default; }
+  .st-cores{ display:flex; gap:6px; flex-wrap:wrap; }
+  .st-cores button{ width:30px; height:30px; border-radius:50%; border:2px solid var(--linha); cursor:pointer; padding:0; }
+  .st-cores button[aria-pressed="true"]{ border-color:var(--laranja-forte); box-shadow:0 0 0 2px var(--sup), 0 0 0 4px var(--laranja-forte); }
+  .st-num{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+  .st-num label{ display:grid; gap:3px; font-size:0.78rem; color:var(--fraco); }
+  .st-num input{ width:100%; }
+  .st-lado textarea{ width:100%; min-height:84px; }
+  @media (max-width:860px){
+    .st-corpo{ grid-template-columns:1fr; grid-template-rows:minmax(300px, 1fr) auto; }
+    .st-lado{ border-left:none; border-top:1px solid var(--linha); max-height:45vh; }
+  }
   .cr-video{ display:block; height:min(62vh, 560px); aspect-ratio:9/16; background:#000; border-radius:12px; margin-top:12px; }
   .cr-opcoes{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
   .cr-opcao{ display:grid; gap:6px; padding:0; border:2px solid transparent; border-radius:12px; background:none; text-align:left; font:inherit; color:var(--tinta); cursor:pointer; }
@@ -4554,7 +4607,7 @@
     const sel = el('select',{id:'cr-cliente'});
     sel.appendChild(el('option',{value:''}, 'Escolha o cliente'));
     state.clientes.forEach(x => { const o = el('option',{value:x.id}); o.textContent = x.nome; if(x.id === n.cliente) o.selected = true; sel.appendChild(o); });
-    sel.addEventListener('change', ()=>{ n.cliente = sel.value; n.deCarrossel = ''; n.trilha = ''; render(); });
+    sel.addEventListener('change', ()=>{ n.cliente = sel.value; n.deCarrossel = ''; n.trilha = ''; n.foto = null; render(); });
     campo('Pra quem', sel).querySelector('label').setAttribute('for', 'cr-cliente');
 
     const tipos = el('div',{class:'cr-tipos', role:'group', 'aria-label':'O que fazer'});
@@ -4569,6 +4622,7 @@
 
     // O que muda por tipo.
     if(n.tipo === 'reel') b.appendChild(campoVideoCriar(n));
+    if(n.tipo === 'post') b.appendChild(campoPessoaCriar(n));
     if(n.tipo === 'carvideo'){
       const aprov = C().pedidos.filter(p => p.cliente_id === n.cliente && p.tipo === 'carrossel' && ['aprovado','agendado','publicado'].includes(p.estado));
       const s = el('select',{id:'cr-decarrossel'});
@@ -4635,6 +4689,7 @@
     function podePedir(){
       if(!n.cliente || n.texto.trim().length < 3 || c.pedindo) return false;
       if(n.tipo === 'reel') return !!(n.video && n.video.estado === 'pronto');
+      if(n.tipo === 'post' && n.foto && n.foto.envio && n.foto.estado !== 'pronto') return false;
       if(n.tipo === 'carvideo') return !!n.deCarrossel;
       if(IDEIAS_PRECISA(n)) return frasesDoPedido(n.texto).length - 1 >= IDEIAS_PRECISA(n);
       return true;
@@ -4695,6 +4750,70 @@
     xhr.send(arquivo);
   }
 
+  // A pessoa no post: uma foto do banco da marca (Marca › Elementos, tipo Foto)
+  // ou uma que sobe agora pela pasta de envios do cliente. A fábrica acha o
+  // rosto, acerta a luz, recorta e monta; sem foto, o post sai como sempre.
+  const JEITOS_PESSOA = [['auto','A fábrica escolhe'], ['recorte','Recortada'], ['foto','Foto inteira']];
+  const EXT_FOTO = ['jpg','jpeg','png','webp','heic'];
+  function campoPessoaCriar(n){
+    const c = C();
+    const fotos = c.fotos || (c.fotos = {}), urls = c.urlsFotos || (c.urlsFotos = {});
+    const w = el('div',{class:'cr-campo'});
+    w.appendChild(el('label',{}, 'Com a pessoa (opcional)'));
+    if(!n.cliente){ w.appendChild(el('p',{class:'dica'}, 'Escolha o cliente pra ver as fotos dele.')); return w; }
+    if(!fotos[n.cliente]){
+      fotos[n.cliente] = [];
+      sb.from('marca_elementos').select('id, nome, caminho').eq('cliente_id', n.cliente).eq('tipo', 'foto').order('criado_em')
+        .then(async ({ data }) => {
+          fotos[n.cliente] = data || [];
+          const faltam = fotos[n.cliente].map(x => x.caminho).filter(k => !urls[k]);
+          if(faltam.length){ const r = await sb.storage.from('elementos').createSignedUrls(faltam, 3600); for(const d of r.data || []) if(d.signedUrl) urls[d.path] = d.signedUrl; }
+          if(c.novo === n) render();
+        });
+    }
+    const g = el('div',{class:'cr-fotos', role:'group', 'aria-label':'Foto da pessoa'});
+    const opcao = (pressed, onclick, conteudo, rot) => { const b = el('button',{class:'cr-foto', type:'button', 'aria-pressed':String(pressed), 'aria-label':rot, title:rot, onclick}); b.appendChild(conteudo); g.appendChild(b); };
+    opcao(!n.foto, ()=>{ n.foto = null; render(); }, el('span',{}, 'Sem foto'), 'Sem foto');
+    fotos[n.cliente].forEach(f => opcao(!!(n.foto && n.foto.marca === f.id), ()=>{ n.foto = { marca:f.id, nome:f.nome }; render(); },
+      urls[f.caminho] ? el('img',{src:urls[f.caminho], alt:''}) : el('span',{}, '…'), f.nome));
+    if(n.foto && n.foto.envio) opcao(true, ()=>{}, n.foto.url ? el('img',{src:n.foto.url, alt:''}) : el('span',{}, '…'), n.foto.nome);
+    w.appendChild(g);
+    const inp = el('input',{type:'file', id:'cr-foto', accept:'image/jpeg,image/png,image/webp,image/heic', style:'position:absolute;width:1px;height:1px;opacity:0'});
+    inp.addEventListener('change', ()=>{ const f = inp.files && inp.files[0]; if(f) enviarFotoCriar(n, f); });
+    const enviar = el('label',{for:'cr-foto', class:'btn ghost small', style:'cursor:pointer;justify-self:start'}, 'Enviar outra foto');
+    w.appendChild(inp); w.appendChild(enviar);
+    if(n.foto && n.foto.envio && n.foto.estado !== 'pronto'){
+      const p = el('p',{class: n.foto.estado === 'erro' ? 'erro' : 'dica', 'aria-live':'polite'});
+      p.textContent = n.foto.nome + ' · ' + (n.foto.estado === 'enviando' ? 'enviando…' : n.foto.erro);
+      w.appendChild(p);
+    }
+    if(n.foto){
+      const j = el('div',{class:'chips', role:'group', 'aria-label':'Jeito do post com a pessoa', style:'margin-top:10px'});
+      JEITOS_PESSOA.forEach(([k, rot]) => j.appendChild(el('button',{class:'chip-p', type:'button', 'aria-pressed':String((n.jeito || 'auto') === k),
+        onclick:()=>{ n.jeito = k; render(); }}, rot)));
+      w.appendChild(j);
+    }
+    w.appendChild(el('p',{class:'dica'}, 'Rosto aparecendo e a cabeça inteira na foto. A fábrica acerta a luz, recorta a pessoa e nunca põe texto por cima do rosto.'));
+    return w;
+  }
+
+  async function enviarFotoCriar(n, arquivo){
+    const ext = (arquivo.name.split('.').pop() || '').toLowerCase();
+    const f = n.foto = { envio:true, nome:arquivo.name, estado:'enviando', caminho:null, url:null, erro:null };
+    const falhar = (t) => { f.estado = 'erro'; f.erro = t; render(); };
+    if(!EXT_FOTO.includes(ext)) return falhar('mande em JPG, PNG, WebP ou HEIC');
+    if(arquivo.size > 15 * 1048576) return falhar('passa de 15 MB');
+    render();
+    const { data:pasta, error } = await sb.rpc('pasta_de_envio', { p_cliente: n.cliente });
+    if(error) return falhar(error.message);
+    const caminho = pasta + '/foto.' + ext;
+    const up = await sb.storage.from('pedidos').upload(caminho, arquivo, { contentType: arquivo.type || 'image/jpeg', upsert:false });
+    if(up.error) return falhar('não subiu: ' + up.error.message);
+    f.estado = 'pronto'; f.caminho = caminho;
+    try { f.url = URL.createObjectURL(arquivo); } catch { /* sem miniatura */ }
+    if(C().novo === n) render();
+  }
+
   async function pedirCriar(){
     const c = C(), n = c.novo;
     const t = TIPOS_CRIAR.find(x => x.k === n.tipo);
@@ -4708,6 +4827,11 @@
     if(t.tipo === 'reel' && n.trilha) briefing.trilha = n.trilha;
     if(t.tipo === 'cartaz') briefing.folha = n.folha;
     if(n.tipo === 'guia') briefing.paginas = n.paginas;
+    if(n.tipo === 'post' && n.foto){
+      if(n.foto.marca) briefing.foto_marca = n.foto.marca;
+      else if(n.foto.caminho) briefing.foto = n.foto.caminho;
+      briefing.jeito = n.jeito || 'auto';
+    }
     c.pedindo = true; render();
     const { data, error } = await sb.rpc('criar_pedido', { p_cliente: n.cliente, p_tipo: t.tipo, p_briefing: briefing,
       p_publicar_em: n.data ? new Date(n.data + 'T12:00:00').toISOString() : null });
@@ -4922,7 +5046,7 @@
       barra.appendChild(el('i',{style:'width:' + Math.max(pct, 4) + '%'}));
       b.appendChild(barra);
       const f = el('p',{class:'dica'});
-      f.textContent = (andamento.rodada === 'da_bora' ? 'Conferindo a versão da equipe. ' : '')
+      f.textContent = (andamento.rodada === 'da_bora' ? 'Conferindo a versão da equipe. ' : andamento.rodada === 'edicao' ? 'Aplicando o que foi mexido no Studio. ' : '')
         + (andamento.restam_segundos != null ? (andamento.restam_segundos < 60 ? 'Falta menos de um minuto.' : 'Faltam uns ' + Math.max(2, Math.ceil(andamento.restam_segundos / 60)) + ' minutos.') : '')
         + ' Tentativa ' + (andamento.tentativas || 1) + ' de ' + andamento.max_tentativas + '.';
       b.appendChild(f);
@@ -4979,7 +5103,7 @@
         b.appendChild(el('p',{class:'rot', style:'margin-top:18px'}, 'Versões'));
         const vv = el('div',{class:'visao'});
         versoes.forEach((v, i) => vv.appendChild(el('button',{'aria-selected':String(v.id === vista.id), onclick:()=>{ c.versao[p.id] = v.id; render(); }},
-          (v.rodada === 'da_bora' ? 'Equipe ' : 'Versão ') + (i + 1))));
+          (v.rodada === 'da_bora' ? 'Equipe ' : v.rodada === 'edicao' ? 'Studio ' : 'Versão ') + (i + 1))));
         b.appendChild(vv);
       }
       m.appendChild(b);
@@ -4995,6 +5119,7 @@
       aprovar.disabled = capa && !c.escolha[p.id];
       r.appendChild(aprovar);
       r.appendChild(el('button',{class:'btn ghost', onclick:()=>{ c.ajuste = { pedido:p.id, texto:'', atalhos:new Set() }; render(); }}, 'Pedir ajuste'));
+      if(vista && temCamadas(vista)) r.appendChild(el('button',{class:'btn ghost', onclick:()=>abrirStudio(p, vista)}, 'Editar no Studio'));
       r.appendChild(el('button',{class:'btn ghost', onclick:()=>editarAMao(p)}, 'Editar à mão'));
       acoes.appendChild(r);
     }
@@ -5078,11 +5203,12 @@
     const comArquivo = jobsDe(p).slice().reverse().find(j => (j.saidas || []).length);
     passo(1, comArquivo ? 'Baixe os arquivos da última versão:' : 'Esta peça ainda não tem versão com arquivo. Monte do zero no app e suba com os nomes de entrega da peça.');
     if(comArquivo){
-      const caminhos = saidasDe(comArquivo).map(s => s.caminho);
-      const faltam = caminhos.filter(x => !c.urls[x]);
+      // As camadas do Studio não são arquivo de entrega.
+      const daEntrega = saidasDe(comArquivo).filter(s => s.papel !== 'camada');
+      const faltam = daEntrega.map(s => s.caminho).filter(x => !c.urls[x]);
       if(faltam.length) garantirUrlsCriar(faltam).then(render);
       const l = el('div',{class:'fab-arquivos'});
-      saidasDe(comArquivo).forEach(s=>{
+      daEntrega.forEach(s=>{
         const nome = s.caminho.split('/').pop(), ext = nome.split('.').pop();
         if(!c.urls[s.caminho]) return;
         const a = el('a',{href:c.urls[s.caminho], download:nome, target:'_blank', rel:'noopener', class:'tag'});
@@ -5152,6 +5278,420 @@
       w.appendChild(r);
     }
     return w;
+  }
+
+  // ---------- Studio ----------
+  //
+  // As camadas de cada imagem da versão na tela, empilhadas na proporção da
+  // peça: arrastar move, o canto aumenta sem distorcer, dois cliques no texto
+  // editam no lugar, e a cor só troca pra outra da marca. Salvar manda a
+  // diferença pra fábrica (editar_no_studio), que aplica no PSD pelo PhotoCraft
+  // e confere de novo — o que aparece aqui é uma prévia, o que vale é o PSD.
+  //
+  // Mora fora do #app: o render() da página apaga tudo a cada mudança no banco,
+  // e um arrasto não pode sumir no meio.
+  const studio = { aberto:null, fontes:new Set() };
+  const temCamadas = j => saidasDe(j, 'camada').some(s => s.caminho.endsWith('/camadas.json'));
+  const TIPO_CAMADA = { texto:'texto', imagem:'imagem', forma:'forma', fundo:'fundo' };
+
+  // As mesmas cores que a fábrica aceita (coresDaMarca do worker): paleta, conjuntos e as duas cores da ficha.
+  function coresDaMarcaDe(cli){
+    const m = marcaDe(cli);
+    const todas = [...(m.paleta || []).map(p => p && p.cor),
+      ...(m.conjuntos || []).filter(j => j && j.fundo).flatMap(j => [j.fundo, j.tinta, j.destaque, j.faixa]),
+      cli && cli.cor, m.cor2];
+    return [...new Set(todas.filter(c => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)).map(c => c.toUpperCase()))];
+  }
+
+  const nomeDaPagina = (base, n) => base === 'post' ? 'Post' : /^slide-(\d+)/.test(base) ? 'Slide ' + Number(base.slice(6))
+    : /^capa-(\d+)/.test(base) ? 'Opção ' + base.slice(5) : (n > 1 ? base : 'Imagem');
+
+  async function abrirStudio(p, job){
+    const listas = saidasDe(job, 'camada').filter(s => s.caminho.endsWith('/camadas.json'));
+    if(!listas.length){ toast('Esta versão não tem camadas.'); return; }
+    toast('Abrindo o Studio…');
+    const { data, error } = await sb.storage.from('pedidos').createSignedUrls(saidasDe(job, 'camada').map(s => s.caminho), 3600);
+    if(error){ toast('Não deu pra abrir as camadas: ' + error.message); return; }
+    const url = {};
+    for(const d of data || []) if(d.signedUrl) url[d.path] = d.signedUrl;
+    // <conta>/<cliente>/<pedido>/<job>/ + camadas/post/8.png
+    const prefixo = listas[0].caminho.split('/').slice(0, 4).join('/') + '/';
+    const imagens = [];
+    try {
+      for(const s of listas){
+        const doc = await (await fetch(url[s.caminho])).json();
+        const camadas = doc.camadas.map(c => Object.assign({}, c, { st:{ x:c.x, y:c.y, escala:1, visivel:c.visivel,
+          texto:c.texto ? c.texto.conteudo : null, cor:(c.texto ? c.texto.cor : c.cor || '').toUpperCase() || null, travada:c.tipo === 'fundo' } }));
+        imagens.push({ doc, camadas, ordem:camadas.filter(c => c.tipo !== 'fundo').map(c => c.id) });
+      }
+    } catch(e){ toast('Não deu pra ler as camadas: ' + e.message); return; }
+    imagens.sort((a, b) => a.doc.base.localeCompare(b.doc.base, 'pt', { numeric:true }));
+    // A fonte da marca, pra prévia do texto editado sair parecida com o PSD.
+    for(const f of new Set(imagens.flatMap(i => i.camadas.filter(c => c.texto).map(c => c.texto.fonte)))){
+      if(studio.fontes.has(f)) continue;
+      studio.fontes.add(f);
+      document.head.appendChild(el('link',{rel:'stylesheet', href:'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(f) + ':wght@200;300;400;500;600;700;800;900&display=swap'}));
+    }
+    const cli = state.clientes.find(x => x.id === p.cliente_id);
+    studio.aberto = { p, job, cli, cores:coresDaMarcaDe(cli), imagens, atual:0, sel:null, editando:null, url, prefixo, historico:[], salvando:false };
+    document.addEventListener('keydown', teclaDoStudio);
+    window.addEventListener('resize', encaixarStudio);
+    desenharStudio();
+  }
+
+  function fecharStudio(perguntar){
+    const s = studio.aberto;
+    if(!s) return;
+    if(perguntar && edicaoDoStudio().length && !confirm('Sair do Studio sem salvar? O que você mexeu se perde.')) return;
+    document.removeEventListener('keydown', teclaDoStudio);
+    window.removeEventListener('resize', encaixarStudio);
+    const n = document.getElementById('studio');
+    if(n) n.remove();
+    studio.aberto = null;
+  }
+
+  const imagemAtual = () => studio.aberto.imagens[studio.aberto.atual];
+  const camadaSel = () => { const s = studio.aberto; return s.sel == null ? null : imagemAtual().camadas.find(c => c.id === s.sel) || null; };
+  // Na tela, de cima pra baixo: a ordem (que o Studio pode mudar) e o fundo por último.
+  const pilha = img => [...img.ordem.map(id => img.camadas.find(c => c.id === id)), ...img.camadas.filter(c => c.tipo === 'fundo')];
+
+  function guardarHistorico(){
+    const s = studio.aberto;
+    s.historico.push(JSON.stringify(s.imagens.map(i => ({ ordem:i.ordem, st:i.camadas.map(c => c.st) }))));
+    if(s.historico.length > 80) s.historico.shift();
+  }
+  function desfazer(){
+    const s = studio.aberto, ult = s.historico.pop();
+    if(!ult) return;
+    JSON.parse(ult).forEach((v, i) => { s.imagens[i].ordem = v.ordem; s.imagens[i].camadas.forEach((c, k) => { c.st = v.st[k]; }); });
+    s.editando = null;
+    desenharStudio();
+  }
+
+  /** O que mudou, imagem por imagem, no formato que a fábrica aplica (src/edicao.ts). */
+  function edicaoDoStudio(){
+    return studio.aberto.imagens.map(img => {
+      const camadas = [];
+      for(const c of img.camadas){
+        const e = { id:c.id, nome:c.nome }, st = c.st;
+        const dx = Math.round(st.x - c.x), dy = Math.round(st.y - c.y);
+        if(dx || dy){ e.dx = dx; e.dy = dy; }
+        if(Math.abs(st.escala - 1) > 0.001) e.escala = Math.round(st.escala * 1000) / 1000;
+        if(st.visivel !== c.visivel) e.visivel = st.visivel;
+        if(c.texto && st.texto.trim() !== c.texto.conteudo) e.texto = st.texto.trim();
+        const corAntes = (c.texto ? c.texto.cor : c.cor || '').toUpperCase();
+        if(st.cor && corAntes && st.cor !== corAntes) e.cor = st.cor;
+        if(Object.keys(e).length > 2) camadas.push(e);
+      }
+      const antes = img.camadas.filter(c => c.tipo !== 'fundo').map(c => c.id);
+      const ordem = img.ordem.join() !== antes.join() ? img.ordem.slice() : null;
+      return camadas.length || ordem ? Object.assign({ base:img.doc.base, camadas }, ordem ? { ordem } : {}) : null;
+    }).filter(Boolean);
+  }
+
+  // A peça em px do documento, encolhida pra caber na área: tudo dentro do palco é medido em px da peça.
+  function encaixarStudio(){
+    const s = studio.aberto, area = document.querySelector('#studio .st-area');
+    if(!s || !area) return;
+    const d = imagemAtual().doc;
+    const k = Math.min((area.clientWidth - 48) / d.largura, (area.clientHeight - 48) / d.altura, 1);
+    s.k = k > 0 ? k : 0.3;
+    const mol = area.querySelector('.st-moldura'), palco = area.querySelector('.st-palco');
+    mol.style.width = Math.round(d.largura * s.k) + 'px';
+    mol.style.height = Math.round(d.altura * s.k) + 'px';
+    palco.style.transform = 'scale(' + s.k + ')';
+    const sel = palco.querySelector('.st-sel');
+    if(sel) sel.style.borderWidth = (2 / s.k) + 'px';
+    palco.querySelectorAll('.st-sel i').forEach(i => { i.style.transform = 'scale(' + (1 / s.k) + ')'; });
+  }
+
+  function desenharStudio(){
+    const s = studio.aberto;
+    let raiz = document.getElementById('studio');
+    if(!raiz){ raiz = el('div',{id:'studio', class:'st', role:'dialog', 'aria-modal':'true', 'aria-label':'Studio'}); document.body.appendChild(raiz); }
+    raiz.innerHTML = '';
+    const img = imagemAtual(), mexidas = new Set(edicaoDoStudio().map(e => e.base));
+
+    const topo = el('header',{class:'st-topo'});
+    topo.appendChild(el('h2',{}, 'Studio'));
+    topo.appendChild(el('span',{class:'muted'}, esc((s.cli ? s.cli.nome + ' · ' : '') + (s.p.titulo || tipoCriarDe(s.p).nome))));
+    if(s.imagens.length > 1){
+      const pag = el('nav',{class:'st-paginas', 'aria-label':'Imagens da peça'});
+      s.imagens.forEach((im, i) => {
+        const b = el('button',{type:'button', 'aria-pressed':String(i === s.atual), class:mexidas.has(im.doc.base) ? 'mexida' : '',
+          onclick:()=>{ s.atual = i; s.sel = null; s.editando = null; desenharStudio(); }}, esc(nomeDaPagina(im.doc.base, s.imagens.length)));
+        pag.appendChild(b);
+      });
+      topo.appendChild(pag);
+    }
+    const fim = el('div',{class:'st-fim'});
+    const des = el('button',{class:'btn ghost small', type:'button', title:'Ctrl+Z', onclick:desfazer}, 'Desfazer');
+    des.disabled = !s.historico.length;
+    fim.appendChild(des);
+    fim.appendChild(el('button',{class:'btn ghost small', type:'button', onclick:()=>fecharStudio(true)}, 'Cancelar'));
+    const salvar = el('button',{class:'btn small', type:'button', onclick:salvarStudio}, s.salvando ? 'Salvando…' : 'Salvar');
+    salvar.disabled = s.salvando || !mexidas.size;
+    fim.appendChild(salvar);
+    topo.appendChild(fim);
+    raiz.appendChild(topo);
+
+    const corpo = el('div',{class:'st-corpo'});
+    const area = el('div',{class:'st-area'});
+    const mol = el('div',{class:'st-moldura'});
+    const palco = el('div',{class:'st-palco', style:'width:' + img.doc.largura + 'px;height:' + img.doc.altura + 'px'});
+    // De baixo pra cima, como o PSD empilha.
+    pilha(img).slice().reverse().forEach(c => { const n = noDaCamada(c); if(n) palco.appendChild(n); });
+    palco.appendChild(el('div',{class:'st-seguro', title:'Margem segura: o Instagram corta ou cobre o que passa daqui'}));
+    const c = camadaSel();
+    if(c){
+      const sel = el('div',{class:'st-sel' + (c.st.visivel ? '' : ' escondida')});
+      if(!c.st.travada && c.tipo !== 'fundo') ['nw','ne','sw','se'].forEach(k => sel.appendChild(el('i',{'data-canto':k})));
+      palco.appendChild(sel);
+      posicionarSel(sel, c);
+    }
+    palco.addEventListener('pointerdown', apertarNoPalco);
+    palco.addEventListener('dblclick', dobrarNoPalco);
+    mol.appendChild(palco);
+    area.appendChild(mol);
+    corpo.appendChild(area);
+    corpo.appendChild(ladoDoStudio(img));
+    raiz.appendChild(corpo);
+    // Já na mesma volta: o próximo arrasto mede o ponteiro com a escala desta tela.
+    encaixarStudio();
+    const ed = s.editando != null && palco.querySelector('.st-texto[contenteditable="true"]');
+    if(ed){ ed.focus(); const r = document.createRange(); r.selectNodeContents(ed); r.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); }
+  }
+
+  /** O nó de uma camada: o PNG dela; com cor trocada, o PNG vira máscara da cor nova; com texto trocado, o texto em HTML. */
+  function noDaCamada(c){
+    const s = studio.aberto, st = c.st;
+    if(!c.arquivo) return null;
+    const corAntes = (c.texto ? c.texto.cor : c.cor || '').toUpperCase();
+    const textoNovo = c.texto && (st.texto !== c.texto.conteudo || s.editando === c.id);
+    let n;
+    if(textoNovo){
+      const t = c.texto;
+      n = el('div',{class:'st-c', 'data-id':String(c.id)});
+      // A caixa onde o texto quebra linha, presa ao canto da área que a camada ocupava.
+      const ox = t.caixa ? t.caixa[0] - c.x : 0, oy = t.caixa ? t.caixa[1] - c.y : 0;
+      const tx = el('div',{class:'st-texto', 'data-id':String(c.id), spellcheck:'false'});
+      tx.style.cssText = 'left:' + ox + 'px;top:' + oy + 'px;font-family:"' + t.fonte + '",sans-serif;font-weight:' + t.peso + ';font-size:' + t.tamanho + 'px;'
+        + 'line-height:1.2;color:' + (st.cor || t.cor) + ';text-align:' + t.alinhamento + ';'
+        + (t.caixa ? 'width:' + t.caixa[2] + 'px;white-space:pre-wrap;' : 'white-space:pre;');
+      tx.textContent = st.texto;
+      if(s.editando === c.id){
+        tx.setAttribute('contenteditable', 'true');
+        tx.addEventListener('input', () => { st.texto = tx.innerText.replace(/\n$/, ''); atualizarLado(); });
+      }
+      n.appendChild(tx);
+    } else if(st.cor && corAntes && st.cor !== corAntes){
+      n = el('div',{class:'st-c st-cor', 'data-id':String(c.id)});
+      const u = 'url("' + s.url[s.prefixo + c.arquivo] + '")';
+      n.style.background = st.cor; n.style.webkitMaskImage = u; n.style.maskImage = u;
+      n.style.width = c.largura + 'px'; n.style.height = c.altura + 'px';
+    } else {
+      n = el('img',{class:'st-c', 'data-id':String(c.id), src:s.url[s.prefixo + c.arquivo] || '', alt:'', draggable:'false'});
+      n.style.width = c.largura + 'px'; n.style.height = c.altura + 'px';
+    }
+    n.style.transform = 'translate(' + st.x + 'px,' + st.y + 'px) scale(' + st.escala + ')';
+    n.style.opacity = c.opacidade;
+    if(!st.visivel) n.style.display = 'none';
+    if(st.travada || c.tipo === 'fundo') n.dataset.travada = '1';
+    return n;
+  }
+
+  function posicionarSel(sel, c){
+    const st = c.st;
+    sel.style.left = st.x + 'px'; sel.style.top = st.y + 'px';
+    sel.style.width = c.largura * st.escala + 'px'; sel.style.height = c.altura * st.escala + 'px';
+  }
+
+  // O ponteiro em px da peça.
+  function pontoNoPalco(ev){
+    const r = document.querySelector('#studio .st-palco').getBoundingClientRect(), k = studio.aberto.k;
+    return { x:(ev.clientX - r.left) / k, y:(ev.clientY - r.top) / k };
+  }
+
+  function apertarNoPalco(ev){
+    const s = studio.aberto;
+    if(ev.button !== 0 || ev.target.isContentEditable) return;
+    const canto = ev.target.dataset && ev.target.dataset.canto;
+    const alvo = canto ? camadaSel() : (() => {
+      const no = ev.target.closest('[data-id]');
+      const c = no && imagemAtual().camadas.find(x => x.id === Number(no.dataset.id));
+      return c && !c.st.travada && c.tipo !== 'fundo' ? c : null;
+    })();
+    // Clicar fora do texto em edição termina a edição.
+    const terminouTexto = s.editando != null;
+    s.editando = null;
+    if(!alvo){ if(s.sel != null || terminouTexto){ s.sel = null; desenharStudio(); } return; }
+    if(s.sel !== alvo.id || terminouTexto){ s.sel = alvo.id; desenharStudio(); }
+    ev.preventDefault();
+    const inicio = pontoNoPalco(ev), st0 = Object.assign({}, alvo.st);
+    const palco = document.querySelector('#studio .st-palco');
+    const no = palco.querySelector('.st-c[data-id="' + alvo.id + '"]'), sel = palco.querySelector('.st-sel');
+    let mexeu = false;
+    const mover = e => {
+      const p = pontoNoPalco(e), st = alvo.st;
+      if(!mexeu){ if(Math.hypot(p.x - inicio.x, p.y - inicio.y) < 3) return; mexeu = true; guardarHistorico(); }
+      if(canto){
+        // O canto oposto fica parado; a escala vem da distância na horizontal.
+        const w0 = alvo.largura * st0.escala, h0 = alvo.altura * st0.escala;
+        const fixoX = canto.includes('w') ? st0.x + w0 : st0.x, fixoY = canto.includes('n') ? st0.y + h0 : st0.y;
+        const largura = Math.max(8, canto.includes('w') ? fixoX - p.x : p.x - fixoX);
+        st.escala = Math.min(10, Math.max(0.1, largura / alvo.largura));
+        st.x = canto.includes('w') ? fixoX - alvo.largura * st.escala : fixoX;
+        st.y = canto.includes('n') ? fixoY - alvo.altura * st.escala : fixoY;
+      } else {
+        st.x = Math.round(st0.x + p.x - inicio.x); st.y = Math.round(st0.y + p.y - inicio.y);
+      }
+      if(no) no.style.transform = 'translate(' + st.x + 'px,' + st.y + 'px) scale(' + st.escala + ')';
+      if(sel) posicionarSel(sel, alvo);
+    };
+    const soltar = () => {
+      document.removeEventListener('pointermove', mover);
+      document.removeEventListener('pointerup', soltar);
+      if(mexeu) desenharStudio();
+    };
+    document.addEventListener('pointermove', mover);
+    document.addEventListener('pointerup', soltar);
+  }
+
+  function dobrarNoPalco(ev){
+    const no = ev.target.closest('[data-id]');
+    const c = no && imagemAtual().camadas.find(x => x.id === Number(no.dataset.id));
+    if(!c || !c.texto || c.st.travada) return;
+    guardarHistorico();
+    Object.assign(studio.aberto, { sel:c.id, editando:c.id });
+    if(!c.st.visivel) c.st.visivel = true;
+    desenharStudio();
+  }
+
+  function teclaDoStudio(ev){
+    const s = studio.aberto;
+    if(!s) return;
+    const digitando = ev.target.closest && ev.target.closest('input, textarea, [contenteditable="true"]');
+    if(ev.key === 'Escape'){
+      ev.preventDefault();
+      if(s.editando != null){ s.editando = null; desenharStudio(); }
+      else if(s.sel != null){ s.sel = null; desenharStudio(); }
+      else fecharStudio(true);
+      return;
+    }
+    if(digitando) return;
+    if((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'z'){ ev.preventDefault(); desfazer(); return; }
+    const c = camadaSel();
+    if(!c || c.st.travada) return;
+    const passo = ev.shiftKey ? 10 : 1;
+    const d = { ArrowLeft:[-passo,0], ArrowRight:[passo,0], ArrowUp:[0,-passo], ArrowDown:[0,passo] }[ev.key];
+    if(d){ ev.preventDefault(); guardarHistorico(); c.st.x += d[0]; c.st.y += d[1]; desenharStudio(); }
+  }
+
+  // Só a lista e o número de mudanças, sem refazer o palco (que está sendo editado).
+  function atualizarLado(){
+    const lado = document.querySelector('#studio .st-lado');
+    if(lado) lado.replaceWith(ladoDoStudio(imagemAtual()));
+    const salvar = [...document.querySelectorAll('#studio .st-fim .btn')].pop();
+    if(salvar && !studio.aberto.salvando) salvar.disabled = !edicaoDoStudio().length;
+  }
+
+  function ladoDoStudio(img){
+    const s = studio.aberto, lado = el('aside',{class:'st-lado'});
+    const mexer = (fn) => { guardarHistorico(); fn(); desenharStudio(); };
+
+    const bl = el('div');
+    bl.appendChild(el('p',{class:'rot'}, 'Camadas'));
+    const ul = el('ul',{class:'st-camadas', role:'listbox', 'aria-label':'Camadas'});
+    const ordem = pilha(img);
+    ordem.forEach(c => {
+      const li = el('li',{role:'option', 'aria-selected':String(s.sel === c.id), class:c.st.visivel ? '' : 'oculta',
+        onclick:()=>{ if(c.tipo === 'fundo') return; s.sel = c.id; s.editando = null; desenharStudio(); }});
+      const olho = el('button',{class:'st-ico', type:'button', 'aria-pressed':String(c.st.visivel), title:c.st.visivel ? 'Esconder' : 'Mostrar',
+        'aria-label':(c.st.visivel ? 'Esconder ' : 'Mostrar ') + c.nome, onclick:e=>{ e.stopPropagation(); mexer(() => { c.st.visivel = !c.st.visivel; }); }}, c.st.visivel ? '◉' : '○');
+      olho.disabled = c.tipo === 'fundo';
+      li.appendChild(olho);
+      const nome = el('span',{class:'nome'}); nome.textContent = c.texto ? c.st.texto.split('\n')[0] : c.nome; li.appendChild(nome);
+      li.appendChild(el('span',{class:'tipo'}, TIPO_CAMADA[c.tipo] || c.tipo));
+      const trava = el('button',{class:'st-ico', type:'button', 'aria-pressed':String(c.st.travada), title:c.st.travada ? 'Destravar' : 'Travar',
+        'aria-label':(c.st.travada ? 'Destravar ' : 'Travar ') + c.nome, onclick:e=>{ e.stopPropagation(); c.st.travada = !c.st.travada; if(c.st.travada && s.sel === c.id) s.sel = null; desenharStudio(); }}, c.st.travada ? '🔒' : '🔓');
+      trava.disabled = c.tipo === 'fundo';
+      li.appendChild(trava);
+      const i = img.ordem.indexOf(c.id);
+      const sobe = el('button',{class:'st-ico', type:'button', title:'Pra frente', 'aria-label':'Trazer ' + c.nome + ' pra frente',
+        onclick:e=>{ e.stopPropagation(); mexer(() => { img.ordem.splice(i, 1); img.ordem.splice(i - 1, 0, c.id); }); }}, '↑');
+      sobe.disabled = c.tipo === 'fundo' || i <= 0;
+      const desce = el('button',{class:'st-ico', type:'button', title:'Pra trás', 'aria-label':'Levar ' + c.nome + ' pra trás',
+        onclick:e=>{ e.stopPropagation(); mexer(() => { img.ordem.splice(i, 1); img.ordem.splice(i + 1, 0, c.id); }); }}, '↓');
+      desce.disabled = c.tipo === 'fundo' || i < 0 || i >= img.ordem.length - 1;
+      li.appendChild(sobe); li.appendChild(desce);
+      ul.appendChild(li);
+    });
+    bl.appendChild(ul);
+    lado.appendChild(bl);
+
+    const c = camadaSel();
+    const pr = el('div');
+    if(!c){
+      pr.appendChild(el('p',{class:'dica'}, 'Clique numa camada pra mexer. Arraste pra mover, puxe o canto pra aumentar, dois cliques no texto pra editar. As setas do teclado empurram 1 px (com Shift, 10).'));
+    } else {
+      pr.appendChild(el('p',{class:'rot'}, 'Selecionada'));
+      if(c.texto){
+        const lab = el('label',{for:'st-texto', class:'muted'}, 'Texto');
+        const ta = el('textarea',{id:'st-texto', rows:'3', maxlength:'500'});
+        ta.value = c.st.texto;
+        let guardou = false;
+        ta.addEventListener('input', () => { if(!guardou){ guardarHistorico(); guardou = true; } c.st.texto = ta.value;
+          const no = document.querySelector('#studio .st-texto[data-id="' + c.id + '"]');
+          if(no) no.textContent = ta.value; else { const pos = [ta.selectionStart, ta.selectionEnd]; desenharStudio();
+            const t2 = document.getElementById('st-texto'); if(t2){ t2.focus(); t2.setSelectionRange(pos[0], pos[1]); } } });
+        pr.appendChild(lab); pr.appendChild(ta);
+        if(c.st.texto !== c.texto.conteudo) pr.appendChild(el('p',{class:'dica'}, 'Prévia aproximada: a quebra de linha final é a do PhotoCraft.'));
+      }
+      if(c.tipo === 'texto' || c.tipo === 'forma'){
+        pr.appendChild(el('p',{class:'muted', style:'margin:12px 0 6px'}, 'Cor (só as da marca)'));
+        const cores = el('div',{class:'st-cores', role:'group', 'aria-label':'Cores da marca'});
+        s.cores.forEach(cor => cores.appendChild(el('button',{type:'button', style:'background:' + cor, title:cor, 'aria-label':'Cor ' + cor,
+          'aria-pressed':String(c.st.cor === cor), onclick:()=>mexer(() => { c.st.cor = cor; })})));
+        pr.appendChild(cores);
+      }
+      const num = el('div',{class:'st-num', style:'margin-top:12px'});
+      const campoNum = (rot, valor, aplicar) => {
+        const l = el('label'); l.appendChild(document.createTextNode(rot));
+        const inp = el('input',{type:'number', step:'1', value:String(Math.round(valor))});
+        inp.addEventListener('change', () => { const v = Number(inp.value); if(Number.isFinite(v)) mexer(() => aplicar(v)); });
+        l.appendChild(inp); num.appendChild(l);
+      };
+      if(!c.st.travada){
+        campoNum('X', c.st.x, v => { c.st.x = v; });
+        campoNum('Y', c.st.y, v => { c.st.y = v; });
+        campoNum('Tamanho %', c.st.escala * 100, v => { c.st.escala = Math.min(10, Math.max(0.1, v / 100)); });
+        pr.appendChild(num);
+      }
+      pr.appendChild(el('button',{class:'btn ghost small', type:'button', style:'margin-top:12px', onclick:()=>mexer(() => {
+        c.st = { x:c.x, y:c.y, escala:1, visivel:c.visivel, texto:c.texto ? c.texto.conteudo : null,
+          cor:(c.texto ? c.texto.cor : c.cor || '').toUpperCase() || null, travada:c.st.travada };
+      })}, 'Voltar esta camada ao original'));
+    }
+    lado.appendChild(pr);
+
+    const n = edicaoDoStudio().reduce((t, e) => t + e.camadas.length + (e.ordem ? 1 : 0), 0);
+    lado.appendChild(el('p',{class:'dica'}, n ? n + (n === 1 ? ' mudança' : ' mudanças') + '. Salvar manda pra fábrica, que aplica no PSD, confere de novo e entrega uma versão nova pro cliente aprovar.'
+      : 'Nada mudou ainda.'));
+    return lado;
+  }
+
+  async function salvarStudio(){
+    const s = studio.aberto;
+    const imagens = edicaoDoStudio();
+    if(!imagens.length || s.salvando) return;
+    s.salvando = true; desenharStudio();
+    const { error } = await sb.rpc('editar_no_studio', { p_pedido:s.p.id, p_base:s.job.id, p_edicao:{ imagens } });
+    if(error){ s.salvando = false; desenharStudio(); toast('Não deu: ' + error.message); return; }
+    const p = s.p;
+    fecharStudio(false);
+    delete C().versao[p.id];
+    await carregarPedidos(); await carregarEventosDe(C().pedidos.find(x => x.id === p.id) || p); render();
+    toast('Salvo. A fábrica aplica no PSD e confere; a versão nova aparece aqui em segundos.');
   }
 
   // ---------- fábrica (Visão Bora) ----------
@@ -5244,7 +5784,7 @@
     c.appendChild(topo);
     const linha = el('p',{class:'muted fab-linha'});
     const partes = [];
-    if(x.rodada) partes.push(x.rodada === 'da_bora' ? 'entrega da equipe' : x.rodada === 'ajuste' ? 'ajuste' : 'produção');
+    if(x.rodada) partes.push(x.rodada === 'da_bora' ? 'entrega da equipe' : x.rodada === 'ajuste' ? 'ajuste' : x.rodada === 'edicao' ? 'edição no Studio' : 'produção');
     if(x.job_estado === 'rodando' && x.etapa) partes.push(x.etapa + ' · ' + Math.round(x.progresso) + '%');
     if(x.tentativas) partes.push('tentativa ' + x.tentativas + ' de ' + x.max_tentativas);
     partes.push('US$ ' + Number(x.custo_usd || 0).toFixed(2) + ' · ' + Math.round(Number(x.render_segundos || 0)) + ' s nos apps');

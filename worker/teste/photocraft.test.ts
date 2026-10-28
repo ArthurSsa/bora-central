@@ -72,7 +72,10 @@ for (const [quem, cliente] of [['beatriz', BEATRIZ], ['moacyr', MOACYR]] as Arra
       });
       assert.equal(r.fonte.substituida, false, `fonte substituída: ${r.fonte.usada}`);
       const esperadas = { 'post-feed': 3, carrossel: 4 * 2 + 1, 'capa-thumbnail': 8 }[nomeSkill];
-      assert.equal(r.conferidas.length, esperadas);
+      assert.equal(r.conferidas.filter((c) => c.papel !== 'camada').length, esperadas);
+      // Cada PSD vai pro Studio com a lista das camadas.
+      const psds = r.conferidas.filter((c) => c.caminho.endsWith('.psd')).length;
+      assert.equal(r.conferidas.filter((c) => c.caminho.endsWith('/camadas.json')).length, psds);
       for (let i = 1; i < etapas.length; i++) assert.ok(etapas[i] >= etapas[i - 1], `progresso voltou: ${etapas.join(' → ')}`);
     });
   }

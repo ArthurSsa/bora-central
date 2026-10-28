@@ -24,6 +24,7 @@ import type { Ajuste } from './fila.ts';
 import type { Conjunto } from './marca.ts';
 import { materialDoPedido } from './diagramacao.ts';
 import { cartazDoPedido, logoParaOFundo } from './vetor.ts';
+import { montarPostComPessoa } from './pessoa.ts';
 
 /** O título que o roteiro consegue tirar sem interpretar: as primeiras oito palavras, sem o que vem depois de ":". */
 export function tituloDoTexto(texto: string, maxPalavras = 8): string {
@@ -119,6 +120,23 @@ async function postDeTeste({ p, passo, c, maxPalavras }: Contexto) {
 async function postFeed(x: Contexto) {
   const { p, passo, c, maxPalavras } = x;
   const m = p.dados.margem;
+  // Com a foto da pessoa: o encaixe é do src/pessoa.ts, o texto é o mesmo de sempre.
+  if (p.dados.pessoa) {
+    await p.aoMudarEtapa({ etapa: 'pondo você no post', progresso: 25 });
+    const depois = p.dados.textoDoCliente.split(':').slice(1).join(':').trim();
+    await montarPostComPessoa({
+      passo, conjunto: c, fonte: p.dados.fonte, pesos: p.dados.pesos, margem: m, elementos: p.dados.elementos, analise: p.dados.pessoa,
+      jeito: p.dados.briefing.jeito === 'foto' || p.dados.briefing.jeito === 'recorte' ? p.dados.briefing.jeito : 'auto',
+      textos: {
+        titulo: tituloDoTexto(p.dados.textoDoCliente, Math.min(7, maxPalavras)),
+        apoio: depois && maxPalavras > 4 ? depois.split(/\s+/).slice(0, 10).join(' ').replace(/[.,;!?]+$/, '') : null,
+        assinatura: [p.dados.instagram, p.dados.registro].filter(Boolean).join(' · ') || null,
+      },
+    });
+    await p.aoMudarEtapa({ etapa: 'escrevendo a legenda', progresso: 85 });
+    salvarTexto(p.pastaJob, p.dados.saidas, 'saida/legenda.txt', legenda(p));
+    return;
+  }
   await p.aoMudarEtapa({ etapa: 'desenhando o post', progresso: 15 });
   await passo('doc_new', { width: 1080, height: 1350, background: c.fundo, name: 'post' });
   await faixa(passo, m, 1350 - m - 120, 140, c.faixa);

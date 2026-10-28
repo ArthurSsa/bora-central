@@ -6,3 +6,5 @@ node_modules/
 worker/.ferramentas/
 worker/.env
 worker/.jobs/
+# Fotos de pessoas reais pros testes (Pexels): ficam só nesta máquina.
+worker/teste/fotos/

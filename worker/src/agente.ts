@@ -13,6 +13,8 @@ import { desenharLegendas, exportarReel, lerSrt, somDoReel } from './reel.ts';
 import { montarCenaDoPedido, projetoDoMotion, renderizarDoPedido } from './motion.ts';
 import { cartazDoPedido } from './vetor.ts';
 import { materialDoPedido } from './diagramacao.ts';
+import { abrirMcp } from './mcp-cru.ts';
+import { montarPostComPessoa, type AnaliseDaPessoa } from './pessoa.ts';
 import path from 'node:path';
 import type { Ajuste, Custos, Elemento } from './fila.ts';
 import type { Conjunto } from './marca.ts';
@@ -63,6 +65,10 @@ export type DadosDaPeca = {
   elementos: Elemento[];
   /** Vídeo: a trilha da marca em entrada/ (null é sem música) e o nível dela sob a fala. */
   som: { trilha: string | null; nivel: NivelTrilha };
+  /** Todas as cores que a marca permite (paleta e conjuntos): a edição do Studio só troca pra uma delas. */
+  cores?: string[];
+  /** A foto da pessoa, já tratada e recortada (src/pessoa.ts); null quando o pedido não traz foto. */
+  pessoa?: AnaliseDaPessoa | null;
 };
 
 export type ParametrosAgente = {
@@ -88,6 +94,19 @@ export class FalhaDoAgente extends Error {
   constructor(mensagem: string, custos: Custos) {
     super(mensagem);
     this.custos = custos;
+  }
+}
+
+/**
+ * O pedido não dá pra fazer do jeito que veio (a foto corta a cabeça, não tem
+ * rosto): tentar de novo dá no mesmo. Falha de vez, sem nova tentativa, e o
+ * cliente lê o que fazer — não o "a equipe vai finalizar" genérico.
+ */
+export class FalhaDoPedido extends FalhaDoAgente {
+  readonly paraOCliente: string;
+  constructor(mensagem: string, paraOCliente: string, custos: Custos = CUSTO_ZERO) {
+    super(mensagem, custos);
+    this.paraOCliente = paraOCliente;
   }
 }
 
@@ -187,6 +206,37 @@ export const rodarAgente: Agente = async (p) => {
             return { content: [{ type: 'text', text: 'cartaz salvo: saida/cartaz.pdf, saida/cartaz.png, editavel/cartaz.vectorcraft, editavel/cartaz.ai' }] };
           } catch (e) {
             return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
+          }
+        },
+      ),
+      // O post com a pessoa: a foto já foi tratada e recortada antes (src/pessoa.ts);
+      // encaixar o rosto é conta, e o agente decide o texto e, se quiser, o jeito.
+      tool(
+        'post_com_pessoa',
+        'Monta o post 1080×1350 com a pessoa da foto do pedido e salva editavel/post.psd e saida/post.png. Dois jeitos: "recorte" (a pessoa recortada sobre o fundo do conjunto, o rosto grande à direita, o texto em cima) e "foto" (a foto cobrindo o post, o texto sobre uma faixa da cor do conjunto, do lado oposto ao rosto). "auto" escolhe o recorte quando ele ficou bom. O texto nunca cobre o rosto: o título encolhe até caber acima dele. Depois salve a legenda.',
+        {
+          titulo: z.string().min(2).max(90).describe('O título, curto: até sete palavras.'),
+          apoio: z.string().max(120).optional().describe('Uma linha menor embaixo do título, ou nada.'),
+          jeito: z.enum(['auto', 'recorte', 'foto']).optional().describe('Sem ele, auto.'),
+          conjunto: z.string().optional().describe('Nome do conjunto de cor; sem ele, o da peça.'),
+        },
+        async ({ titulo, apoio, jeito, conjunto }) => {
+          if (!p.dados.pessoa) return { content: [{ type: 'text', text: 'este pedido não tem foto da pessoa' }], isError: true };
+          const mcp = await abrirMcp(servidorMcp('photocraft', p.pastaJob));
+          const t = performance.now();
+          try {
+            const passo = async (f: string, args: Record<string, unknown>) => { const r = await mcp.chamar(f, args); if (r.erro) throw new Error(`${f}: ${r.texto}`); return r.texto; };
+            const r = await montarPostComPessoa({
+              passo, conjunto: p.dados.conjuntos.find((x) => x.nome === conjunto) ?? p.dados.conjunto,
+              fonte: p.dados.fonte, pesos: p.dados.pesos, margem: p.dados.margem, elementos: p.dados.elementos, analise: p.dados.pessoa,
+              textos: { titulo, apoio: apoio ?? null, assinatura: [p.dados.instagram, p.dados.registro].filter(Boolean).join(' · ') || null }, jeito,
+            });
+            return { content: [{ type: 'text', text: `post salvo (${r.jeito}): saida/post.png e editavel/post.psd${r.avisos.length ? `. Avisos: ${r.avisos.join('; ')}` : ''}` }] };
+          } catch (e) {
+            return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
+          } finally {
+            renderMs += performance.now() - t;
+            mcp.fechar();
           }
         },
       ),

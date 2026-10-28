@@ -716,6 +716,7 @@
       briefing.formato = n.formato;
       if(n.formato === 'bruto') briefing.anexo = n.video.caminho;
     }
+    if(n.tipo === 'post-feed' && n.foto && n.foto.caminho){ briefing.foto = n.foto.caminho; briefing.jeito = n.jeito || 'auto'; }
     const publicarEm = n.data ? new Date(n.data + 'T12:00:00').toISOString() : null;
     const { data, error } = await sb.rpc('criar_pedido', {
       p_cliente: state.clienteId, p_tipo: n.tipo, p_briefing: briefing, p_publicar_em: publicarEm,
@@ -1153,6 +1154,47 @@
       escolher(v.estado === 'erro' ? 'Escolher outro vídeo' : 'Trocar o vídeo', 'linkbtn'));
   }
 
+  // A foto da pessoa, no post: sobe assim que é escolhida, como o vídeo. Opcional.
+  const JEITOS_FOTO = [['auto','A Bora escolhe'], ['recorte','Você recortada, sobre a cor da marca'], ['foto','A foto inteira']];
+  const EXT_FOTO = ['jpg','jpeg','png','webp','heic'];
+  function campoDaFoto(n){
+    const f = n.foto;
+    const input = h('input', { id:'foto', type:'file', accept:'image/*', class:'sr',
+      onchange: (e) => { const a = e.target.files && e.target.files[0]; if(a){ enviarFoto(a); render(); } } });
+    const escolher = (rotulo, cls) => h('label', { for:'foto', class:cls, role:'button', tabindex:'0',
+      onkeydown: (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); input.click(); } } }, rotulo);
+    if(!f) return h('div', { class:'pilha' }, input, escolher('Pôr uma foto sua', 'btn sec cheio'),
+      h('p', { class:'fraco', style:{ fontSize:'0.88rem' } }, 'Opcional. Com o rosto aparecendo e a cabeça inteira: a Bora acerta a luz, recorta você e nunca põe texto em cima do rosto.'));
+    return h('div', { class:'cartao pilha envio' + (f.estado === 'erro' ? ' falhou' : '') },
+      input,
+      f.url && h('img', { src:f.url, alt:'A foto que você escolheu', style:{ width:'96px', height:'120px', objectFit:'cover', borderRadius:'10px' } }),
+      h('p', { class:'nome-arquivo' }, f.nome),
+      h('p', { id:'foto-texto', class: f.estado === 'erro' ? 'erro-texto' : 'fraco', 'aria-live':'polite' },
+        f.estado === 'enviando' ? 'Enviando a foto…' : f.estado === 'pronto' ? 'Foto recebida.' : f.erro),
+      h('div', { class:'botoes' },
+        escolher(f.estado === 'erro' ? 'Escolher outra foto' : 'Trocar a foto', 'linkbtn'),
+        h('button', { class:'linkbtn', type:'button', onclick: () => { n.foto = null; render(); } }, 'Tirar a foto')));
+  }
+
+  async function enviarFoto(arquivo){
+    const n = state.novo;
+    const ext = (arquivo.name.split('.').pop() || '').toLowerCase();
+    const f = n.foto = { nome:arquivo.name, estado:'enviando', caminho:null, url:null, erro:null };
+    const falhar = (texto) => { f.estado = 'erro'; f.erro = texto; agendarRender(); };
+    if(!EXT_FOTO.includes(ext)) return falhar('Esse arquivo não parece uma foto. Mande em JPG, PNG ou HEIC, o formato do celular.');
+    if(arquivo.size > 15 * 1048576) return falhar('Essa foto passa de 15 MB. Mande uma menor.');
+    try { f.url = URL.createObjectURL(arquivo); } catch { /* sem miniatura */ }
+    const { data:pasta, error } = await sb.rpc('pasta_de_envio', { p_cliente: state.clienteId });
+    if(n.foto !== f) return;
+    if(error) return falhar(mensagemDeErro(error));
+    const caminho = pasta + '/foto.' + ext;
+    const up = await sb.storage.from(BALDE).upload(caminho, arquivo, { contentType: arquivo.type || 'image/jpeg', upsert:false });
+    if(n.foto !== f) return;
+    if(up.error) return falhar('A foto não subiu. Confira a internet e escolha de novo.');
+    f.estado = 'pronto'; f.caminho = caminho;
+    agendarRender();
+  }
+
   function telaNovo(){
     const n = state.novo;
     const tipo = TIPOS.find(t => t.k === n.tipo);
@@ -1165,11 +1207,14 @@
     if(n.passo === 1){
       const ehReel = n.tipo === 'reel';
       const comVideo = ehReel && n.formato === 'bruto';
-      const pode = () => n.texto.trim().length >= 3 && (!comVideo || (n.video && n.video.estado === 'pronto'));
+      const comFoto = n.tipo === 'post-feed';
+      const pode = () => n.texto.trim().length >= 3 && (!comVideo || (n.video && n.video.estado === 'pronto'))
+        && (!n.foto || n.foto.estado === 'pronto');
       const contador = h('p', { class:'contador', 'aria-live':'polite' }, n.texto.length + ' / 800');
       const continuar = h('button', { id:'continuar', class:'btn pri cheio', disabled: !pode(),
         onclick: () => { n.passo = 2; render(); window.scrollTo(0, 0); } },
-        comVideo && n.video && n.video.estado === 'enviando' ? 'Esperando o vídeo subir…' : 'Continuar');
+        comVideo && n.video && n.video.estado === 'enviando' ? 'Esperando o vídeo subir…'
+          : n.foto && n.foto.estado === 'enviando' ? 'Esperando a foto subir…' : 'Continuar');
       const area = h('textarea', { id:'texto', maxlength:'800', placeholder:'Ex.: Abrimos turma nova no laboratório, inscrições até sexta.',
         style: ehReel ? { minHeight:'90px' } : null,
         oninput: (e) => {
@@ -1192,6 +1237,7 @@
         comVideo && campoDoVideo(n),
         h('div', { class:'campo' },
           h('label', { for:'texto', class: pergunta.campo ? null : 'sr' }, pergunta.campo || pergunta.titulo), area, contador),
+        comFoto && campoDaFoto(n),
         continuar);
     }
 
@@ -1204,6 +1250,10 @@
       data.value = n.data;
       return h('div', { class:'pilha-g' }, cabeca,
         h('h1', {}, 'Algumas escolhas'),
+        n.tipo === 'post-feed' && n.foto && h('fieldset', { class:'pilha', style:{ border:'none', padding:0, margin:0 } },
+          h('legend', { style:{ fontWeight:600, padding:0, marginBottom:'8px' } }, 'Como a sua foto entra?'),
+          h('div', { class:'chips', role:'group', 'aria-label':'Como a foto entra' }, JEITOS_FOTO.map(([k, rot]) =>
+            h('button', { class:'chip', type:'button', 'aria-pressed': String((n.jeito || 'auto') === k), onclick: () => { n.jeito = k; render(); } }, rot)))),
         n.tipo === 'carrossel' && h('fieldset', { class:'pilha', style:{ border:'none', padding:0, margin:0 } },
           h('legend', { style:{ fontWeight:600, padding:0, marginBottom:'8px' } }, 'Quantas imagens?'),
           h('div', { class:'chips', role:'group', 'aria-label':'Quantas imagens' }, QTD_SLIDES.map(q =>
@@ -1252,6 +1302,8 @@
           : 'A legenda e as hashtags, prontas pra colar'),
         comVideo && h('dt', {}, 'Com o seu vídeo'),
         comVideo && h('dd', { style:{ overflowWrap:'anywhere' } }, n.video.nome),
+        n.foto && h('dt', {}, 'Com a sua foto'),
+        n.foto && h('dd', { style:{ overflowWrap:'anywhere' } }, n.foto.nome + ' · ' + JEITOS_FOTO.find(j => j[0] === (n.jeito || 'auto'))[1].toLowerCase()),
         h('dt', {}, comVideo ? 'Sobre' : 'Com o seu texto'),
         h('dd', {}, '“' + n.texto.trim() + '”'),
         (n.objetivo || n.tom !== 'Como sempre') && h('dt', {}, 'Do jeito que você escolheu'),
@@ -1294,6 +1346,7 @@
       blocos.push(h('div', { class:'cartao pilha' },
         h('p', { class:'rot' }, andamento.rodada === 'da_bora' ? 'A equipe da Bora terminou'
           : andamento.rodada === 'ajuste' ? 'Fazendo o ajuste'
+          : andamento.rodada === 'edicao' ? 'A equipe está fazendo um ajuste fino'
           : formatoDe(p) === 'abertura' ? 'Fazendo a sua abertura'
           : formatoDe(p) === 'carrossel' ? 'Fazendo o vídeo do carrossel'
           : { carrossel:'Fazendo o seu carrossel', capa:'Fazendo as suas capas', reel:'Fazendo o seu reel', cartaz:'Fazendo o seu cartaz', material:'Fazendo o seu guia' }[p.tipo] || 'Fazendo o seu post'),
@@ -1330,7 +1383,7 @@
     }
 
     if(vista){
-      const antiga = andamento && andamento.rodada === 'ajuste';
+      const antiga = andamento && (andamento.rodada === 'ajuste' || andamento.rodada === 'edicao');
       const imagens = imagensDe(vista);
       const legendaFoto = antiga ? 'Versão anterior. O ajuste está sendo feito.' : null;
 
@@ -1477,7 +1530,8 @@
     const nomeRodada = (j) => {
       const i = jobsDe(p).indexOf(j);
       return j.rodada === 'da_bora' ? 'Versão da equipe da Bora'
-        : j.rodada === 'ajuste' ? 'Ajuste ' + jobsDe(p).slice(0, i + 1).filter(x => x.rodada === 'ajuste').length : 'Primeira versão';
+        : j.rodada === 'ajuste' ? 'Ajuste ' + jobsDe(p).slice(0, i + 1).filter(x => x.rodada === 'ajuste').length
+        : j.rodada === 'edicao' ? 'Ajuste fino da equipe' : 'Primeira versão';
     };
     return h('div', { class:'pilha-g' },
       h('div', { class:'pilha' },

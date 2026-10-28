@@ -1368,9 +1368,26 @@ test('Central, etapa C: trilha com licença na Marca, abertura com música, "sem
 const LOGO_SVG_E2E = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">'
   + '<rect x="0" y="10" width="80" height="80" rx="16" fill="#A4E830"/><circle cx="140" cy="50" r="40" fill="#1E2A3A"/></svg>';
 
+/**
+ * A rodada pronta mais recente do pedido. Espera por ela: a tela do app às
+ * vezes já mostra "Para aprovar" de um instante antes (a lista que estava na
+ * tela), e ler o banco no mesmo milissegundo achava nada.
+ */
+async function prontoMaisRecente(pedidoId: string, rodada?: string) {
+  const ate = Date.now() + 60_000;
+  for (;;) {
+    let q = admin.from('jobs').select('id, custo_usd, saidas').eq('pedido_id', pedidoId).eq('estado', 'pronto');
+    if (rodada) q = q.eq('rodada', rodada);
+    const { data } = await q.order('criado_em', { ascending: false }).limit(1);
+    if (data?.[0]) return data[0] as { id: string; custo_usd: number; saidas: Array<{ caminho: string; papel: string }> };
+    if (Date.now() > ate) throw new Error(`o pedido ${pedidoId} não tem rodada pronta${rodada ? ` (${rodada})` : ''} depois de 60 s`);
+    await new Promise((r) => setTimeout(r, 500));
+  }
+}
+
 /** As caixas do PDF entregue num pedido, em milímetros. */
 async function cartazEntregue(pedidoId: string) {
-  const { data } = await admin.from('jobs').select('saidas').eq('pedido_id', pedidoId).eq('estado', 'pronto').order('criado_em', { ascending: false }).limit(1);
+  const data = [await prontoMaisRecente(pedidoId)];
   const saidas = data![0].saidas as Array<{ caminho: string }>;
   const baixar = async (fim: string) => {
     const s = saidas.find((x) => x.caminho.endsWith(fim));
@@ -1464,7 +1481,7 @@ const PEDIDO_GUIA_E2E = 'Cinco erros de quem começa a treinar. Começar pesado 
 
 /** Os arquivos da última rodada pronta de um pedido. */
 async function entregaDe(pedidoId: string) {
-  const { data } = await admin.from('jobs').select('saidas').eq('pedido_id', pedidoId).eq('estado', 'pronto').order('criado_em', { ascending: false }).limit(1);
+  const data = [await prontoMaisRecente(pedidoId)];
   return (data![0].saidas as Array<{ caminho: string }>).map((s) => s.caminho);
 }
 
@@ -1526,3 +1543,178 @@ test('Central, etapa E: guia de 8 páginas e folheto dobrável pela Central, e o
   await semErroNaTela(cli);
   await cli.context().close();
 });
+
+// ---------- etapa F: o Studio ----------
+//
+// O critério de pronto da etapa F: na Central, abrir o post, arrastar uma
+// camada, trocar o título no lugar e esconder outra; salvar e, em segundos,
+// a versão nova conferida, igual ao que a tela mostrou — e o cliente não vê
+// as camadas nem o nome da rodada técnica.
+
+async function camadasDe(pedidoId: string, rodada?: string) {
+  const data = [await prontoMaisRecente(pedidoId, rodada)];
+  const lista = (data![0].saidas as Array<{ caminho: string; papel: string }>).find((s) => s.caminho.endsWith('camadas/post/camadas.json'))!;
+  assert.equal(lista.papel, 'camada');
+  const doc = JSON.parse(await (await admin.storage.from('pedidos').download(lista.caminho)).data!.text());
+  return { job: data![0], doc: doc as { camadas: Array<{ id: number; nome: string; tipo: string; x: number; y: number; visivel: boolean; texto?: { conteudo: string; tamanho: number } }> } };
+}
+
+test('Central, etapa F: o Studio — arrasta a faixa, troca o título no lugar, esconde o @, salva, e a versão nova é a da tela', { timeout: 300_000 }, async () => {
+  const page = await abrirCentral('#/criar');
+  const pedidoId = await pedirPelaCentral(page, /^Post/, 'Turma nova do laboratório: inscrições até sexta');
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 90_000 });
+  const v1 = await camadasDe(pedidoId);
+  const faixa = v1.doc.camadas.find((c) => c.tipo === 'forma')!;
+  const titulo = v1.doc.camadas.filter((c) => c.texto).sort((a, b) => b.texto!.tamanho - a.texto!.tamanho)[0];
+  // A camada a esconder: o @ quando o cliente tem Instagram, senão o texto de apoio.
+  const arroba = v1.doc.camadas.find((c) => c.texto?.conteudo.startsWith('@')) ?? v1.doc.camadas.find((c) => c.texto && c.id !== titulo?.id)!;
+  assert.ok(faixa && titulo && arroba, v1.doc.camadas.map((c) => c.nome).join(' | '));
+
+  await page.getByRole('button', { name: 'Editar no Studio' }).click();
+  await page.waitForFunction(() => {
+    const imgs = [...document.querySelectorAll('#studio .st-palco img.st-c')] as HTMLImageElement[];
+    return imgs.length > 2 && imgs.every((i) => i.complete && i.naturalWidth > 0);
+  });
+  // Arrasta a faixa 300 px pra direita (em px da peça).
+  const k = await page.evaluate(() => (document.querySelector('#studio .st-moldura') as HTMLElement).clientWidth / 1080);
+  const b = (await page.locator(`#studio .st-c[data-id="${faixa.id}"]`).boundingBox())!;
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  for (let i = 1; i <= 10; i++) await page.mouse.move(b.x + b.width / 2 + 300 * k * i / 10, b.y + b.height / 2);
+  await page.mouse.up();
+  // O título, no lugar.
+  await page.locator(`#studio .st-c[data-id="${titulo.id}"]`).dblclick();
+  await page.locator('#studio .st-texto[contenteditable="true"]').waitFor();
+  await page.keyboard.press('Control+A');
+  await page.keyboard.type('Turma nova, vagas abertas');
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Esconder ' + arroba.nome }).click();
+  // Cor fora da marca nem aparece pra escolher.
+  await page.locator('#studio .st-camadas li', { hasText: faixa.nome }).click();
+  const cores = await page.locator('#studio .st-cores button').evaluateAll((bs) => bs.map((x) => (x as HTMLElement).title));
+  // As da marca como está no banco agora (as etapas B e D somam conjuntos ao cliente de teste).
+  const { data: cli } = await admin.from('clientes').select('cor, marca').eq('id', CLIENTE).single();
+  const m = (cli!.marca ?? {}) as { paleta?: Array<{ cor: string }>; conjuntos?: Array<Record<string, string>>; cor2?: string };
+  const daMarca = [...(m.paleta ?? []).map((x) => x.cor), ...(m.conjuntos ?? []).filter((j) => j?.fundo).flatMap((j) => [j.fundo, j.tinta, j.destaque, j.faixa]), cli!.cor, m.cor2]
+    .filter((c): c is string => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)).map((c) => c.toUpperCase());
+  assert.deepEqual(cores.sort(), [...new Set(daMarca)].sort());
+  assert.ok(['#1E2A3A', '#A4E830'].every((c) => cores.includes(c)));
+  assert.match((await page.locator('#studio .st-lado').textContent())!, /3 mudanças/);
+
+  const t0 = Date.now();
+  await page.locator('#studio').getByRole('button', { name: 'Salvar', exact: true }).click();
+  await page.locator('#studio').waitFor({ state: 'detached' });
+  await page.getByRole('button', { name: 'Studio 2' }).waitFor({ timeout: 90_000 });
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 30_000 });
+  const segundos = (Date.now() - t0) / 1000;
+  assert.ok(segundos < 60, `a versão do Studio levou ${segundos} s`);
+
+  const v2 = await camadasDe(pedidoId, 'edicao');
+  assert.equal(Number(v2.job.custo_usd), 0, 'a edição do Studio não usa o Claude');
+  const achar = (id: number) => v2.doc.camadas.find((c) => c.nome === v1.doc.camadas.find((x) => x.id === id)!.nome)!;
+  assert.equal(achar(faixa.id).x, faixa.x + 300);
+  assert.equal(achar(faixa.id).y, faixa.y);
+  assert.ok(v2.doc.camadas.some((c) => c.texto?.conteudo === 'Turma nova, vagas abertas'), 'o título novo não está no PSD');
+  assert.equal(achar(arroba.id).visivel, false);
+  // As camadas não são arquivo de entrega: não aparecem pra baixar no "Editar à mão".
+  await page.getByRole('button', { name: 'Editar à mão' }).click();
+  await page.locator('.cr-edicao a', { hasText: 'post.psd' }).waitFor();
+  assert.equal(await page.locator('.cr-edicao a', { hasText: 'camadas' }).count(), 0);
+  await semErroNaTela(page);
+  await page.context().close();
+
+  // O cliente vê "Ajuste fino da equipe" e não consegue ler as camadas.
+  const caminho = (await admin.from('jobs').select('saidas').eq('pedido_id', pedidoId).eq('rodada', 'edicao').single()).data!.saidas
+    .find((s: { papel: string }) => s.papel === 'camada').caminho;
+  const { data: lido } = await comoCliente.storage.from('pedidos').createSignedUrl(caminho, 60);
+  assert.equal(lido?.signedUrl ?? null, null, 'o cliente conseguiu link pra uma camada');
+  const { error: semEquipe } = await comoCliente.rpc('editar_no_studio', { p_pedido: pedidoId, p_base: v2.job.id, p_edicao: { imagens: [{ base: 'post', camadas: [] }] } });
+  assert.match(semEquipe?.message ?? '', /só a equipe/);
+});
+
+// ---------- etapa H: a pessoa no post ----------
+//
+// O cliente manda a foto dele pelo celular e escolhe a foto inteira; a equipe
+// usa uma foto do banco da marca na Central e a fábrica recorta. A foto com a
+// cabeça cortada falha de vez, sem nova tentativa, e o cliente lê o que fazer.
+// As fotos de teste (Pexels) ficam fora do git: sem elas, pula.
+
+const FOTO_INTEIRA = path.join(RAIZ_WORKER, 'teste', 'fotos', 'pexels-33650386.jpg');
+const FOTO_CORTADA = path.join(RAIZ_WORKER, 'teste', 'fotos', 'pexels-33650403.jpg');
+const semFotos = !existsSync(FOTO_INTEIRA) || !existsSync(FOTO_CORTADA) ? 'sem as fotos de teste em worker/teste/fotos/' : false;
+
+async function camadaDaPessoa(pedidoId: string) {
+  const { doc } = await camadasDe(pedidoId);
+  return doc.camadas.find((c) => c.nome === 'pessoa' || c.nome === 'foto') ?? null;
+}
+
+/** Pelo app: o post com a foto, até o "Pedir post"; devolve o id do pedido. */
+async function pedirPostComFoto(page: Page, foto: string, texto: string, jeito?: RegExp) {
+  await page.getByRole('heading', { name: 'O que você quer criar hoje?' }).waitFor();
+  await page.locator('a.tipo').filter({ hasText: /Post para feed/ }).click();
+  await page.locator('#texto').fill(texto);
+  await page.locator('#foto').setInputFiles(foto);
+  await page.getByText('Foto recebida.').waitFor({ timeout: 30_000 });
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByRole('heading', { name: 'Algumas escolhas' }).waitFor();
+  if (jeito) await page.getByRole('button', { name: jeito }).click();
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByRole('heading', { name: 'Confere antes de pedir' }).waitFor();
+  assert.match((await page.locator('.resumo').textContent())!, /Com a sua foto/);
+  await page.getByRole('button', { name: 'Pedir post' }).click();
+  await page.waitForURL(/#\/pedido\//);
+  return page.url().split('/').pop()!;
+}
+
+test('etapa H, app: o cliente manda a foto dele, escolhe a foto inteira, e o post sai com ele, passando na conferência', { skip: semFotos, timeout: 240_000 }, async () => {
+  const page = await abrir();
+  const pedidoId = await pedirPostComFoto(page, FOTO_INTEIRA, 'A fornada sai às 7h: venha buscar o pão quente', /A foto inteira/);
+  await page.locator('.selo.para_aprovar').first().waitFor({ timeout: 120_000 });
+  const { data: p } = await admin.from('pedidos').select('briefing').eq('id', pedidoId).single();
+  assert.equal(p!.briefing.jeito, 'foto');
+  assert.match(p!.briefing.foto, new RegExp(`^${CONTA}/${CLIENTE}/uploads/.+/foto\.jpg$`));
+  assert.equal((await camadaDaPessoa(pedidoId))?.nome, 'foto', 'a foto não virou camada');
+  assert.ok(await semRolagemLateral(page));
+  await semErroNaTela(page);
+  await page.context().close();
+});
+
+test('etapa H, app: foto com a cabeça cortada falha de vez, numa tentativa, e o cliente lê o que fazer', { skip: semFotos, timeout: 180_000 }, async () => {
+  const page = await abrir();
+  const pedidoId = await pedirPostComFoto(page, FOTO_CORTADA, 'Bastidor da madrugada na padaria');
+  await page.getByText(/A sua foto corta a cabeça em cima/).first().waitFor({ timeout: 90_000 });
+  const { data: jobs } = await admin.from('jobs').select('estado, tentativas').eq('pedido_id', pedidoId);
+  assert.deepEqual(jobs, [{ estado: 'falhou', tentativas: 1 }]);
+  await page.context().close();
+});
+
+test('etapa H, Central: a equipe usa a foto do banco da marca, a fábrica recorta, e o banco recusa foto de outro cliente', { skip: semFotos, timeout: 240_000 }, async () => {
+  // A foto no banco da marca, como a Marca da Central guarda.
+  const caminho = `${CLIENTE}/foto-teste-pessoa.jpg`;
+  const bytes = readFileSync(FOTO_INTEIRA);
+  await admin.storage.from('elementos').upload(caminho, bytes, { contentType: 'image/jpeg', upsert: true });
+  const { data: el } = await admin.from('marca_elementos').insert({ cliente_id: CLIENTE, tipo: 'foto', caminho, nome: 'Foto de teste (pessoa)',
+    bytes: bytes.length, mime: 'image/jpeg', largura: 1600, altura: 2400 }).select('id').single();
+
+  const page = await abrirCentral('#/criar');
+  const pedidoId = await pedirPelaCentral(page, /^Post/, 'A fornada sai às 7h: venha buscar o pão quente', async (p) => {
+    await p.locator('.cr-foto[title="Foto de teste (pessoa)"]').click();
+    assert.equal(await p.getByRole('button', { name: 'A fábrica escolhe' }).getAttribute('aria-pressed'), 'true');
+  });
+  await page.locator('.chip', { hasText: 'Para aprovar' }).first().waitFor({ timeout: 120_000 });
+  const { data: p } = await admin.from('pedidos').select('briefing').eq('id', pedidoId).single();
+  assert.equal(p!.briefing.foto_marca, el!.id);
+  assert.equal((await camadaDaPessoa(pedidoId))?.nome, 'pessoa', 'a fábrica não usou o recorte');
+  await semErroNaTela(page);
+  await page.context().close();
+
+  // O banco: foto fora da pasta do cliente, ou foto do banco de outro cliente, não passa.
+  const { error: e1 } = await comoCliente.rpc('criar_pedido', { p_cliente: CLIENTE, p_tipo: 'post-feed',
+    p_briefing: { texto: 'Um post com foto', foto: `${CONTA}/outro-cliente/uploads/x/foto.jpg` } });
+  assert.match(e1?.message ?? '', /a foto não chegou/);
+  const { error: e2 } = await comoCliente.rpc('criar_pedido', { p_cliente: CLIENTE, p_tipo: 'post-feed',
+    p_briefing: { texto: 'Um post com foto', foto_marca: randomUUIDDoTeste() } });
+  assert.match(e2?.message ?? '', /essa foto não é deste cliente/);
+});
+
+const randomUUIDDoTeste = () => '00000000-0000-4000-8000-' + randomBytes(6).toString('hex');
