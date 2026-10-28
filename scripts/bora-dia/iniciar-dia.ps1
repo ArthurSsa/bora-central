@@ -83,7 +83,7 @@ try {
   )
   $proibidas = @(
     'Bash(git push:*)', 'Bash(git merge:*)', 'Bash(git rebase:*)', 'Bash(git reset:*)', 'Bash(git branch -D:*)',
-    'Bash(npm run fabrica:*)', 'Bash(rm:*)', 'Bash(curl:*)', 'Edit(**/.env*)', 'Write(**/.env*)'
+    'Bash(npm run fabrica:*)', 'Bash(rm:*)', 'Bash(curl:*)', 'Edit(**/.env*)'
   )
   $pedido = "Siga as instrucoes de scripts/bora-dia/prompt-do-dia.md. $situacao"
 

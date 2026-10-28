@@ -71,7 +71,7 @@ Tarefas de venda e negócio do dia: deixe rascunhos em `docs/progresso/rascunhos
 ## 5. Fechar a execução
 
 - Atualize `docs/progresso/hoje.md` e a cópia em `pauta/` com o que ficou pronto.
-- Acrescente ao `docs/progresso/diario/AAAA-MM-DD.md` (crie se não existir, no formato do LEIA-ME) uma seção `## Claude Code (manhã)`. No frontmatter, marque em `passos_feitos` só o que ficou pronto de verdade e `feita: true` só se o "pronto quando" foi cumprido.
+- Acrescente ao `docs/progresso/diario/AAAA-MM-DD.md` (crie se não existir, no formato da seção "Formato do diário" de `.claude/skills/bora-registrar-avanco/SKILL.md`) uma seção `## Claude Code (manhã)`. No frontmatter, marque em `passos_feitos` só o que ficou pronto de verdade e `feita: true` só se o "pronto quando" foi cumprido.
 - Atualize `docs/progresso/estado.md`.
 - Commit final: `docs(progresso): início do dia AAAA-MM-DD`.
 - Termine com um resumo de até 5 linhas no terminal: o que sai hoje, o que você começou, o que precisa do Arthur.
