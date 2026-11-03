@@ -1,5 +1,19 @@
 # Custo por pedido (Fase 0, bloco 1)
 
+## Lote de 03/11: pré-registro (escrito antes de rodar)
+
+- **O quê:** 18 pedidos, 3 de cada tipo que só tinha uma medida. São carrossel de 5, capa, cartaz A4, guia em PDF (6 páginas), abertura animada e post com a pessoa. Saem pela fábrica do PC com o Claude Opus 5.5 (`npm run lote`; os ids ficam em `docs/medidas/lotes/2026-11-03.json`).
+- **Marcas:** um terço em cada uma, pra ver se a marca muda o custo:
+  - padaria de demonstração: Manrope, 3 conjuntos, logo vetorial;
+  - Moacyr: Anton, 3 conjuntos, sem logo;
+  - Virtuex: sem marca nenhuma, então a fábrica deriva as cores e usa a fonte padrão.
+  
+  O post com a pessoa vai 3 vezes na padaria, porque é a única marca com foto no banco de fotos.
+- **Textos:** os da pauta da padaria; no Moacyr e na Virtuex, textos neutros da área de cada um, pra não inventar estratégia de cliente real.
+- **Teto:** US$ 0,50 por rodada, **uma tentativa por pedido**, US$ 5 no lote inteiro. São duas metades de 9; a segunda só entra se o pior caso dela couber no que sobrou.
+- **O que conta como falha:** o job que termina `falhou` (reprovado na conferência, passou do teto ou o agente parou). O custo dele entra na média do tipo, porque é dinheiro gasto. O motivo vai na tabela.
+- **O que não conta:** nada é refeito pra "dar certo". Uma falha é um resultado.
+
 - **Medido em:** 27/10/2026, na fábrica do PC, com o Claude Opus 5.5 e teto de US$ 0,50 por rodada
 - **Como refazer:** `cd worker && npm run custos` (lê `jobs` e `job_eventos`; não gasta nada)
 - **Gasto deste bloco:** US$ 2,22, acima do teto de US$ 2 combinado: o reel medido depois da correção ia ter uma tentativa só, mas a fábrica pegou o pedido antes de a mudança entrar e fez duas (US$ 1,03)
