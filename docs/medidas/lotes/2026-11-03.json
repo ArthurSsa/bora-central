@@ -96,6 +96,55 @@
    "peca": "guia em PDF",
    "marca": "Virtuex",
    "chave": "guia em PDF|Virtuex|5"
+  },
+  {
+   "id": "44d63859-a20b-4244-91df-413c47edfa2f",
+   "metade": 2,
+   "peca": "abertura animada",
+   "marca": "padaria",
+   "chave": "abertura animada|padaria|6"
+  },
+  {
+   "id": "914ff567-d399-4b68-82f3-93d6bc9cf7ba",
+   "metade": 2,
+   "peca": "abertura animada",
+   "marca": "Moacyr",
+   "chave": "abertura animada|Moacyr|7"
+  },
+  {
+   "id": "3e1263a9-ae21-45a5-b75c-6bb8f435ea7e",
+   "metade": 2,
+   "peca": "abertura animada",
+   "marca": "Virtuex",
+   "chave": "abertura animada|Virtuex|8"
+  },
+  {
+   "id": "2f1ea76d-7b28-4d50-be54-b502cb5aa70b",
+   "metade": 3,
+   "peca": "post com a pessoa · ajuste",
+   "marca": "padaria",
+   "chave": "ajuste|post com a pessoa"
+  },
+  {
+   "id": "87e2ee2e-f9ae-45c1-8149-ed36dbc86128",
+   "metade": 3,
+   "peca": "carrossel · ajuste",
+   "marca": "padaria",
+   "chave": "ajuste|carrossel"
+  },
+  {
+   "id": "e4576094-1a16-4f3b-9bee-8ad143a258b2",
+   "metade": 3,
+   "peca": "capa · ajuste",
+   "marca": "padaria",
+   "chave": "ajuste|capa"
+  },
+  {
+   "id": "b93d444e-bfca-4a9e-a5ef-f0b2138576ea",
+   "metade": 3,
+   "peca": "reel do vídeo gravado",
+   "marca": "padaria",
+   "chave": "reel"
   }
  ]
 }

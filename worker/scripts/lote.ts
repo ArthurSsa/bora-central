@@ -99,11 +99,13 @@ async function principal() {
         await new Promise((r) => setTimeout(r, 20_000));
       }
     }
-    const { data: jobs } = await admin.from('jobs').select('pedido_id, estado, custo_usd, erro').in('pedido_id', ids);
+    const { data: jobs } = await admin.from('jobs').select('pedido_id, rodada, estado, custo_usd, erro').in('pedido_id', ids);
     let total = 0;
     console.log('| # | Peça | Marca | Estado | Custo | Motivo da falha |\n|---|---|---|---|---|---|');
     lido.pedidos.forEach((p, i) => {
-      const js = (jobs ?? []).filter((j) => j.pedido_id === p.id);
+      // A linha do ajuste conta só a rodada de ajuste; a da peça, só a produção (o ajuste usa o mesmo pedido).
+      const rodada = p.peca.endsWith('· ajuste') ? 'ajuste' : 'producao';
+      const js = (jobs ?? []).filter((j) => j.pedido_id === p.id && j.rodada === rodada);
       const custo = js.reduce((s, j) => s + Number(j.custo_usd), 0);
       total += custo;
       const falhou = js.find((j) => j.estado === 'falhou');
@@ -131,6 +133,54 @@ async function principal() {
   const ligada = (sinais ?? []).some((s: { segundos_sem_sinal: number }) => Number(s.segundos_sem_sinal) <= 90);
   const { data: naFila } = await admin.from('jobs').select('id').in('estado', ['na_fila', 'rodando']);
   if (naFila?.length) avisos.push(`há ${naFila.length} job(s) na fila ou rodando: entram antes do lote e somam no gasto`);
+
+  // --extras: os 3 ajustes em texto livre (post, carrossel e capa da padaria, que o lote já fez)
+  // e 1 reel do vídeo gravado que está no balde da padaria. Também uma tentativa cada.
+  if (process.argv.includes('--extras')) {
+    if (ligada) throw new Error('a fábrica está ligada: desligue antes de enfileirar (npm run fabrica:desligar)');
+    if (lido.pedidos.some((p) => p.metade === 3)) throw new Error('os extras já foram enfileirados hoje');
+    const orc = Number(arg('--orcamento') ?? 2);
+    if (4 * cfg.tetoUsd > orc + 1e-9) throw new Error(`os extras podem gastar até US$ ${(4 * cfg.tetoUsd).toFixed(2)}, e o orçamento é US$ ${orc.toFixed(2)}`);
+    const daPadaria = (peca: string) => lido.pedidos.find((p) => p.marca === 'padaria' && p.peca === peca);
+    const ajustes: Array<[string, string]> = [
+      ['post com a pessoa', 'Troca o título por "Pão quente às 7h" e deixa o resto como está.'],
+      ['carrossel', 'Deixa o último slide mais curto, só com a chamada pra salvar o post.'],
+      ['capa', 'Põe "36 horas" em destaque no título das três opções.'],
+    ];
+    const { data: pasta } = await admin.storage.from('pedidos').list(`${'b0a00000-0000-4000-8000-00000000de30'}/${PADARIA}/uploads`, { limit: 50 });
+    const brutos = [];
+    for (const d of pasta ?? []) {
+      const { data: f } = await admin.storage.from('pedidos').list(`b0a00000-0000-4000-8000-00000000de30/${PADARIA}/uploads/${d.name}`);
+      for (const x of f ?? []) if (/^bruto\.(mp4|mov|m4v|webm)$/.test(x.name)) brutos.push(`b0a00000-0000-4000-8000-00000000de30/${PADARIA}/uploads/${d.name}/${x.name}`);
+    }
+    const { sb, soltar } = await comoEquipe(admin, cfg.supabaseUrl);
+    try {
+      for (const [peca, texto] of ajustes) {
+        const base = daPadaria(peca);
+        if (!base) { console.log(`sem ${peca} da padaria no lote: ajuste pulado`); continue; }
+        const { data: job, error } = await sb.rpc('pedir_ajuste', { p_pedido: base.id, p_texto: texto, p_atalhos: [] });
+        if (error) { console.log(`ajuste de ${peca} falhou: ${error.message}`); continue; }
+        await admin.from('jobs').update({ max_tentativas: 1 }).eq('id', job).eq('estado', 'na_fila');
+        lido.pedidos.push({ id: base.id, metade: 3, peca: `${peca} · ajuste`, marca: 'padaria', chave: `ajuste|${peca}` });
+        console.log(`ajuste de ${peca}: job ${job}`);
+      }
+      if (brutos[0]) {
+        const { data: id, error } = await sb.rpc('criar_pedido', { p_cliente: PADARIA, p_tipo: 'reel',
+          p_briefing: { texto: 'Um recado rápido pra quem acompanha a padaria', formato: 'bruto', anexo: brutos[0] } });
+        if (error) console.log(`reel falhou: ${error.message}`);
+        else {
+          await admin.from('jobs').update({ max_tentativas: 1 }).eq('pedido_id', id).eq('estado', 'na_fila');
+          lido.pedidos.push({ id, metade: 3, peca: 'reel do vídeo gravado', marca: 'padaria', chave: 'reel' });
+          console.log(`reel (com o vídeo de teste no balde): ${id}`);
+        }
+      } else console.log('sem vídeo gravado no balde da padaria: reel pulado');
+    } finally {
+      await soltar();
+      writeFileSync(registro, JSON.stringify(lido, null, 1) + '\n');
+    }
+    console.log('Agora ligue a fábrica: npm run fabrica:ligar');
+    return;
+  }
 
   const metade = Number(arg('--enfileirar'));
   const orcamento = Number(arg('--orcamento') ?? 5);
