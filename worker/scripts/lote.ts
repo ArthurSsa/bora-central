@@ -89,7 +89,17 @@ async function principal() {
   // --situacao: cada pedido do lote, o estado e o custo de todas as rodadas dele.
   if (process.argv.includes('--situacao')) {
     if (!lido.pedidos.length) { console.log(`Nenhum pedido no registro ${registro}.`); return; }
-    const { data: jobs } = await admin.from('jobs').select('pedido_id, estado, custo_usd, erro').in('pedido_id', lido.pedidos.map((p) => p.id));
+    const ids = lido.pedidos.map((p) => p.id);
+    // --esperar: só responde quando nenhum pedido do lote está na fila ou rodando (até 90 min).
+    if (process.argv.includes('--esperar')) {
+      const ate = Date.now() + 90 * 60_000;
+      for (;;) {
+        const { data } = await admin.from('jobs').select('estado').in('pedido_id', ids);
+        if ((data ?? []).every((j) => !['na_fila', 'rodando'].includes(j.estado)) || Date.now() > ate) break;
+        await new Promise((r) => setTimeout(r, 20_000));
+      }
+    }
+    const { data: jobs } = await admin.from('jobs').select('pedido_id, estado, custo_usd, erro').in('pedido_id', ids);
     let total = 0;
     console.log('| # | Peça | Marca | Estado | Custo | Motivo da falha |\n|---|---|---|---|---|---|');
     lido.pedidos.forEach((p, i) => {

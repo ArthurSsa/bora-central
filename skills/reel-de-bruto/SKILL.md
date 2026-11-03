@@ -51,14 +51,14 @@ O que já está pronto quando você começa (a fábrica faz antes de você):
    - `captions.export` `{"path": "<pasta do job>/saida/legendas.srt"}` — o
      cliente também recebe esse arquivo;
    - `captions.setTrack` `{"track": "C1", "enabled": false}` — a trilha de
-     legenda do FilmCraft desenha errado as fontes de marca;
-   - `legendas_da_marca` `{}`: desenha cada legenda na fonte e nas cores da
-     marca e devolve os arquivos com o tempo de cada um;
-   - `media_import` com todos os arquivos e `timeline.place` de cada um com
-     `{"track": "new"}` no primeiro e `"V2"` nos outros, `"seconds": <início>`,
-     `"duration": <(fim − início) em ticks>`.
+     legenda do FilmCraft desenha errado as fontes de marca.
 
-5. `command_run` `file.saveAs` `{"path": "<pasta do job>/editavel/reel.fcproj"}`.
+5. `command_run` `file.save` `{}` (salva os cortes, o zoom e as legendas
+   desligadas em `editavel/reel.fcproj`) e, em seguida, `legendas_no_video`
+   `{}`: a fábrica desenha cada legenda na fonte e nas cores da marca e põe
+   todas no vídeo de uma vez, no projeto salvo. Não importe nem posicione
+   legenda à mão, e **depois disto não mexa mais na linha do tempo nem salve
+   de novo**: o projeto aberto no seu FilmCraft ficou sem as legendas.
 
 6. `avisar_etapa` "preparando a prévia", 58, e `exportar_video` `{"previa": true}`.
    O cliente vê os 15 primeiros segundos enquanto o resto termina.
@@ -79,7 +79,11 @@ O que já está pronto quando você começa (a fábrica faz antes de você):
 ## Quando o pedido é um ajuste
 
 A versão anterior está em `entrada/anterior/reel.fcproj`. Abra com
-`command_run` `file.open`, mude só o que foi pedido ("mais curto": corte mais
-uma frase de pouco peso; "outra cor da marca": `legendas_da_marca` com o
-próximo conjunto e troque os PNGs da V2), salve em `editavel/reel.fcproj` e
-exporte prévia e completo de novo.
+`command_run` `file.open`, mude só o que foi pedido e salve com `file.saveAs`
+em `editavel/reel.fcproj`:
+- "mais curto": corte mais uma frase de pouco peso;
+- "outra cor da marca": tire as legendas antigas (`sequence.deleteTracks` nas
+  faixas de vídeo acima da V1), salve e chame `legendas_no_video` com o
+  próximo conjunto.
+
+Depois, exporte prévia e completo de novo.

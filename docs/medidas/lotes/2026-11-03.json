@@ -1,0 +1,59 @@
+{
+ "data": "2026-11-03",
+ "pedidos": [
+  {
+   "id": "2f1ea76d-7b28-4d50-be54-b502cb5aa70b",
+   "metade": 1,
+   "peca": "post com a pessoa",
+   "marca": "padaria"
+  },
+  {
+   "id": "d215d3d9-e90c-4326-8b84-46e0f38199d1",
+   "metade": 1,
+   "peca": "post com a pessoa",
+   "marca": "padaria"
+  },
+  {
+   "id": "b49820d8-efea-40f6-9d44-95f82505e92f",
+   "metade": 1,
+   "peca": "post com a pessoa",
+   "marca": "padaria"
+  },
+  {
+   "id": "87e2ee2e-f9ae-45c1-8149-ed36dbc86128",
+   "metade": 1,
+   "peca": "carrossel",
+   "marca": "padaria"
+  },
+  {
+   "id": "e158c5dd-ad2e-475e-8c01-4567b3f82d72",
+   "metade": 1,
+   "peca": "carrossel",
+   "marca": "Moacyr"
+  },
+  {
+   "id": "114757f1-66bb-4526-a648-de3b07d91f8a",
+   "metade": 1,
+   "peca": "carrossel",
+   "marca": "Virtuex"
+  },
+  {
+   "id": "e4576094-1a16-4f3b-9bee-8ad143a258b2",
+   "metade": 1,
+   "peca": "capa",
+   "marca": "padaria"
+  },
+  {
+   "id": "9700f305-2874-4e06-ae96-7c536fb0703e",
+   "metade": 1,
+   "peca": "capa",
+   "marca": "Moacyr"
+  },
+  {
+   "id": "6935d860-e407-4454-83cf-841506b9606c",
+   "metade": 1,
+   "peca": "capa",
+   "marca": "Virtuex"
+  }
+ ]
+}
