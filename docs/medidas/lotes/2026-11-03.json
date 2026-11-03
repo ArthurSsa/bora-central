@@ -54,6 +54,48 @@
    "metade": 1,
    "peca": "capa",
    "marca": "Virtuex"
+  },
+  {
+   "id": "e439ff5d-111f-4756-8ed5-ca9b28be0836",
+   "metade": 2,
+   "peca": "cartaz",
+   "marca": "padaria",
+   "chave": "cartaz|padaria|0"
+  },
+  {
+   "id": "b5175c2a-2872-47ba-8669-0de03dd80097",
+   "metade": 2,
+   "peca": "cartaz",
+   "marca": "Moacyr",
+   "chave": "cartaz|Moacyr|1"
+  },
+  {
+   "id": "a8d40e04-5c31-482f-8f43-4b93e98e88b4",
+   "metade": 2,
+   "peca": "cartaz",
+   "marca": "Virtuex",
+   "chave": "cartaz|Virtuex|2"
+  },
+  {
+   "id": "25b7fd18-bb9f-4b08-8589-ed899865265c",
+   "metade": 2,
+   "peca": "guia em PDF",
+   "marca": "padaria",
+   "chave": "guia em PDF|padaria|3"
+  },
+  {
+   "id": "9efccaa1-d82b-4046-b699-7c8108f9f8a2",
+   "metade": 2,
+   "peca": "guia em PDF",
+   "marca": "Moacyr",
+   "chave": "guia em PDF|Moacyr|4"
+  },
+  {
+   "id": "c79730cb-121b-40b3-852a-192b54589fdd",
+   "metade": 2,
+   "peca": "guia em PDF",
+   "marca": "Virtuex",
+   "chave": "guia em PDF|Virtuex|5"
   }
  ]
 }

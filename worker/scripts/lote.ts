@@ -62,7 +62,7 @@ export function pedidosDoLote(fotoDaPadaria: string | null): PedidoDoLote[] {
   ];
 }
 
-type Registro = { data: string; pedidos: Array<{ id: string; metade: number; peca: string; marca: string }> };
+type Registro = { data: string; pedidos: Array<{ id: string; metade: number; peca: string; marca: string; chave?: string }> };
 const hoje = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Fortaleza' });
 const arg = (nome: string) => { const i = process.argv.indexOf(nome); return i > 0 ? process.argv[i + 1] : null; };
 
@@ -133,8 +133,15 @@ async function principal() {
   if (naFila?.length) avisos.push(`há ${naFila.length} job(s) na fila ou rodando: entram antes do lote e somam no gasto`);
 
   const metade = Number(arg('--enfileirar'));
-  const escolhidos = metade === 1 || metade === 2 ? pedidos.filter((p) => p.metade === metade) : pedidos;
   const orcamento = Number(arg('--orcamento') ?? 5);
+  // Os da metade que ainda não foram pedidos; só entram quantos cabem no orçamento pelo pior caso
+  // (uma rodada no teto cada). O resto fica pra quando o gasto de verdade liberar espaço.
+  const chave = (p: { peca: string; marca: string }, i: number) => `${p.peca}|${p.marca}|${i}`;
+  const daMetade = pedidos.filter((p) => p.metade === metade).map((p, i) => ({ p, k: chave(p, i) }));
+  const pedidosAntes = new Set(lido.pedidos.filter((r) => r.metade === metade).map((r) => r.chave));
+  const faltam = daMetade.filter((x) => !pedidosAntes.has(x.k));
+  const cabem = Math.floor((orcamento + 1e-9) / cfg.tetoUsd);
+  const escolhidos = metade === 1 || metade === 2 ? faltam.slice(0, cabem) : [];
   const pior = escolhidos.length * cfg.tetoUsd;
   console.log(`Lote: ${pedidos.length} pedidos (${pedidos.filter((p) => p.metade === 1).length} na metade 1, ${pedidos.filter((p) => p.metade === 2).length} na metade 2).`);
   console.log(`Fábrica: ${ligada ? 'ligada' : 'desligada'} · teto por rodada US$ ${cfg.tetoUsd} · modelo ${cfg.modelo}.`);
@@ -149,18 +156,18 @@ async function principal() {
   if (problemas.length) throw new Error('não enfileiro com problema na conferência');
   if (!(metade === 1 || metade === 2)) throw new Error('diga qual metade: --enfileirar 1 ou --enfileirar 2');
   if (ligada) throw new Error('a fábrica está ligada: desligue (npm run fabrica:desligar), enfileire e ligue de novo — ligada, ela pega o pedido antes da tentativa única ser gravada');
-  if (pior > orcamento + 1e-9) throw new Error(`a metade ${metade} pode gastar até US$ ${pior.toFixed(2)} (${escolhidos.length} × ${cfg.tetoUsd}), e o orçamento é US$ ${orcamento.toFixed(2)}`);
-  const jaFeitos = lido.pedidos.filter((p) => p.metade === metade);
-  if (jaFeitos.length) throw new Error(`a metade ${metade} já foi enfileirada hoje (${jaFeitos.length} pedidos no registro)`);
+  if (!faltam.length) throw new Error(`a metade ${metade} já foi toda enfileirada (${pedidosAntes.size} pedidos no registro)`);
+  if (!escolhidos.length) throw new Error(`nenhum pedido cabe: o orçamento de US$ ${orcamento.toFixed(2)} não cobre uma rodada no teto (US$ ${cfg.tetoUsd})`);
+  if (escolhidos.length < faltam.length) console.log(`O orçamento cobre ${escolhidos.length} de ${faltam.length} pelo pior caso; o resto entra depois, com o que sobrar.`);
 
   const { sb, soltar } = await comoEquipe(admin, cfg.supabaseUrl);
   try {
-    for (const p of escolhidos) {
+    for (const { p, k } of escolhidos) {
       const { data: id, error } = await sb.rpc('criar_pedido', { p_cliente: p.cliente, p_tipo: p.tipo, p_briefing: p.briefing });
       if (error) { console.log(`falhou ao pedir ${p.peca} (${p.marca}): ${error.message}`); continue; }
       // Uma tentativa só: a fábrica está desligada, então o job ainda está na fila.
       await admin.from('jobs').update({ max_tentativas: 1 }).eq('pedido_id', id).eq('estado', 'na_fila');
-      lido.pedidos.push({ id, metade, peca: p.peca, marca: p.marca });
+      lido.pedidos.push({ id, metade, peca: p.peca, marca: p.marca, chave: k });
       console.log(`pedido ${p.peca} (${p.marca}): ${id}`);
     }
   } finally {
