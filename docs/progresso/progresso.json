@@ -1,0 +1,320 @@
+{
+  "atualizado": "2026-11-03T23:30:00-03:00",
+  "nota": "Espelho no repositório do registro do calendário (coleções progresso e diario). Criado na noite de 03/11.",
+  "tarefas": {
+    "1": {
+      "titulo": "Medir o custo real por pedido",
+      "passos": {
+        "1": "2026-11-03",
+        "2": "2026-11-03",
+        "3": "2026-11-03",
+        "4": "2026-11-03",
+        "5": "2026-11-03",
+        "6": "2026-11-03",
+        "7": "2026-11-03",
+        "8": "2026-11-03",
+        "9": "2026-11-03",
+        "10": "2026-11-03",
+        "11": "2026-11-03",
+        "12": "2026-11-03"
+      },
+      "feita": true,
+      "feitaEm": "2026-11-03",
+      "nota": [
+        "03/11 (Claude Code, noite): lote de 18 + 3 ajustes + 1 reel, 21 de 22 prontos, US$ 3,86; 33 rodadas somadas; meses US$ 4,07 / 10,22 / 18,26; pisos R$ 221 / 554 / 990. Falta: reels do Moacyr e do Arthur (sem bruto)."
+      ],
+      "arquivos": [
+        {
+          "nome": "custo-por-pedido.md",
+          "caminho": "docs/medidas/custo-por-pedido.md",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        },
+        {
+          "nome": "lote de 03/11",
+          "caminho": "docs/medidas/lotes/2026-11-03.json",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        }
+      ]
+    },
+    "3": {
+      "titulo": "Travar o nível de lucro de fevereiro",
+      "passos": {},
+      "feita": false,
+      "nota": [
+        "03/11 (Claude Code, noite): ADR 0002 escrito; N1 R$ 1.232, N2 com R$ 3.000 de pró-labore R$ 4.928 (8 contas), N3 R$ 9.240 (15 contas). Falta: a decisão do Arthur."
+      ],
+      "arquivos": [
+        {
+          "nome": "0002-nivel-de-lucro-fevereiro.md",
+          "caminho": "docs/adr/0002-nivel-de-lucro-fevereiro.md",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        }
+      ]
+    },
+    "4": {
+      "titulo": "Testar o gerador de imagem",
+      "passos": {},
+      "feita": false,
+      "nota": [
+        "03/11 (Claude Code, noite): preços pesquisados (Runware na frente) e npm run geradores pronto com teto. Falta: a chave do Runware e rodar o teste (~US$ 3,15)."
+      ],
+      "arquivos": [
+        {
+          "nome": "geradores-precos.md",
+          "caminho": "docs/medidas/geradores-precos.md",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        },
+        {
+          "nome": "geradores.ts",
+          "caminho": "worker/scripts/geradores.ts",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        }
+      ]
+    },
+    "5": {
+      "titulo": "Lista curta de nomes para o software",
+      "passos": {},
+      "feita": false,
+      "nota": [
+        "03/11 (Claude Code, noite): 15 nomes com .com.br livre de 70 testados; top 5 Postinha, Tá Caprichado, Vitrineira, Faiscaí, Ficou Lindo. Falta: conferir o arroba."
+      ],
+      "arquivos": [
+        {
+          "nome": "lista-de-nomes.md",
+          "caminho": "docs/progresso/dias/2026-11-03/t05-nomes/lista-de-nomes.md",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        }
+      ]
+    },
+    "6": {
+      "titulo": "Testar o gerador de vídeo",
+      "passos": {},
+      "feita": false,
+      "nota": [
+        "03/11 (Claude Code, noite): Kling 2.5 Turbo Pro pelo Runware (US$ 0,35 por clipe de 5 s, preço publicado); o script roda os 3 clipes. Falta: a chave."
+      ],
+      "arquivos": [
+        {
+          "nome": "geradores-precos.md",
+          "caminho": "docs/medidas/geradores-precos.md",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        }
+      ]
+    },
+    "8": {
+      "titulo": "Imagem gerada vira objeto",
+      "passos": {},
+      "feita": false,
+      "nota": [
+        "03/11 (Claude Code, noite): worker/src/objeto.ts com recorte, vetor e recolor pela paleta, com teste. Falta: medir com 10 imagens do gerador (meta 7 de 10)."
+      ],
+      "arquivos": [
+        {
+          "nome": "objeto.ts",
+          "caminho": "worker/src/objeto.ts",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        }
+      ]
+    },
+    "9": {
+      "titulo": "Preço e níveis travados",
+      "passos": {},
+      "feita": false,
+      "nota": [
+        "03/11 (Claude Code, noite): proposta R$ 297 / 697 / 1.490, IA de 8,6 % a 9,1 % com a geração, margem ~81 %. Falta: a decisão e a página de venda."
+      ],
+      "arquivos": [
+        {
+          "nome": "proposta.md",
+          "caminho": "docs/progresso/dias/2026-11-03/t09-preco-e-niveis/proposta.md",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        }
+      ]
+    },
+    "10": {
+      "titulo": "CNPJ e conta para receber",
+      "passos": {},
+      "feita": false,
+      "nota": [
+        "03/11 (Claude Code, noite): checklist; não dá MEI, ME no Simples (6 % ou 15,5 %); 10 perguntas pro contador; Asaas sem mensalidade. Falta: contador, Redesim, Asaas."
+      ],
+      "arquivos": [
+        {
+          "nome": "checklist-cnpj-e-asaas.md",
+          "caminho": "docs/progresso/dias/2026-11-03/t10-cnpj/checklist-cnpj-e-asaas.md",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        }
+      ]
+    },
+    "11": {
+      "titulo": "Arquitetura do sistema novo (ADR)",
+      "passos": {},
+      "feita": true,
+      "feitaEm": "2026-11-03",
+      "nota": [
+        "03/11 (Claude Code, noite): ADR 0003; v2 em app/ neste repositório; Konva; esquema v2 desenhado. Falta: o Arthur aprovar o esquema antes da migração."
+      ],
+      "arquivos": [
+        {
+          "nome": "0003-arquitetura-v2.md",
+          "caminho": "docs/adr/0003-arquitetura-v2.md",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        }
+      ]
+    },
+    "12": {
+      "titulo": "Moacyr: contrato ou caso público",
+      "passos": {},
+      "feita": false,
+      "nota": [
+        "03/11 (Claude Code, noite): duas propostas em rascunho (parceiro R$ 597 por 6 meses; caso público com 2 meses sem custo). Nada mandado. Falta: escolher e mandar."
+      ],
+      "arquivos": [
+        {
+          "nome": "moacyr-duas-propostas.md",
+          "caminho": "docs/progresso/rascunhos/2026-11-03/moacyr-duas-propostas.md",
+          "tipo": "repo",
+          "data": "2026-11-03",
+          "por": "Claude Code (noite)"
+        }
+      ]
+    }
+  },
+  "remarcadas": [],
+  "custos": {
+    "medidoEm": "2026-11-03",
+    "cambio": {
+      "brl_por_usd": 5.4212,
+      "fonte": "PTAX 30/10/2026"
+    },
+    "por_peca_usd": {
+      "post": 0.17,
+      "post com a pessoa": 0.12,
+      "carrossel": 0.28,
+      "capa": 0.19,
+      "cartaz": 0.1,
+      "guia": 0.09,
+      "abertura": 0.2,
+      "reel": 0.41,
+      "ajuste": 0.21
+    },
+    "mes_usd": {
+      "leve": 4.07,
+      "tipico": 10.22,
+      "pesado": 18.26
+    },
+    "piso_brl": {
+      "autonomo": 221,
+      "acompanhado": 554,
+      "feito_para_voce": 990
+    },
+    "gasto_da_noite_usd": 3.86
+  },
+  "conclusoes": [
+    {
+      "titulo": "Custo de IA por peça",
+      "texto": "Post US$ 0,17, carrossel 0,28, reel 0,41, ajuste 0,21; 33 rodadas."
+    },
+    {
+      "titulo": "Os pisos de preço",
+      "texto": "R$ 221 / 554 / 990 só com o Claude; R$ 270 / 742 / 1.337 com a geração."
+    },
+    {
+      "titulo": "Empresa",
+      "texto": "Não dá MEI; ME no Simples, 6 % com Fator R ou 15,5 %."
+    },
+    {
+      "titulo": "Fevereiro",
+      "texto": "Fixo ≈ R$ 612/mês; N2 com R$ 3.000 pede R$ 4.928/mês (8 contas)."
+    }
+  ],
+  "decisoes": [
+    {
+      "tarefa": 3,
+      "decisao": "Nível de lucro e pró-labore (ADR 0002)",
+      "prazo": "2026-11-04",
+      "de": "Arthur"
+    },
+    {
+      "tarefa": 9,
+      "decisao": "Preço dos três níveis",
+      "prazo": "2026-11-04",
+      "de": "Arthur"
+    },
+    {
+      "tarefa": 7,
+      "decisao": "Nome final, arroba e compra do domínio",
+      "prazo": "2026-11-04",
+      "de": "Arthur"
+    },
+    {
+      "tarefa": 4,
+      "decisao": "Conta e chave do Runware (e do fal.ai)",
+      "prazo": "2026-11-04",
+      "de": "Arthur"
+    },
+    {
+      "tarefa": 10,
+      "decisao": "Conversa com o contador",
+      "prazo": "2026-11-05",
+      "de": "Arthur"
+    },
+    {
+      "tarefa": 12,
+      "decisao": "Proposta do Moacyr",
+      "prazo": "2026-11-06",
+      "de": "Arthur"
+    },
+    {
+      "tarefa": 11,
+      "decisao": "Aprovar o esquema v2 e despausar o bora-estudio na Vercel",
+      "prazo": "2026-11-09",
+      "de": "Arthur"
+    }
+  ],
+  "diario": [
+    {
+      "data": "2026-11-03",
+      "por": "Claude Code (noite)",
+      "resumo": "Custo por pedido medido: 22 rodadas novas, 21 prontas, US$ 3,86; meses US$ 4,07 / 10,22 / 18,26 e pisos R$ 221 / 554 / 990.\nMarca completa custa o dobro da vazia; reel em US$ 0,43.\nFila B em rascunho: ADR 0002 (N2, R$ 4.928/mês), preço R$ 297 / 697 / 1.490, CNPJ (ME no Simples), 15 nomes, duas propostas pro Moacyr.\nFalta: chave do Runware, decisões do Arthur (nível, preço, nome, Moacyr).",
+      "tarefas": [
+        1,
+        3,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "arquivos": [
+        "docs/progresso/diario/2026-11-03.md",
+        "docs/progresso/noite/2026-11-03.md"
+      ]
+    }
+  ]
+}
