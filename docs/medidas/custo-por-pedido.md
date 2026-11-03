@@ -14,6 +14,73 @@
 - **O que conta como falha:** o job que termina `falhou` (reprovado na conferência, passou do teto ou o agente parou). O custo dele entra na média do tipo, porque é dinheiro gasto. O motivo vai na tabela.
 - **O que não conta:** nada é refeito pra "dar certo". Uma falha é um resultado.
 
+## Lote de 03/11: resultado
+
+- **18 pedidos do lote + 3 ajustes em texto livre + 1 reel:** 21 de 22 prontos, **US$ 3,86** no total, dentro do teto do bloco (US$ 5 no lote) e da noite (US$ 8).
+- **A única falha:** a abertura animada da Virtuex, a marca sem nada cadastrado. A conferência reprovou porque o texto saiu da área segura do Instagram aos 9,9 s. A falha é da peça, não da medida: o custo dela (US$ 0,09) entra na média.
+- **Os ids de cada pedido** estão em `docs/medidas/lotes/2026-11-03.json`. Nada foi publicado; tudo está "para aprovar".
+
+### Custo por tipo com o Claude, com as medidas de 27/10 e 03/11 somadas (`npm run custos`)
+
+| Peça | n | Média | Mínimo | Máximo | Até ficar pronta |
+|---|---|---|---|---|---|
+| post | 2 | US$ 0,17 | 0,16 | 0,19 | 0,8 min |
+| post com a pessoa | 4 | US$ 0,12 | 0,11 | 0,14 | 0,7 min |
+| carrossel de 5 | 4 | US$ 0,28 | 0,21 | 0,33 | 1,5 min |
+| capa (3 opções) | 4 | US$ 0,19 | 0,14 | 0,23 | 1,0 min |
+| cartaz A4 | 4 | US$ 0,10 | 0,05 | 0,15 | 0,4 min |
+| guia em PDF | 4 | US$ 0,09 | 0,06 | 0,12 | 0,4 min |
+| abertura animada | 4 | US$ 0,20 | 0,09 | 0,28 | 1,1 min |
+| reel do vídeo gravado | 2 | US$ 0,41 | 0,39 | 0,43 | 2,6 min |
+| ajuste em texto livre (post, post com a pessoa, carrossel, capa) | 4 | US$ 0,21 | 0,13 | 0,32 | 1,0 min |
+
+O post simples ficou com n = 2, porque não entrou no lote (já tinha 2). O reel de 0,39 é o que falhou em 27/10 antes da correção, e o de 0,43 é o de hoje.
+
+### A marca muda o custo
+
+Média do carrossel, da capa, do cartaz, do guia e da abertura em cada marca:
+
+| Marca | Média |
+|---|---|
+| padaria: Manrope, 3 conjuntos, logo vetorial | US$ 0,21 |
+| Moacyr: Anton, 3 conjuntos, sem logo | US$ 0,15 |
+| Virtuex: sem marca | US$ 0,11 |
+
+Uma marca completa custa o dobro de uma vazia, porque o agente tem mais regra pra seguir: o logo em duas versões, os conjuntos, os obrigatórios. Pro preço, vale o custo da marca completa, porque é o que o cliente pagante vai ter.
+
+### O reel com as legendas de uma vez
+
+A ferramenta nova (`legendas_no_video`) funcionou: o reel saiu pronto e conferido, e a saída do Claude caiu de 20 mil pra 6,4 mil tokens. O custo, porém, ficou em **US$ 0,43**, acima da meta de US$ 0,30. Agora o que pesa é a releitura do contexto: 533 mil tokens lidos de cache em 24 passos, porque o catálogo de comandos do FilmCraft vem inteiro a cada passo. A próxima alavanca é dar ao agente o FilmCraft com o catálogo enxuto (o servidor tem um modo `--compact`) e juntar os passos de corte numa ferramenta da fábrica, como foi feito com as legendas.
+
+### Os três meses (passo 10)
+
+Cada peça leva um ajuste em texto livre, a US$ 0,21. O câmbio é a **PTAX de 30/10/2026: R$ 5,4212** por dólar ([Banco Central, SGS série 1](https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/5?formato=json)); a de 03/11 ainda não tinha saído, e 02/11 foi feriado.
+
+| Mês | Peças | IA em US$ | IA em R$ |
+|---|---|---|---|
+| leve: 8 posts, 2 carrosséis | 10 | 4,07 | 22,09 |
+| típico: 12 posts, 4 carrosséis, 4 reels, 2 capas, 1 cartaz | 23 | 10,22 | 55,41 |
+| pesado: 20 posts, 8 carrosséis, 8 reels, 4 capas | 40 | 18,26 | 99,01 |
+
+### O preço mínimo por nível (passo 12): IA até 10% do preço
+
+| Nível | Mês que ele cobre | Piso do preço |
+|---|---|---|
+| Autônomo | leve | **R$ 221** |
+| Acompanhado | típico | **R$ 554** |
+| Feito para você | pesado | **R$ 990** |
+
+O piso de 28/10 era R$ 217 / 466 / 722. Ele subiu por três motivos:
+- o ajuste ficou mais caro com n = 4 (US$ 0,21 contra 0,13);
+- o reel entrou com o custo real (US$ 0,41);
+- o câmbio subiu (R$ 5,42 contra R$ 5,33).
+
+**Ainda fora desta conta:** a geração de imagem e de vídeo do v2 (uns US$ 0,09 por post com imagem gerada; uns US$ 0,70 por vídeo com 2 clipes; ver `docs/medidas/geradores-precos.md`), os impostos (6% ou 15,5% do faturamento; ver o checklist da tarefa 10) e o custo fixo.
+
+### O que o banco não tem
+
+O reel medido com o Claude em 27/10 (US$ 1,03, no cliente de teste) e a tentativa de US$ 0,13 antes dele **não estão mais no banco**: o teste de ponta a ponta apaga os pedidos do cliente de teste quando começa, e rodou logo depois. Os "reels com custo zero" de 27/10 que aparecem no banco são rodadas do teste, pelo roteiro, sem Claude. Por isso a análise de 28/10, feita só pelo banco, achou US$ 2,06 e não US$ 2,22. **Regra daqui em diante:** medição nunca no cliente de teste.
+
 - **Medido em:** 27/10/2026, na fábrica do PC, com o Claude Opus 5.5 e teto de US$ 0,50 por rodada
 - **Como refazer:** `cd worker && npm run custos` (lê `jobs` e `job_eventos`; não gasta nada)
 - **Gasto deste bloco:** US$ 2,22, acima do teto de US$ 2 combinado: o reel medido depois da correção ia ter uma tentativa só, mas a fábrica pegou o pedido antes de a mudança entrar e fez duas (US$ 1,03)
