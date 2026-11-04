@@ -16,7 +16,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { servidorMcp } from './apps.ts';
 import { abrirMcp } from './mcp-cru.ts';
-import { desenharLegendas, escalaQueCobre, exportarReel, lerSrt, lerTranscricao, somDoReel, trechosACortar } from './reel.ts';
+import { escalaQueCobre, exportarReel, legendasNoProjeto, lerTranscricao, somDoReel, trechosACortar } from './reel.ts';
 import { TICKS_POR_SEGUNDO, listar, sondar } from './video.ts';
 import { montarCenaDoPedido, renderizarDoPedido } from './motion.ts';
 import { CUSTO_ZERO, FalhaDoAgente, salvarTexto, type Agente, type ParametrosAgente } from './agente.ts';
@@ -309,16 +309,12 @@ async function reelDeBruto(x: Contexto) {
     await cmd('transcript.createCaptions', { maxChars: 18, lines: 1, minSeconds: 0.5, maxSeconds: 2.2 });
     await cmd('captions.export', { path: path.join(p.pastaJob, 'saida', 'legendas.srt') });
     await cmd('captions.setTrack', { track: 'C1', enabled: false });
-    const legendas = lerSrt(readFileSync(path.join(p.pastaJob, 'saida', 'legendas.srt'), 'utf8'));
-    const pngs = await desenharLegendas(p.pastaJob, legendas, { fonte: p.dados.fonte, peso: p.dados.pesos.titulo, conjunto: c, impacto: p.dados.impacto });
-    const { items: imagens } = await fcPasso('media_import', { paths: pngs });
-    for (const [k, l] of legendas.entries()) {
-      await cmd('timeline.place', { item: imagens[k], track: k === 0 ? 'new' : 'V2', seconds: l.inicio, duration: Math.round((l.fim - l.inicio) * TICKS_POR_SEGUNDO) });
-    }
+    // Salva os cortes e o zoom; as legendas entram de uma vez no projeto salvo (o mesmo caminho do agente).
     await cmd('file.saveAs', { path: projeto });
   } finally {
     fc.fechar();
   }
+  await legendasNoProjeto(p.pastaJob, { fonte: p.dados.fonte, peso: p.dados.pesos.titulo, conjunto: c, impacto: p.dados.impacto });
 
   await p.aoMudarEtapa({ etapa: 'cuidando do som', progresso: 52 });
   somDoReel(p);
