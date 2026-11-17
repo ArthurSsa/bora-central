@@ -19,7 +19,7 @@ import type { ParametrosAgente } from './agente.ts';
 import type { Conjunto } from './marca.ts';
 import { abrirMcp } from './mcp-cru.ts';
 import { mixarSom, prepararTrilha, trechosDeFala, zipar, type Mixagem } from './som.ts';
-import { lerWav, listar, sondar, transcricaoParaFilmCraft, type Palavra, type Sonda } from './video.ts';
+import { lerWav, listar, sondar, TICKS_POR_SEGUNDO, transcricaoParaFilmCraft, type Palavra, type Sonda } from './video.ts';
 
 // ---------- o projeto pronto pra editar ----------
 
@@ -63,6 +63,38 @@ export async function prepararProjetoDoReel(pastaJob: string): Promise<{ projeto
   } finally {
     fc.fechar();
   }
+}
+
+/**
+ * As legendas de saida/legendas.srt, desenhadas na marca, postas no vídeo de
+ * uma vez: abre editavel/reel.fcproj (salvo antes, com os cortes e o zoom),
+ * importa os PNGs, põe cada um no tempo dele por cima do vídeo e salva. Antes,
+ * o agente fazia isso com um comando por legenda — era a maior parte do custo
+ * do reel. Quem chama não mexe mais na linha do tempo depois disto: o projeto
+ * aberto dele ficou pra trás; o arquivo salvo é o que vale pra exportar.
+ */
+export async function legendasNoProjeto(pastaJob: string, estilo: EstiloDeLegenda): Promise<{ legendas: number }> {
+  const projeto = path.join(pastaJob, PROJETO_DO_REEL);
+  if (!existsSync(projeto)) throw new Error('salve o projeto antes (file.save): editavel/reel.fcproj não existe');
+  const legendas = lerSrt(readFileSync(path.join(pastaJob, 'saida', 'legendas.srt'), 'utf8'));
+  if (!legendas.length) throw new Error('saida/legendas.srt está vazia: rode transcript.createCaptions e captions.export antes');
+  const pngs = await desenharLegendas(pastaJob, legendas, estilo);
+  const fc = await abrirMcp(servidorMcp('filmcraft', pastaJob));
+  const chamar = async (ferramenta: string, args: Record<string, unknown> = {}) => {
+    const r = await fc.chamar(ferramenta, args);
+    if (r.erro) throw new Error(`FilmCraft ${ferramenta} ${String(args.id ?? '')}: ${r.texto}`);
+    return r.texto ? JSON.parse(r.texto) : null;
+  };
+  try {
+    const { items } = await chamar('media_import', { paths: pngs });
+    for (const [k, l] of legendas.entries()) {
+      await chamar('command_run', { id: 'timeline.place', params: { item: items[k], track: k === 0 ? 'new' : 'V2', seconds: l.inicio, duration: Math.round((l.fim - l.inicio) * TICKS_POR_SEGUNDO) } });
+    }
+    await chamar('command_run', { id: 'file.saveAs', params: { path: projeto } });
+  } finally {
+    fc.fechar();
+  }
+  return { legendas: legendas.length };
 }
 
 // ---------- o que cortar ----------

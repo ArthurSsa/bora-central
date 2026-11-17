@@ -72,6 +72,8 @@ Teste de 30/10 entre Runware e fal.ai, com os mesmos 20 pedidos em 3 estilos (fl
 
 ### D6. O app novo nasce num projeto novo do Vercel
 
+> **Substituída em 03/11 pelo ADR 0003, seção 3:** o v2 fica dentro do projeto atual, sem projeto novo (decisão do Arthur).
+
 `app/` com Vite, React 18, TypeScript, Zustand, react-konva e Supabase JS (link mágico, Realtime). Proposta: um projeto Vercel novo (`bora-v2`, root `app/`) durante o desenvolvimento. O `bora-app` e o `bora-central` continuam servindo os clientes atuais sem risco. Na migração de 21 e 22/12, o domínio do `bora-app` passa a apontar para o v2. Trocar o root do `bora-app` agora derrubaria o app que está no ar.
 
 ### D7. Quem é quem

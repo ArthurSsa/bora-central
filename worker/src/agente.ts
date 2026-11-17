@@ -8,8 +8,8 @@ import { query, createSdkMcpServer, tool, type HookCallback, type McpServerConfi
 import { z } from 'zod';
 import { servidorMcp, prefixoFerramentas, ferramentasBloqueadas } from './apps.ts';
 import type { Config } from './config.ts';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { desenharLegendas, exportarReel, lerSrt, somDoReel } from './reel.ts';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { exportarReel, legendasNoProjeto, somDoReel } from './reel.ts';
 import { montarCenaDoPedido, projetoDoMotion, renderizarDoPedido } from './motion.ts';
 import { cartazDoPedido } from './vetor.ts';
 import { materialDoPedido } from './diagramacao.ts';
@@ -155,17 +155,19 @@ export const rodarAgente: Agente = async (p) => {
       // mal e caro: desenhar trinta legendas iguais, e exportar — que pelo MCP
       // do FilmCraft não anda.
       tool(
-        'legendas_da_marca',
-        'Desenha as legendas de saida/legendas.srt como PNGs transparentes 1080×1920 na fonte, peso e cores da marca (o FilmCraft desenha errado as fontes de marca). Devolve cada arquivo com o tempo, pra você importar e pôr numa trilha de vídeo por cima.',
+        'legendas_no_video',
+        'Salve o projeto antes (command_run file.save). Desenha as legendas de saida/legendas.srt na fonte, no peso e nas cores da marca (o FilmCraft desenha errado as fontes de marca) e põe TODAS no vídeo de uma vez, por cima, cada uma no tempo dela, no projeto salvo editavel/reel.fcproj. Depois disto não mexa mais na linha do tempo e não salve de novo (o projeto aberto no seu FilmCraft ficou sem as legendas): vá direto pro exportar_video.',
         { conjunto: z.string().optional().describe('Nome do conjunto de cor; sem ele, o da peça.') },
         async ({ conjunto }) => {
+          const t = performance.now();
           try {
             const c = p.dados.conjuntos.find((x) => x.nome === conjunto) ?? p.dados.conjunto;
-            const legendas = lerSrt(readFileSync(path.join(p.pastaJob, 'saida', 'legendas.srt'), 'utf8'));
-            const pngs = await desenharLegendas(p.pastaJob, legendas, { fonte: p.dados.fonte, peso: p.dados.pesos.titulo, conjunto: c, impacto: p.dados.impacto });
-            return { content: [{ type: 'text', text: JSON.stringify(legendas.map((l, i) => ({ arquivo: pngs[i], inicio: l.inicio, fim: l.fim }))) }] };
+            const r = await legendasNoProjeto(p.pastaJob, { fonte: p.dados.fonte, peso: p.dados.pesos.titulo, conjunto: c, impacto: p.dados.impacto });
+            return { content: [{ type: 'text', text: `${r.legendas} legendas no vídeo, projeto salvo. Agora exportar_video (prévia e depois o completo).` }] };
           } catch (e) {
             return { content: [{ type: 'text', text: (e as Error).message }], isError: true };
+          } finally {
+            renderMs += performance.now() - t;
           }
         },
       ),

@@ -82,13 +82,13 @@ async function principal() {
     grupos.set(chave, [...(grupos.get(chave) ?? []), j]);
   }
 
-  linhas.push('## Por peça', '', '| Peça | Com | Rodadas | Custo médio | Custo máximo | Tokens de saída (média) | Tempo nos apps | Até ficar pronta | Falhou |', '|---|---|---|---|---|---|---|---|---|');
+  linhas.push('## Por peça', '', '| Peça | Com | Rodadas | Custo médio | Mínimo | Máximo | Tokens de saída (média) | Tempo nos apps | Até ficar pronta | Falhou |', '|---|---|---|---|---|---|---|---|---|---|');
   const custoMedio = new Map<string, number>();
   for (const [chave, js] of [...grupos].sort((a, b) => a[0].localeCompare(b[0], 'pt'))) {
     const [peca, quem] = chave.split('|');
     const custos = js.map((j) => Number(j.custo_usd));
     if (quem === 'claude') custoMedio.set(peca, media(custos));
-    linhas.push(`| ${peca} | ${quem === 'claude' ? 'Claude' : 'sem modelo'} | ${js.length} | ${usd(media(custos))} | ${usd(Math.max(...custos))} | ${Math.round(media(js.map((j) => Number(j.tokens_saida))))} | ${media(js.map((j) => Number(j.render_segundos))).toFixed(1)} s | ${media(js.map(minutos)).toFixed(1)} min | ${js.filter((j) => j.estado === 'falhou').length} |`);
+    linhas.push(`| ${peca} | ${quem === 'claude' ? 'Claude' : 'sem modelo'} | ${js.length} | ${usd(media(custos))} | ${usd(Math.min(...custos))} | ${usd(Math.max(...custos))} | ${Math.round(media(js.map((j) => Number(j.tokens_saida))))} | ${media(js.map((j) => Number(j.render_segundos))).toFixed(1)} s | ${media(js.map(minutos)).toFixed(1)} min | ${js.filter((j) => j.estado === 'falhou').length} |`);
   }
 
   // O tempo por app, só nas rodadas com o Claude (as do roteiro são testes).
